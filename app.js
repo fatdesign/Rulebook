@@ -1209,70 +1209,87 @@ document.addEventListener("DOMContentLoaded", () => {
         // --- Monthly Overview ---
         const monthlyContainer = document.getElementById("monthly-overview-container");
         if(monthlyContainer) {
-            monthlyContainer.innerHTML = '<div id="monthly-overview-content" style="transform-origin: top center; width: 100%;"></div>';
-            const innerContainer = document.getElementById("monthly-overview-content");
-            const years = [...new Set(Object.keys(monthlyProfit).map(k => parseInt(k.split('-')[0])))].sort((a,b) => b - a);
+            const cacheKey = trades.length + "_" + curSym;
             
-            const monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
-            
-            const now = new Date();
-            const currY = now.getFullYear();
-            const currM = now.getMonth();
-            
-            years.forEach(year => {
-                const yearDiv = document.createElement("div");
-                yearDiv.className = "monthly-year-group";
-                yearDiv.innerHTML = `<div class="monthly-year-title">${year}</div><div class="monthly-grid"></div>`;
-                const grid = yearDiv.querySelector(".monthly-grid");
+            if (monthlyContainer.dataset.cacheKey !== cacheKey) {
+                monthlyContainer.innerHTML = '<div id="monthly-overview-content" style="transform-origin: top center; width: 100%;"></div>';
+                const innerContainer = document.getElementById("monthly-overview-content");
+                const years = [...new Set(Object.keys(monthlyProfit).map(k => parseInt(k.split('-')[0])))].sort((a,b) => b - a);
                 
-                for(let m = 0; m < 12; m++) {
-                    const mKey = `${year}-${m}`;
-                    if(monthlyProfit[mKey] !== undefined) {
-                        const val = monthlyProfit[mKey];
-                        const isCurrent = (year === currY && m === currM);
-                        const isActive = (mKey === currentTimeframe);
-                        const cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
-                        const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
-                        grid.innerHTML += `
-                            <div class="month-card clickable-month ${cls} ${isCurrent ? 'current' : ''} ${isActive ? 'active-month' : ''}" data-month="${mKey}">
-                                <span class="m-name">${monthNames[m]} ${year}</span>
-                                <span class="m-val">${displayVal}</span>
-                            </div>
-                        `;
+                const monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+                
+                const now = new Date();
+                const currY = now.getFullYear();
+                const currM = now.getMonth();
+                
+                years.forEach(year => {
+                    const yearDiv = document.createElement("div");
+                    yearDiv.className = "monthly-year-group";
+                    yearDiv.innerHTML = `<div class="monthly-year-title">${year}</div><div class="monthly-grid"></div>`;
+                    const grid = yearDiv.querySelector(".monthly-grid");
+                    
+                    for(let m = 0; m < 12; m++) {
+                        const mKey = `${year}-${m}`;
+                        if(monthlyProfit[mKey] !== undefined) {
+                            const val = monthlyProfit[mKey];
+                            const isCurrent = (year === currY && m === currM);
+                            const cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
+                            const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
+                            grid.innerHTML += `
+                                <div class="month-card clickable-month ${cls} ${isCurrent ? 'current' : ''}" data-month="${mKey}">
+                                    <span class="m-name">${monthNames[m]} ${year}</span>
+                                    <span class="m-val">${displayVal}</span>
+                                </div>
+                            `;
+                        }
                     }
-                }
-                if(grid.innerHTML !== "") {
-                    innerContainer.appendChild(yearDiv);
-                }
-            });
-            
-            // Add click listeners to month cards
-            innerContainer.querySelectorAll(".clickable-month").forEach(card => {
-                card.addEventListener("click", () => {
-                    const mKey = card.getAttribute("data-month");
-                    currentTimeframe = mKey;
-                    
-                    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-                    
-                    const monthSel = document.getElementById("month-selector");
-                    if (monthSel) monthSel.value = mKey;
-                    
-                    const key = localStorage.getItem("tm_license_key");
-                    if (key) loadDashboard(key);
+                    if(grid.innerHTML !== "") {
+                        innerContainer.appendChild(yearDiv);
+                    }
                 });
-            });
+                
+                // Add click listeners to month cards
+                innerContainer.querySelectorAll(".clickable-month").forEach(card => {
+                    card.addEventListener("click", () => {
+                        const mKey = card.getAttribute("data-month");
+                        currentTimeframe = mKey;
+                        
+                        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+                        
+                        const monthSel = document.getElementById("month-selector");
+                        if (monthSel) monthSel.value = mKey;
+                        
+                        const key = localStorage.getItem("tm_license_key");
+                        if (key) loadDashboard(key);
+                    });
+                });
+                
+                // Auto-scale content to fit container height
+                setTimeout(() => {
+                    const cHeight = monthlyContainer.clientHeight || 460;
+                    const iHeight = innerContainer.scrollHeight;
+                    if (iHeight > cHeight && iHeight > 0) {
+                        const scale = (cHeight - 10) / iHeight; // slightly smaller than max to leave a tiny gap
+                        innerContainer.style.transform = `scale(${scale})`;
+                    } else {
+                        innerContainer.style.transform = `scale(1)`;
+                    }
+                }, 50);
+                
+                monthlyContainer.dataset.cacheKey = cacheKey;
+            }
             
-            // Auto-scale content to fit container height
-            setTimeout(() => {
-                const cHeight = monthlyContainer.clientHeight || 460;
-                const iHeight = innerContainer.scrollHeight;
-                if (iHeight > cHeight && iHeight > 0) {
-                    const scale = (cHeight - 10) / iHeight; // slightly smaller than max to leave a tiny gap
-                    innerContainer.style.transform = `scale(${scale})`;
-                } else {
-                    innerContainer.style.transform = `scale(1)`;
-                }
-            }, 50);
+            // ALWAYS UPDATE ACTIVE CLASS
+            const innerContainer = document.getElementById("monthly-overview-content");
+            if (innerContainer) {
+                innerContainer.querySelectorAll(".clickable-month").forEach(card => {
+                    if (card.getAttribute("data-month") === currentTimeframe) {
+                        card.classList.add("active-month");
+                    } else {
+                        card.classList.remove("active-month");
+                    }
+                });
+            }
         }
         
         // --- Daily Calendar ---
