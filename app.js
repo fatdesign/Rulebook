@@ -19,11 +19,12 @@ const i18n = {
         kpi_winrate: "Gewinnrate",
         kpi_trades: "Gesamt Trades",
         kpi_pf: "Profit Faktor",
-        kpi_payoff: "Payoff Ratio",
+        kpi_edge: "Long vs. Short",
         kpi_hold_win: "Ø Haltezeit (Gewinner)",
         kpi_hold_loss: "Ø Haltezeit (Verlierer)",
         kpi_drawdown: "Max Drawdown",
         chart_title: "Kapitalkurve",
+        chart_symbols: "Symbol Performance",
         trade_list_title: "Letzte Trades (Gefiltert)",
         profile_title: "Trader Profil",
         profile_sub: "Vor der KI-Analyse einstellen",
@@ -64,11 +65,12 @@ const i18n = {
         kpi_winrate: "Win Rate",
         kpi_trades: "Total Trades",
         kpi_pf: "Profit Factor",
-        kpi_payoff: "Payoff Ratio",
+        kpi_edge: "Long vs. Short Edge",
         kpi_hold_win: "Avg Hold (Win)",
         kpi_hold_loss: "Avg Hold (Loss)",
         kpi_drawdown: "Max Drawdown",
         chart_title: "Equity Curve",
+        chart_symbols: "Symbol Performance",
         trade_list_title: "Recent Trades (Filtered)",
         profile_title: "Trader Profile",
         profile_sub: "Set this before asking the AI",
@@ -109,11 +111,12 @@ const i18n = {
         kpi_winrate: "Tasa de Acierto",
         kpi_trades: "Total",
         kpi_pf: "Factor de Beneficio",
-        kpi_payoff: "Ratio Payoff",
+        kpi_edge: "Long vs. Short",
         kpi_hold_win: "Duración Media (Gana)",
         kpi_hold_loss: "Duración Media (Pierde)",
         kpi_drawdown: "Drawdown Máximo",
         chart_title: "Curva de Capital",
+        chart_symbols: "Rendimiento del Símbolo",
         trade_list_title: "Operaciones Recientes",
         profile_title: "Perfil de Trader",
         profile_sub: "Configura antes de consultar",
@@ -154,11 +157,12 @@ const i18n = {
         kpi_winrate: "Kazanma Oranı",
         kpi_trades: "Toplam İşlem",
         kpi_pf: "Kar Faktörü",
-        kpi_payoff: "Ödül Oranı",
+        kpi_edge: "Long vs. Short",
         kpi_hold_win: "Ort. Süre (Kazanç)",
         kpi_hold_loss: "Ort. Süre (Kayıp)",
         kpi_drawdown: "Maks. Düşüş",
         chart_title: "Sermaye Eğrisi",
+        chart_symbols: "Sembol Performansı",
         trade_list_title: "Son İşlemler (Filtrelenmiş)",
         profile_title: "Trader Profili",
         profile_sub: "Yapay zekaya sormadan önce ayarlayın",
@@ -460,6 +464,75 @@ document.addEventListener("DOMContentLoaded", () => {
         errorMsg.classList.remove("hidden");
     }
 
+    let symbolChartInstance = null;
+    function renderSymbolChart(symbolProfits, curSym) {
+        const ctx = document.getElementById('symbolChart').getContext('2d');
+        if (symbolChartInstance) symbolChartInstance.destroy();
+        
+        // Sort symbols by absolute profit (descending) so biggest movers are at the top
+        const sortedSymbols = Object.keys(symbolProfits).sort((a, b) => Math.abs(symbolProfits[b]) - Math.abs(symbolProfits[a]));
+        
+        const labels = [];
+        const data = [];
+        const backgroundColors = [];
+        const borderColors = [];
+        
+        sortedSymbols.slice(0, 8).forEach(sym => { // Top 8 symbols
+            labels.push(sym);
+            const val = symbolProfits[sym];
+            data.push(val);
+            if(val >= 0) {
+                backgroundColors.push('rgba(16, 185, 129, 0.5)'); // Green
+                borderColors.push('#10b981');
+            } else {
+                backgroundColors.push('rgba(239, 68, 68, 0.5)'); // Red
+                borderColors.push('#ef4444');
+            }
+        });
+
+        symbolChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Net Profit',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${curSym}${context.parsed.x.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+
     function processData(trades, curSym) {
         let totalProfit = 0;
         let wins = 0;
@@ -479,6 +552,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const ascendingTrades = [...trades].reverse();
         let revengeTrades = 0;
         const heatmapData = new Array(7).fill(0).map(() => new Array(24).fill(0));
+        
+        let longWins = 0, longLosses = 0;
+        let shortWins = 0, shortLosses = 0;
+        const symbolProfits = {};
 
         ascendingTrades.forEach((trade, index) => {
             const netP = parseFloat(trade.net_profit);
@@ -500,13 +577,23 @@ document.addEventListener("DOMContentLoaded", () => {
             
             totalProfit += netP;
             
+            const isBuy = trade.side.startsWith("Buy");
+            const isSell = trade.side.startsWith("Sell");
+            
+            if (!symbolProfits[trade.symbol]) symbolProfits[trade.symbol] = 0;
+            symbolProfits[trade.symbol] += netP;
+            
             // Win Rate and Profit Factor based on Gross Profit (Market Movement) to match MT5
             if (grossP > 0) {
                 wins++;
+                if (isBuy) longWins++;
+                if (isSell) shortWins++;
                 grossProfit += grossP;
                 totalHoldWins += holdSec;
             } else if (grossP <= 0) {
                 losses++;
+                if (isBuy) longLosses++;
+                if (isSell) shortLosses++;
                 grossLoss += Math.abs(grossP);
                 totalHoldLosses += Math.max(0, holdSec);
             }
@@ -526,7 +613,14 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const avgWin = wins > 0 ? (grossProfit / wins) : 0;
         const avgLoss = losses > 0 ? (grossLoss / losses) : 0;
-        const payoffRatio = avgLoss > 0 ? (avgWin / avgLoss) : avgWin;
+        
+        const longWinrate = (longWins + longLosses) > 0 ? (longWins / (longWins + longLosses)) * 100 : 0;
+        const shortWinrate = (shortWins + shortLosses) > 0 ? (shortWins / (shortWins + shortLosses)) * 100 : 0;
+        
+        let edgeText = "-";
+        if (longWinrate > shortWinrate + 5) edgeText = `Long (+${(longWinrate - shortWinrate).toFixed(0)}%)`;
+        else if (shortWinrate > longWinrate + 5) edgeText = `Short (+${(shortWinrate - longWinrate).toFixed(0)}%)`;
+        else if (totalWinLoss > 0) edgeText = `Balanced`;
         
         const avgHoldWin = wins > 0 ? (totalHoldWins / wins) : 0;
         const avgHoldLoss = losses > 0 ? (totalHoldLosses / losses) : 0;
@@ -547,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateKPI("kpi-pf", profitFactor.toFixed(2), profitFactor >= 1.5);
         
         // Advanced UI
-        updateKPI("kpi-payoff", payoffRatio.toFixed(2), payoffRatio >= 1.0);
+        updateKPI("kpi-edge", edgeText, true);
         updateKPI("kpi-hold-win", formatHoldTime(avgHoldWin), true);
         updateKPI("kpi-hold-loss", formatHoldTime(avgHoldLoss), false);
         updateKPI("kpi-drawdown", `-${curSym}${maxDrawdown.toFixed(2)}`, false);
@@ -562,6 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         renderChart(labels, equityCurve);
         renderHeatmap(heatmapData, curSym);
+        renderSymbolChart(symbolProfits, curSym);
     }
 
     function renderHeatmap(data, curSym) {
