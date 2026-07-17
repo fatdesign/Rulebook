@@ -511,6 +511,11 @@ th {
 .month-card.current {
     border: 2px solid var(--text-main);
 }
+.month-card.active-month {
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+    transform: scale(1.05);
+}
 
 /* Utility layout */
 .flex {

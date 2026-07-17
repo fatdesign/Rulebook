@@ -1209,7 +1209,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // --- Monthly Overview ---
         const monthlyContainer = document.getElementById("monthly-overview-container");
         if(monthlyContainer) {
-            monthlyContainer.innerHTML = '<div id="monthly-overview-content" style="transform-origin: top center; width: 100%; transition: transform 0.3s ease;"></div>';
+            monthlyContainer.innerHTML = '<div id="monthly-overview-content" style="transform-origin: top center; width: 100%;"></div>';
             const innerContainer = document.getElementById("monthly-overview-content");
             const years = [...new Set(Object.keys(monthlyProfit).map(k => parseInt(k.split('-')[0])))].sort((a,b) => b - a);
             
@@ -1230,10 +1230,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     if(monthlyProfit[mKey] !== undefined) {
                         const val = monthlyProfit[mKey];
                         const isCurrent = (year === currY && m === currM);
+                        const isActive = (mKey === currentTimeframe);
                         const cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
                         const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
                         grid.innerHTML += `
-                            <div class="month-card clickable-month ${cls} ${isCurrent ? 'current' : ''}" data-month="${mKey}">
+                            <div class="month-card clickable-month ${cls} ${isCurrent ? 'current' : ''} ${isActive ? 'active-month' : ''}" data-month="${mKey}">
                                 <span class="m-name">${monthNames[m]} ${year}</span>
                                 <span class="m-val">${displayVal}</span>
                             </div>
@@ -1274,14 +1275,20 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 50);
         }
         
-        // --- Daily Calendar (Current Month) ---
+        // --- Daily Calendar ---
         const calContainer = document.getElementById("daily-calendar-container");
         const monthTitle = document.getElementById("cal-month-title");
         if(calContainer && monthTitle) {
             calContainer.innerHTML = "";
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = now.getMonth();
+            let y, m;
+            const nowD = new Date();
+            
+            if (currentTimeframe && currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
+                [y, m] = currentTimeframe.split('-').map(Number);
+            } else {
+                y = nowD.getFullYear();
+                m = nowD.getMonth();
+            }
             
             const fullMonthNames = ["JANUAR", "FEBRUAR", "MÄRZ", "APRIL", "MAI", "JUNI", "JULI", "AUGUST", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DEZEMBER"];
             monthTitle.innerText = `${fullMonthNames[m]} ${y}`;
