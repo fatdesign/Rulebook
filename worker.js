@@ -41,9 +41,9 @@ export default {
           .bind(license_key, todayStr).first();
         
         let count = limitRes ? limitRes.analyses_count : 0;
-        if (count >= 4) {
+        if (count >= 1000) {
           return new Response(JSON.stringify({ 
-            error: "Du hast dein tägliches Limit von 4 Analysen erreicht. Komm morgen wieder!" 
+            error: "Du hast dein Limit von 1000 Analysen erreicht." 
           }), { status: 403, headers: corsHeaders });
         }
 
@@ -95,7 +95,7 @@ Fasse dich extrem kurz (maximal 3-4 Sätze) und bringe es direkt auf den Punkt, 
 
         return new Response(JSON.stringify({ 
           analysis: text, 
-          limitLeft: 3 - count 
+          limitLeft: 999 - count 
         }), { headers: corsHeaders });
       }
 
