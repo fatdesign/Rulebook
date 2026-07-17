@@ -721,7 +721,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error("Invalid License Key or Server Error.");
             }
 
-            const trades = await response.json();
+            const payload = await response.json();
+            const trades = payload.trades || payload;
+            const currentBalance = payload.current_balance || 0;
+            
+            // Calculate start balances for each day (unfiltered, descending order)
+            const dailyStatsRaw = {}; 
+            trades.forEach(t => {
+                const dateObj = new Date(t.close_time * 1000);
+                const y = dateObj.getUTCFullYear();
+                const m = dateObj.getUTCMonth() + 1;
+                const d = dateObj.getUTCDate();
+                const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                
+                if (!dailyStatsRaw[dateKey]) dailyStatsRaw[dateKey] = { timestamp: Date.UTC(y, m-1, d), profit: 0 };
+                dailyStatsRaw[dateKey].profit += parseFloat(t.net_profit);
+            });
+            
+            const sortedKeys = Object.keys(dailyStatsRaw).sort((a,b) => dailyStatsRaw[b].timestamp - dailyStatsRaw[a].timestamp);
+            let tempBalance = currentBalance;
+            window.dailyStartBalances = {};
+            for (let i = 0; i < sortedKeys.length; i++) {
+                const k = sortedKeys[i];
+                tempBalance -= dailyStatsRaw[k].profit;
+                window.dailyStartBalances[k] = tempBalance; // balance AT THE START of the day
+            }
             
             // Empty array is valid for accounts with no trades. Process it normally to clear the dashboard.
 
@@ -1425,10 +1449,15 @@ document.addEventListener("DOMContentLoaded", () => {
             
             const pClass = day.netProfit > 0 ? "text-success" : (day.netProfit < 0 ? "text-danger" : "");
             
+            const startBal = window.dailyStartBalances ? (window.dailyStartBalances[day.dateKey] || 0) : 0;
+            const percentGain = startBal > 0 ? (day.netProfit / startBal) * 100 : 0;
+            const gainStr = startBal > 0 ? `${percentGain > 0 ? '+' : ''}${percentGain.toFixed(2)}%` : '-';
+            const gClass = percentGain > 0 ? "text-success" : (percentGain < 0 ? "text-danger" : "");
+            
             tr.innerHTML = `
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.dateStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${pClass}">${day.netProfit > 0 ? '+' : ''}${curSym}${day.netProfit.toFixed(2)}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">-</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${gClass}">${gainStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${pf.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${day.tradesCount}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${winRate.toFixed(0)}%</td>

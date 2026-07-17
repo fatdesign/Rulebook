@@ -209,6 +209,13 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         await env.DB.prepare("INSERT INTO user_accounts (user_id, license_key, alias) VALUES (?, ?, ?) ON CONFLICT DO NOTHING")
           .bind(user_id, account_id, account_id).run();
 
+        // Save current balance if provided
+        if (body.current_balance !== undefined) {
+            await env.DB.prepare("CREATE TABLE IF NOT EXISTS account_balances (license_key TEXT PRIMARY KEY, balance REAL)").run();
+            await env.DB.prepare("INSERT INTO account_balances (license_key, balance) VALUES (?, ?) ON CONFLICT(license_key) DO UPDATE SET balance=excluded.balance")
+              .bind(db_key, parseFloat(body.current_balance)).run();
+        }
+
         const stmt = env.DB.prepare("INSERT INTO trades (ticket, license_key, symbol, side, volume, net_profit, open_time, close_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ticket) DO UPDATE SET net_profit=excluded.net_profit, license_key=excluded.license_key");
         const batch = [];
         for (const t of body.trades) {
@@ -347,7 +354,12 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         
         if (!action) {
             const { results } = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC").bind(db_key).all();
-            return new Response(JSON.stringify(results), { headers: corsHeaders });
+            
+            await env.DB.prepare("CREATE TABLE IF NOT EXISTS account_balances (license_key TEXT PRIMARY KEY, balance REAL)").run();
+            const balanceRes = await env.DB.prepare("SELECT balance FROM account_balances WHERE license_key = ?").bind(db_key).first();
+            const current_balance = balanceRes ? balanceRes.balance : 0;
+            
+            return new Response(JSON.stringify({ trades: results, current_balance }), { headers: corsHeaders });
         }
       }
 
