@@ -11,22 +11,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Global Language Selector for Login -->
-    <div id="login-lang-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-        <select id="login-lang" class="profile-select" style="width: auto; padding: 4px 8px; font-size: 0.85rem; box-shadow: 2px 2px 0px rgba(0,0,0,0.5);">
-            <option value="de">DE</option>
-            <option value="en">EN</option>
-            <option value="es">ES</option>
-            <option value="tr">TR</option>
-        </select>
-    </div>
-
     <div class="app-container">
         <!-- Login / Setup Screen -->
         <div id="login-screen" class="glass-panel active">
             <div class="logo">
                 <img src="logo.png" width="48" height="48" alt="TradeMaster Logo" style="border-radius: 4px; margin-right: 10px;">
-                <h1>TradeMaster AI</h1>
+                <h1>TradeMaster</h1>
             </div>
             <p class="subtitle" data-i18n="login_sub">Connect your MT5 account to view AI insights.</p>
             <div class="input-group">
@@ -53,6 +43,16 @@
                         <i class="ph-fill ph-download-simple"></i> Get TradeMaster on MQL5
                     </a>
                 </div>
+            </div>
+            
+            <!-- Language Selector at the bottom of login panel -->
+            <div id="login-lang-container" style="margin-top: 25px; text-align: center; border-top: 1px solid var(--border-dark); padding-top: 15px;">
+                <select id="login-lang" class="profile-select" style="width: auto; padding: 4px 12px; font-size: 0.85rem; cursor: pointer;">
+                    <option value="de">Deutsch (DE)</option>
+                    <option value="en">English (EN)</option>
+                    <option value="es">Español (ES)</option>
+                    <option value="tr">Türkçe (TR)</option>
+                </select>
             </div>
         </div>
 
