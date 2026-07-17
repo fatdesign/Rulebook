@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 wins++;
                 grossProfit += grossP;
                 totalHoldWins += holdSec;
-            } else if (grossP < 0) {
+            } else if (grossP <= 0) {
                 losses++;
                 grossLoss += Math.abs(grossP);
                 totalHoldLosses += Math.max(0, holdSec);
