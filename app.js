@@ -13,10 +13,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Profile Elements
     const profStyle = document.getElementById("prof-style");
-    const profSession = document.getElementById("prof-session");
     const profRisk = document.getElementById("prof-risk");
-    const profInstrument = document.getElementById("prof-instrument");
     const profLang = document.getElementById("prof-lang");
+    const profSessionCheckboxes = document.querySelectorAll(".session-cb");
+
+    // Timeframe state
+    let currentTimeframe = "today";
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            filterBtns.forEach(b => b.classList.remove("active"));
+            e.target.classList.add("active");
+            currentTimeframe = e.target.getAttribute("data-timeframe");
+            
+            const key = localStorage.getItem("tm_license_key");
+            if (key) loadDashboard(key);
+        });
+    });
 
     // Check if already logged in
     const savedKey = localStorage.getItem("tm_license_key");
@@ -97,7 +110,29 @@ document.addEventListener("DOMContentLoaded", () => {
             loginScreen.classList.remove("active");
             dashboard.classList.remove("hidden");
             
-            processData(trades);
+            // Filter trades based on timeframe
+            const now = new Date();
+            let startTime = 0;
+            let endTime = 2000000000;
+
+            if (currentTimeframe === "today") {
+                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                startTime = Math.floor(startOfDay.getTime() / 1000);
+            } else if (currentTimeframe === "yesterday") {
+                const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+                const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                startTime = Math.floor(startOfYesterday.getTime() / 1000);
+                endTime = Math.floor(endOfYesterday.getTime() / 1000) - 1;
+            } else if (currentTimeframe === "week") {
+                const day = now.getDay();
+                const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
+                const startOfWeek = new Date(now.getFullYear(), now.getMonth(), diff);
+                startTime = Math.floor(startOfWeek.getTime() / 1000);
+            }
+
+            const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
+
+            processData(filteredTrades);
 
         } catch (err) {
             showError(err.message);
@@ -113,21 +148,34 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Profile Settings Auto-Save ---
     function loadProfileSettings() {
         if(profStyle && localStorage.getItem("tm_prof_style")) profStyle.value = localStorage.getItem("tm_prof_style");
-        if(profSession && localStorage.getItem("tm_prof_session")) profSession.value = localStorage.getItem("tm_prof_session");
         if(profRisk && localStorage.getItem("tm_prof_risk")) profRisk.value = localStorage.getItem("tm_prof_risk");
-        if(profInstrument && localStorage.getItem("tm_prof_instrument")) profInstrument.value = localStorage.getItem("tm_prof_instrument");
         if(profLang && localStorage.getItem("tm_prof_lang")) profLang.value = localStorage.getItem("tm_prof_lang");
+        
+        const savedSessions = localStorage.getItem("tm_prof_session");
+        if(savedSessions) {
+            const sessions = savedSessions.split(",");
+            profSessionCheckboxes.forEach(cb => {
+                cb.checked = sessions.includes(cb.value);
+            });
+        }
     }
     
     loadProfileSettings();
 
-    const profileSelects = [profStyle, profSession, profRisk, profInstrument, profLang];
+    const profileSelects = [profStyle, profRisk, profLang];
     profileSelects.forEach(select => {
         if(select) {
             select.addEventListener("change", (e) => {
                 localStorage.setItem("tm_" + e.target.id.replace("-", "_"), e.target.value);
             });
         }
+    });
+
+    profSessionCheckboxes.forEach(cb => {
+        cb.addEventListener("change", () => {
+            const selected = Array.from(profSessionCheckboxes).filter(c => c.checked).map(c => c.value);
+            localStorage.setItem("tm_prof_session", selected.join(","));
+        });
     });
 
     function showError(msg) {
@@ -239,12 +287,13 @@ document.addEventListener("DOMContentLoaded", () => {
             aiContent.innerHTML = `<div class="skeleton-loader"></div><div class="skeleton-loader" style="width: 80%"></div><p class="ai-placeholder-text">Consulting the AI Coach...</p>`;
 
             try {
+                const selectedSessions = Array.from(profSessionCheckboxes).filter(c => c.checked).map(c => c.value);
                 const profileData = {
                     style: profStyle ? profStyle.value : "Unknown",
-                    session: profSession ? profSession.value : "Unknown",
+                    session: selectedSessions.length > 0 ? selectedSessions.join(", ") : "Any",
                     risk: profRisk ? profRisk.value : "Unknown",
-                    instrument: profInstrument ? profInstrument.value : "Unknown",
-                    language: profLang ? profLang.value : "de"
+                    language: profLang ? profLang.value : "de",
+                    timeframe: currentTimeframe
                 };
 
                 const response = await fetch(`${API_URL}?action=ai_coach`, {

@@ -40,6 +40,14 @@
             </header>
 
             <main class="dashboard-grid">
+                <!-- Timeframe Filter -->
+                <div class="filter-group" id="timeframe-filters">
+                    <button class="filter-btn active" data-timeframe="today">Heute</button>
+                    <button class="filter-btn" data-timeframe="yesterday">Gestern</button>
+                    <button class="filter-btn" data-timeframe="week">Diese Woche</button>
+                    <button class="filter-btn" data-timeframe="all">Alle Trades</button>
+                </div>
+
                 <!-- KPIs -->
                 <div class="kpi-row">
                     <div class="kpi-card glass-panel">
@@ -73,30 +81,23 @@
                         <h3 style="color: var(--text-main); font-size: 1rem;">Trader Profile</h3>
                         <span style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted);">Set this before asking the AI</span>
                     </div>
-                    <div class="kpi-row" style="gap: 15px;">
-                        <select id="prof-style" class="profile-select">
+                    <div class="kpi-row" style="gap: 15px; align-items: flex-start;">
+                        <select id="prof-style" class="profile-select" style="flex: 1;">
                             <option value="Scalper">Scalper</option>
                             <option value="Day Trader" selected>Day Trader</option>
                             <option value="Swing Trader">Swing Trader</option>
                         </select>
-                        <select id="prof-session" class="profile-select">
-                            <option value="Any">Any Session</option>
-                            <option value="London">London Session</option>
-                            <option value="New York" selected>New York Session</option>
-                            <option value="Asian">Asian Session</option>
-                        </select>
-                        <select id="prof-risk" class="profile-select">
+                        <div class="session-group" id="prof-session-group" style="flex: 2;">
+                            <label class="session-pill"><input type="checkbox" value="London" class="session-cb"> London</label>
+                            <label class="session-pill"><input type="checkbox" value="New York" class="session-cb" checked> New York</label>
+                            <label class="session-pill"><input type="checkbox" value="Asian" class="session-cb"> Asian</label>
+                        </div>
+                        <select id="prof-risk" class="profile-select" style="flex: 1;">
                             <option value="Conservative">Conservative</option>
                             <option value="Moderate" selected>Moderate Risk</option>
                             <option value="Aggressive">Aggressive</option>
                         </select>
-                        <select id="prof-instrument" class="profile-select">
-                            <option value="Any">Any Instrument</option>
-                            <option value="Gold/XAU">Gold (XAU)</option>
-                            <option value="Forex">Forex Majors</option>
-                            <option value="Indices" selected>Indices (US30, NAS)</option>
-                        </select>
-                        <select id="prof-lang" class="profile-select">
+                        <select id="prof-lang" class="profile-select" style="flex: 1;">
                             <option value="de">🇩🇪 Deutsch</option>
                             <option value="en">🇬🇧 English</option>
                             <option value="tr">🇹🇷 Türkçe</option>
