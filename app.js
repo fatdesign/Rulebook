@@ -410,8 +410,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let totalProfit = 0;
         let wins = 0;
         let losses = 0;
-        let sumNetWins = 0;
-        let sumNetLosses = 0;
+        let grossProfit = 0;
+        let grossLoss = 0;
         
         let totalHoldWins = 0;
         let totalHoldLosses = 0;
@@ -429,14 +429,14 @@ document.addEventListener("DOMContentLoaded", () => {
             
             totalProfit += netP;
             
-            // Win Rate and Profit Factor based on Net Profit (inclusive commissions)
-            if (netP > 0) {
+            // Win Rate and Profit Factor based on Gross Profit (Market Movement) to match MT5
+            if (grossP > 0) {
                 wins++;
-                sumNetWins += netP;
+                grossProfit += grossP;
                 totalHoldWins += holdSec;
-            } else if (netP < 0) {
+            } else if (grossP < 0) {
                 losses++;
-                sumNetLosses += Math.abs(netP);
+                grossLoss += Math.abs(grossP);
                 totalHoldLosses += Math.max(0, holdSec);
             }
 
@@ -451,10 +451,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const totalWinLoss = wins + losses;
         const winrate = totalWinLoss > 0 ? (wins / totalWinLoss) * 100 : 0;
-        const profitFactor = sumNetLosses === 0 ? sumNetWins : (sumNetWins / sumNetLosses);
+        const profitFactor = grossLoss === 0 ? grossProfit : (grossProfit / grossLoss);
         
-        const avgWin = wins > 0 ? (sumNetWins / wins) : 0;
-        const avgLoss = losses > 0 ? (sumNetLosses / losses) : 0;
+        const avgWin = wins > 0 ? (grossProfit / wins) : 0;
+        const avgLoss = losses > 0 ? (grossLoss / losses) : 0;
         const payoffRatio = avgLoss > 0 ? (avgWin / avgLoss) : avgWin;
         
         const avgHoldWin = wins > 0 ? (totalHoldWins / wins) : 0;
