@@ -1266,20 +1266,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const selectedSessions = Array.from(profSessionCheckboxes).filter(c => c.checked).map(c => c.value);
+                const now = new Date();
+                const todayStartTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000);
+                
                 const profileData = {
                     style: profStyle ? profStyle.value : "Unknown",
                     session: selectedSessions.length > 0 ? selectedSessions.join(", ") : "Any",
                     risk: profRisk ? profRisk.value : "Unknown",
                     language: globalLang ? globalLang.value : "de",
                     timeframe: currentTimeframe,
-                    trades: currentFilteredTrades.map(t => ({
-                        symbol: t.symbol,
-                        side: t.side,
-                        net_profit: t.net_profit,
-                        gross_profit: t.gross_profit,
-                        open_time: t.open_time,
-                        close_time: t.close_time
-                    }))
+                    trades: currentFilteredTrades.map(t => {
+                        const isToday = t.close_time >= todayStartTime;
+                        const note = (isToday && window.tradeNotesMap && window.tradeNotesMap[t.ticket]) ? window.tradeNotesMap[t.ticket] : null;
+                        const tradeObj = {
+                            symbol: t.symbol,
+                            side: t.side,
+                            net_profit: t.net_profit,
+                            gross_profit: t.gross_profit,
+                            open_time: t.open_time,
+                            close_time: t.close_time
+                        };
+                        if (note) tradeObj.tag = note; // Add as tag/note to prompt AI to look at it
+                        return tradeObj;
+                    })
                 };
 
                 const response = await fetch(`${API_URL}?action=ai_coach`, {

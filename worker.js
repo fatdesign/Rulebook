@@ -151,8 +151,9 @@ WICHTIGE REGELN:
 3. Gib Feedback wie ein echter Mentor: Lobe, wenn es gut läuft, und verteile ehrliche, harte Kritik, wenn Fehler gemacht wurden.
 4. KONTROLLIERE DAS PROFIL: Vergleiche das angegebene Profil (Style, Session, Risk) strikt mit dem tatsächlichen Verhalten! Wenn er "Asian Session" angibt, aber nur mittags tradet, oder sich "Scalper" nennt, aber Trades stundenlang hält, dann konfrontiere ihn schonungslos mit diesem Widerspruch!
 5. Konzentriere dich auf Verhaltensmuster, Profitabilität und Risikomanagement.
-6. Gib am Ende EINEN starken, motivierenden Ratschlag zur Verbesserung.
-7. SPRACHE: Deine gesamte Antwort MUSS zwingend in der Sprache '${body.language}' verfasst sein!
+6. ACHTE AUF TAGS/NOTIZEN: Einige Trades haben eine Eigenschaft 'tag'. Dies sind persönliche Notizen des Traders zu diesem Trade. Beziehe diese Erkenntnisse zwingend in deine Analyse ein!
+7. Gib am Ende EINEN starken, motivierenden Ratschlag zur Verbesserung.
+8. SPRACHE: Deine gesamte Antwort MUSS zwingend in der Sprache '${body.language}' verfasst sein!
 Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
         
         if (!env.AI) {
