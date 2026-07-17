@@ -173,4 +173,51 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    const aiBtn = document.getElementById("ai-btn");
+    const aiContent = document.getElementById("ai-content");
+
+    if (aiBtn) {
+        aiBtn.addEventListener("click", async () => {
+            const key = localStorage.getItem("tm_license_key");
+            if (!key) return;
+
+            aiBtn.innerText = "Analyzing...";
+            aiBtn.disabled = true;
+            aiContent.innerHTML = `<div class="skeleton-loader"></div><div class="skeleton-loader" style="width: 80%"></div><p class="ai-placeholder-text">Consulting the AI Coach...</p>`;
+
+            try {
+                const response = await fetch(`${API_URL}?action=ai_coach`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": key
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to get AI analysis.");
+                }
+
+                // Format markdown simple
+                let htmlContent = data.analysis
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+
+                aiContent.innerHTML = `<div style="font-size: 0.95rem; line-height: 1.5; color: #f8fafc;">${htmlContent}</div>`;
+                
+                if (data.limitLeft !== undefined) {
+                    document.getElementById("ai-limit").innerText = `${data.limitLeft} analyzes left today`;
+                }
+
+            } catch (err) {
+                aiContent.innerHTML = `<p class="error-msg">${err.message}</p>`;
+            } finally {
+                aiBtn.innerText = "Ask Coach for Analysis";
+                aiBtn.disabled = false;
+            }
+        });
+    }
 });

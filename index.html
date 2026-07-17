@@ -65,16 +65,20 @@
                     <canvas id="equityChart"></canvas>
                 </div>
 
-                <!-- AI Insights (Phase 4 placeholder) -->
+                <!-- AI Insights (Phase 4) -->
                 <div class="ai-insights glass-panel">
                     <div class="ai-header">
                         <span class="sparkle-icon">✨</span>
                         <h3>AI Trading Coach</h3>
+                        <span id="ai-limit" class="ai-limit" style="margin-left:auto; font-size: 0.8rem; color: #a855f7;"></span>
+                    </div>
+                    <div id="ai-controls" style="margin-bottom: 15px;">
+                        <button id="ai-btn" class="secondary-btn" style="background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: #fff;">
+                            Ask Coach for Analysis
+                        </button>
                     </div>
                     <div id="ai-content" class="ai-content">
-                        <div class="skeleton-loader"></div>
-                        <div class="skeleton-loader" style="width: 80%"></div>
-                        <p class="ai-placeholder-text">Analyzing your trading patterns. The AI coach will be activated in Phase 4...</p>
+                        <p class="ai-placeholder-text">Click the button above to get a harsh but helpful AI analysis of your recent trades.</p>
                     </div>
                 </div>
             </main>
