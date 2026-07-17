@@ -292,7 +292,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
           INSERT INTO trade_notes (license_key, ticket, note)
           VALUES (?, ?, ?)
           ON CONFLICT(license_key, ticket) DO UPDATE SET note=excluded.note
-        `).bind(license_key, body.ticket, body.note || "").run();
+        `).bind(license_key, String(body.ticket), body.note || "").run();
         
         return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
       }

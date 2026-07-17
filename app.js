@@ -1103,20 +1103,44 @@ document.addEventListener("DOMContentLoaded", () => {
                 tbody.appendChild(tr);
             });
 
-            document.querySelectorAll(".trade-note-input").forEach(inp => {
-                inp.addEventListener("blur", async (e) => {
-                    const ticket = e.target.getAttribute("data-ticket");
-                    const note = e.target.value.trim();
-                    const key = localStorage.getItem("tm_license_key");
-                    try {
-                        await fetch(`${API_URL}?action=notes`, {
-                            method: "POST",
-                            headers: { "Authorization": key, "Content-Type": "application/json" },
-                            body: JSON.stringify({ ticket, note })
-                        });
+            async function saveTradeNote(inputEl) {
+                const ticket = inputEl.getAttribute("data-ticket");
+                const note = inputEl.value.trim();
+                const key = localStorage.getItem("tm_license_key");
+                if (!key) return;
+                
+                const origBorder = inputEl.style.borderColor;
+                inputEl.style.borderColor = "#f59e0b"; // Yellow = saving
+                
+                try {
+                    const res = await fetch(`${API_URL}?action=notes`, {
+                        method: "POST",
+                        headers: { "Authorization": key, "Content-Type": "application/json" },
+                        body: JSON.stringify({ ticket: String(ticket), note })
+                    });
+                    
+                    if (res.ok) {
                         if (window.tradeNotesMap) window.tradeNotesMap[ticket] = note;
-                    } catch(err) {
-                        console.error("Note save err", err);
+                        inputEl.style.borderColor = "#10b981"; // Green = saved
+                        setTimeout(() => { inputEl.style.borderColor = origBorder; }, 1500);
+                    } else {
+                        console.error("Note save failed:", res.status);
+                        inputEl.style.borderColor = "#ef4444"; // Red = error
+                        setTimeout(() => { inputEl.style.borderColor = origBorder; }, 2000);
+                    }
+                } catch(err) {
+                    console.error("Note save err", err);
+                    inputEl.style.borderColor = "#ef4444";
+                    setTimeout(() => { inputEl.style.borderColor = origBorder; }, 2000);
+                }
+            }
+
+            document.querySelectorAll(".trade-note-input").forEach(inp => {
+                inp.addEventListener("blur", (e) => saveTradeNote(e.target));
+                inp.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        e.target.blur(); // triggers blur → saveTradeNote
                     }
                 });
             });
