@@ -70,7 +70,20 @@ const i18n = {
         cancel_btn: "Abbrechen",
         kpi_best_day: "Bester Tag",
         kpi_worst_day: "Schlechtester Tag",
-        days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
+        days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+        journal_title: "Mental Journal",
+        journal_save: "Eintrag speichern",
+        journal_ph: "Wie fühlst du dich heute bei deinen Trades? Hast du deinen Plan befolgt?",
+        heatmap_title: "Profit Heatmap",
+        tilt_title: "Tilt-Meter",
+        killswitch_title: "Kill-Switch",
+        trades_title: "Letzte Trades & Tags",
+        th_symbol: "Symbol",
+        th_side: "Seite",
+        th_profit: "Gewinn",
+        th_close: "Schließzeit",
+        th_note: "Tag / Notiz",
+        note_ph: "Notiz oder #Tag hinzufügen..."
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -139,7 +152,20 @@ const i18n = {
         cancel_btn: "Cancel",
         kpi_best_day: "Best Day",
         kpi_worst_day: "Worst Day",
-        days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        journal_title: "Mental Journal",
+        journal_save: "Save Entry",
+        journal_ph: "How are you feeling about your trades today? Did you follow your plan?",
+        heatmap_title: "Profit Heatmap",
+        tilt_title: "Tilt-Meter",
+        killswitch_title: "Kill-Switch",
+        trades_title: "Recent Trades & Tags",
+        th_symbol: "Symbol",
+        th_side: "Side",
+        th_profit: "Profit",
+        th_close: "Close Time",
+        th_note: "Tag / Note",
+        note_ph: "Add note or #tag..."
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -208,7 +234,20 @@ const i18n = {
         cancel_btn: "Cancelar",
         kpi_best_day: "Mejor Día",
         kpi_worst_day: "Peor Día",
-        days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+        days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+        journal_title: "Diario Mental",
+        journal_save: "Guardar Entrada",
+        journal_ph: "¿Cómo te sientes con tus operaciones hoy? ¿Seguiste tu plan?",
+        heatmap_title: "Mapa de Calor",
+        tilt_title: "Medidor de Tilt",
+        killswitch_title: "Kill-Switch",
+        trades_title: "Operaciones Recientes",
+        th_symbol: "Símbolo",
+        th_side: "Lado",
+        th_profit: "Beneficio",
+        th_close: "Hora Cierre",
+        th_note: "Etiqueta / Nota",
+        note_ph: "Añadir nota o #etiqueta..."
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -277,7 +316,20 @@ const i18n = {
         cancel_btn: "İptal",
         kpi_best_day: "En İyi Gün",
         kpi_worst_day: "En Kötü Gün",
-        days: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"]
+        days: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"],
+        journal_title: "Zihinsel Günlük",
+        journal_save: "Kaydı Kaydet",
+        journal_ph: "Bugünkü işlemleriniz hakkında nasıl hissediyorsunuz? Planınıza uydunuz mu?",
+        heatmap_title: "Kâr Isı Haritası",
+        tilt_title: "Tilt Ölçer",
+        killswitch_title: "Kill-Switch",
+        trades_title: "Son İşlemler & Etiketler",
+        th_symbol: "Sembol",
+        th_side: "Yön",
+        th_profit: "Kâr",
+        th_close: "Kapanış Zamanı",
+        th_note: "Etiket / Not",
+        note_ph: "Not veya #etiket ekle..."
     }
 };
 
@@ -1045,7 +1097,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${closeDate}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
-                        <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="Add note or #tag..." style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
+                        <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="${(i18n[localStorage.getItem('tm_global_lang') || 'de'] || {}).note_ph || 'Add note or #tag...'}" style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1080,7 +1132,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!grid) return;
         grid.innerHTML = "";
         
-        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const hmLang = localStorage.getItem("tm_global_lang") || "de";
+        const fullDays = (i18n[hmLang] && i18n[hmLang].days) ? i18n[hmLang].days : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const days = fullDays.map(d => d.substring(0, 3));
         
         // Add Header Row
         grid.appendChild(document.createElement("div")); // Empty top-left
