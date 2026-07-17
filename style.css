@@ -534,12 +534,19 @@ th {
 }
 
 
-@keyframes logo-glow {
-    0% { filter: drop-shadow(0 0 2px var(--text-main)) brightness(1); }
-    50% { filter: drop-shadow(0 0 15px var(--text-main)) brightness(1.2); }
-    100% { filter: drop-shadow(0 0 2px var(--text-main)) brightness(1); }
+@keyframes logo-shimmer {
+    0%   { filter: drop-shadow(0px 15px 4px rgba(255, 255, 255, 0)); }
+    10%  { filter: drop-shadow(0px 10px 6px rgba(255, 255, 255, 0.7)) brightness(1.1); }
+    30%  { filter: drop-shadow(0px -10px 6px rgba(255, 255, 255, 0.7)) brightness(1.1); }
+    40%  { filter: drop-shadow(0px -15px 4px rgba(255, 255, 255, 0)); }
+    
+    50%  { filter: drop-shadow(-15px -15px 4px rgba(255, 255, 255, 0)); }
+    60%  { filter: drop-shadow(-10px -10px 6px rgba(255, 255, 255, 0.7)) brightness(1.1); }
+    80%  { filter: drop-shadow(10px 10px 6px rgba(255, 255, 255, 0.7)) brightness(1.1); }
+    90%  { filter: drop-shadow(15px 15px 4px rgba(255, 255, 255, 0)); }
+    100% { filter: drop-shadow(0px 15px 4px rgba(255, 255, 255, 0)); }
 }
 
 .logo img {
-    animation: logo-glow 6s infinite alternate ease-in-out;
+    animation: logo-shimmer 7s infinite linear;
 }
