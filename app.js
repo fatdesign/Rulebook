@@ -67,7 +67,10 @@ const i18n = {
         mt5_user_ph: "MT5 Benutzername",
         mt5_pass_ph: "MT5 Passwort",
         link_btn: "Verknüpfen",
-        cancel_btn: "Abbrechen"
+        cancel_btn: "Abbrechen",
+        kpi_best_day: "Bester Tag",
+        kpi_worst_day: "Schlechtester Tag",
+        days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -133,7 +136,10 @@ const i18n = {
         mt5_user_ph: "MT5 Username",
         mt5_pass_ph: "MT5 Password",
         link_btn: "Link Account",
-        cancel_btn: "Cancel"
+        cancel_btn: "Cancel",
+        kpi_best_day: "Best Day",
+        kpi_worst_day: "Worst Day",
+        days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -199,7 +205,10 @@ const i18n = {
         mt5_user_ph: "Usuario MT5",
         mt5_pass_ph: "Contraseña MT5",
         link_btn: "Vincular",
-        cancel_btn: "Cancelar"
+        cancel_btn: "Cancelar",
+        kpi_best_day: "Mejor Día",
+        kpi_worst_day: "Peor Día",
+        days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -265,7 +274,10 @@ const i18n = {
         mt5_user_ph: "MT5 Kullanıcı Adı",
         mt5_pass_ph: "MT5 Şifresi",
         link_btn: "Bağla",
-        cancel_btn: "İptal"
+        cancel_btn: "İptal",
+        kpi_best_day: "En İyi Gün",
+        kpi_worst_day: "En Kötü Gün",
+        days: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"]
     }
 };
 
@@ -353,6 +365,9 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("tm_global_lang", newLang);
             if (loginLang) loginLang.value = newLang;
             setLanguage(newLang);
+            
+            const key = localStorage.getItem("tm_license_key");
+            if (key) loadDashboard(key);
         });
     }
     
@@ -992,7 +1007,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dayTotals[0] > dayTotals[bestDayIdx]) bestDayIdx = 0;
         if (dayTotals[0] < dayTotals[worstDayIdx]) worstDayIdx = 0;
         
-        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const curLang = localStorage.getItem("tm_global_lang") || "de";
+        const dayNames = (i18n[curLang] && i18n[curLang].days) ? i18n[curLang].days : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         document.getElementById("kpi-best-day").innerText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
         document.getElementById("kpi-worst-day").innerText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
 
