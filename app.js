@@ -335,22 +335,19 @@ document.addEventListener("DOMContentLoaded", () => {
             // Extract currency and gross profit
             let accCurrency = "USD";
             filteredTrades.forEach(t => {
-                // Parse Side and Currency
+                // Parse Side, Currency and Gross Profit from side string (e.g. "Buy_EUR_5.50")
                 const sideParts = t.side.split('_');
                 t.side = sideParts[0]; 
+                
                 if (sideParts.length > 1) {
                     accCurrency = sideParts[1];
                 }
                 
-                // Parse Ticket and Gross Profit
-                let actualTicket = t.ticket;
                 let grossProfit = parseFloat(t.net_profit); // fallback
-                if (typeof t.ticket === "string" && t.ticket.includes("_gross:")) {
-                    const ticketParts = t.ticket.split("_gross:");
-                    actualTicket = ticketParts[0];
-                    grossProfit = parseFloat(ticketParts[1]);
+                if (sideParts.length > 2) {
+                    grossProfit = parseFloat(sideParts[2]);
                 }
-                t.ticket = actualTicket;
+                
                 t.gross_profit = grossProfit;
             });
 
