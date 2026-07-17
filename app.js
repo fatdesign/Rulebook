@@ -317,22 +317,19 @@ document.addEventListener("DOMContentLoaded", () => {
             let startTime = 0;
             let endTime = 2000000000;
 
+            // MT5 timestamps represent Server Time as if it were UTC.
+            // Therefore, we must construct our boundaries using Date.UTC but with local year/month/date.
             if (currentTimeframe === "today") {
-                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                startTime = Math.floor(startOfDay.getTime() / 1000);
+                startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000);
             } else if (currentTimeframe === "yesterday") {
-                const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-                const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                startTime = Math.floor(startOfYesterday.getTime() / 1000);
-                endTime = Math.floor(endOfYesterday.getTime() / 1000) - 1;
+                startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() - 1) / 1000);
+                endTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000) - 1;
             } else if (currentTimeframe === "week") {
                 const day = now.getDay();
                 const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
-                const startOfWeek = new Date(now.getFullYear(), now.getMonth(), diff);
-                startTime = Math.floor(startOfWeek.getTime() / 1000);
+                startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), diff) / 1000);
             }
 
-            // Note: MT5 Server timestamps might cause slight timezone shifts relative to local JS Midnight
             const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
 
             processData(filteredTrades);
