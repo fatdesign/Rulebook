@@ -1271,8 +1271,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (iHeight > cHeight && iHeight > 0) {
                         const scale = (cHeight - 10) / iHeight; // slightly smaller than max to leave a tiny gap
                         innerContainer.style.transform = `scale(${scale})`;
+                        innerContainer.style.width = `${100 / scale}%`;
+                        innerContainer.style.transformOrigin = `top left`;
                     } else {
                         innerContainer.style.transform = `scale(1)`;
+                        innerContainer.style.width = `100%`;
+                        innerContainer.style.transformOrigin = `top left`;
                     }
                 }, 50);
                 
