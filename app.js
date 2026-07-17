@@ -482,48 +482,9 @@ document.addEventListener("DOMContentLoaded", () => {
         updateKPI("kpi-drawdown", `-${curSym}${maxDrawdown.toFixed(2)}`, false);
 
         renderChart(labels, equityCurve);
-        renderTradeTable(trades, curSym);
     }
 
-    function renderTradeTable(trades, curSym) {
-        const tbody = document.getElementById("trade-table-body");
-        if (!tbody) return;
-        
-        tbody.innerHTML = "";
-        
-        if (trades.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='6' style='padding: 15px; text-align: center; color: var(--text-muted);'>No trades found.</td></tr>";
-            return;
-        }
 
-        // Display newest first
-        const sorted = [...trades].sort((a,b) => b.close_time - a.close_time);
-
-        sorted.forEach(t => {
-            const tr = document.createElement("tr");
-            tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-            
-            const d = new Date(t.close_time * 1000);
-            const dateStr = d.getUTCFullYear() + "." + 
-                            String(d.getUTCMonth()+1).padStart(2, '0') + "." + 
-                            String(d.getUTCDate()).padStart(2, '0') + " " + 
-                            String(d.getUTCHours()).padStart(2, '0') + ":" + 
-                            String(d.getUTCMinutes()).padStart(2, '0');
-                            
-            const profitStr = parseFloat(t.net_profit).toFixed(2);
-            const profitColor = t.net_profit > 0 ? "var(--color-positive)" : (t.net_profit < 0 ? "var(--color-negative)" : "var(--text-main)");
-
-            tr.innerHTML = `
-                <td style="padding: 10px; font-size: 0.9rem;">#${t.ticket}</td>
-                <td style="padding: 10px; font-size: 0.9rem; font-weight: bold;">${t.symbol}</td>
-                <td style="padding: 10px; font-size: 0.9rem;">${t.side}</td>
-                <td style="padding: 10px; font-size: 0.9rem;">${t.volume.toFixed(2)}</td>
-                <td style="padding: 10px; font-size: 0.9rem; font-weight: bold; color: ${profitColor};">${t.net_profit < 0 ? '-' : ''}${curSym}${Math.abs(t.net_profit).toFixed(2)}</td>
-                <td style="padding: 10px; font-size: 0.85rem; color: var(--text-muted);">${dateStr}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
 
     function updateKPI(id, text, isPositive) {
         const el = document.getElementById(id);
