@@ -1,5 +1,6 @@
 const API_URL = "https://trademaster.f-klavun.workers.dev/";
 let equityChartInstance = null;
+let currentFilteredTrades = [];
 
 const i18n = {
     de: {
@@ -331,6 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
+            currentFilteredTrades = filteredTrades;
 
             // Extract currency and gross profit
             let accCurrency = "USD";
@@ -561,7 +563,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     session: selectedSessions.length > 0 ? selectedSessions.join(", ") : "Any",
                     risk: profRisk ? profRisk.value : "Unknown",
                     language: globalLang ? globalLang.value : "de",
-                    timeframe: currentTimeframe
+                    timeframe: currentTimeframe,
+                    trades: currentFilteredTrades.map(t => ({
+                        symbol: t.symbol,
+                        side: t.side,
+                        net_profit: t.net_profit,
+                        gross_profit: t.gross_profit,
+                        open_time: t.open_time,
+                        close_time: t.close_time
+                    }))
                 };
 
                 const response = await fetch(`${API_URL}?action=ai_coach`, {

@@ -47,35 +47,44 @@ export default {
           }), { status: 403, headers: corsHeaders });
         }
 
-        // Letzte Trades abrufen (heute)
-        const tradesRes = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC LIMIT 50")
-          .bind(license_key).all();
+        // Letzte Trades abrufen (entweder vom Dashboard geschickt oder als Fallback die letzten 50)
+        let trades = [];
+        if (body.trades && Array.isArray(body.trades) && body.trades.length > 0) {
+            trades = body.trades;
+        } else {
+            const tradesRes = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC LIMIT 50")
+              .bind(license_key).all();
+            trades = tradesRes.results;
+        }
         
-        const trades = tradesRes.results;
-        
-        // Gemini API Aufruf
         const prompt = `Du bist ein hochprofessioneller, direkter und analytischer Trading-Coach. 
-Analysiere die folgenden Trades und das Profil des Traders.
-Profil: ${JSON.stringify(body)}
-Gib hartes, datenbasiertes Feedback (kein Blabla). 
-Wandle Unix-Timestamps in menschenlesbare Zeitangaben um (z.B. "17. Juli 14:30 Uhr").
-Fasse dich kurz und präzise!`;
+Analysiere die folgenden Trades.
+Profil des Traders: ${JSON.stringify(body)}
+WICHTIG:
+1. Sprich den Trader IMMER direkt mit "Du" an (z.B. "Du hast 41 Trades gemacht..."). Nutze niemals die dritte Person!
+2. Gib hartes, datenbasiertes Feedback.
+3. Gib am Ende EINEN konkreten, hilfreichen Ratschlag zur Verbesserung.
+4. Wandle Unix-Timestamps in menschenlesbare Zeitangaben um (z.B. "17. Juli 14:30 Uhr").
+Fasse dich extrem kurz (maximal 3-4 Sätze) und bringe es direkt auf den Punkt, da deine Antwortlänge begrenzt ist!`;
         
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.KI_API}`, {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({
-            contents: [{parts: [{text: prompt + "\n\nTrades: " + JSON.stringify(trades)}]}]
-          })
-        });
-
-        const geminiData = await geminiRes.json();
-        
-        if (!geminiRes.ok || geminiData.error) {
-           return new Response(JSON.stringify({ error: "Gemini API Fehler: " + (geminiData.error?.message || "Unbekannt") }), { status: 500, headers: corsHeaders });
+        if (!env.AI) {
+           return new Response(JSON.stringify({ error: "Cloudflare AI Binding fehlt. Bitte 'AI' in den Worker Settings binden!" }), { status: 500, headers: corsHeaders });
         }
 
-        const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "Ich konnte keine Analyse erstellen.";
+        let aiResponse;
+        try {
+            aiResponse = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+                messages: [
+                    { role: 'system', content: prompt },
+                    { role: 'user', content: "Trades: " + JSON.stringify(trades) }
+                ],
+                max_tokens: 1024
+            });
+        } catch (err) {
+            return new Response(JSON.stringify({ error: "Cloudflare AI Fehler: " + err.message }), { status: 500, headers: corsHeaders });
+        }
+
+        const text = aiResponse.response || "Ich konnte keine Analyse erstellen.";
 
         // Counter erhöhen
         if (count === 0) {
