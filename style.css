@@ -1,4 +1,4 @@
-:root, :root[data-theme="neo-retro"] {
+﻿:root, :root[data-theme="neo-retro"] {
     --bg-color: #050505;
     --panel-bg: #111111;
     --text-main: #39ff14; /* Neon green */
@@ -533,14 +533,14 @@ th {
     }
 }
 
- @ k e y f r a m e s   l o g o - g l o w   { 
-         0 %   {   f i l t e r :   d r o p - s h a d o w ( 0   0   2 p x   v a r ( - - t e x t - m u t e d ) ) ;   } 
-         5 0 %   {   f i l t e r :   d r o p - s h a d o w ( 0   0   1 5 p x   v a r ( - - t e x t - m a i n ) ) ;   } 
-         1 0 0 %   {   f i l t e r :   d r o p - s h a d o w ( 0   0   2 p x   v a r ( - - t e x t - m u t e d ) ) ;   } 
- } 
- 
- . l o g o   i m g   { 
-         a n i m a t i o n :   l o g o - g l o w   6 s   i n f i n i t e   a l t e r n a t e   e a s e - i n - o u t ; 
- } 
-  
- 
+
+@keyframes logo-glow {
+    0% { box-shadow: 0 0 5px var(--text-main); filter: brightness(1); }
+    50% { box-shadow: 0 0 30px var(--text-main), 0 0 10px var(--text-main); filter: brightness(1.2); }
+    100% { box-shadow: 0 0 5px var(--text-main); filter: brightness(1); }
+}
+
+.logo img {
+    animation: logo-glow 6s infinite alternate ease-in-out;
+    border: 1px solid var(--border-dark);
+}
