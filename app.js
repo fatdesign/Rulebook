@@ -677,7 +677,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 aiBtn.disabled = false;
             }
         });
-        });
     }
 
     // --- Kill-Switch Settings ---
