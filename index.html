@@ -236,8 +236,36 @@
                     </div>
                 </div>
 
+                <!-- Data Row 4 (Calendar & Monthly) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;" class="charts-row">
+                    <!-- Daily Performance Calendar -->
+                    <div class="glass-panel" style="margin-bottom: 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
+                            <h3 style="margin:0;"><i class="ph ph-calendar"></i> <span data-i18n="daily_perf_title">DAILY PERFORMANCE</span></h3>
+                            <span class="mode-badge" style="font-size: 0.8rem; font-weight: bold; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-dark);">MODE: €</span>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 15px; font-weight: bold; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase;" id="cal-month-title">
+                            MONTH 202X
+                        </div>
+                        <div id="daily-calendar-container">
+                            <!-- JS will populate -->
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Overview -->
+                    <div class="glass-panel" style="margin-bottom: 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
+                            <h3 style="margin:0;"><i class="ph ph-calendar-blank"></i> <span data-i18n="monthly_over_title">MONTHLY OVERVIEW</span></h3>
+                            <span class="mode-badge" style="font-size: 0.8rem; font-weight: bold; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-dark);">MODE: €</span>
+                        </div>
+                        <div id="monthly-overview-container" style="overflow-y: auto; max-height: 400px; padding-right: 5px;">
+                            <!-- JS will populate -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Data Row 3 (Journal & AI) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;" class="charts-row">
                     <!-- Mental Journal -->
                     <div class="glass-panel" style="margin-bottom: 0; padding: 20px; display: flex; flex-direction: column;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">

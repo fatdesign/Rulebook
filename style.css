@@ -422,6 +422,90 @@ th {
     margin-bottom: 0;
 }
 
+/* --- Calendar & Monthly Overview --- */
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+.cal-header {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding-bottom: 5px;
+}
+.cal-day {
+    aspect-ratio: 1.2;
+    background: var(--input-bg);
+    border: 1px solid var(--border-darker);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+.cal-day.empty {
+    background: transparent;
+    border: none;
+}
+.cal-date {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+.cal-day.positive, .month-card.positive {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border-color: #10b981;
+}
+.cal-day.negative, .month-card.negative {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+.monthly-year-group {
+    margin-bottom: 20px;
+}
+.monthly-year-title {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border-dark);
+    padding-bottom: 4px;
+}
+.monthly-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+.month-card {
+    background: var(--input-bg);
+    border: 1px solid var(--border-darker);
+    border-radius: 4px;
+    padding: 8px 4px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.month-card .m-name {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+.month-card .m-val {
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+.month-card.current {
+    border: 2px solid var(--text-main);
+}
+
 /* Utility layout */
 .flex {
     display: flex;

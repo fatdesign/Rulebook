@@ -765,35 +765,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), diff) / 1000);
             }
 
-            const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
-            currentFilteredTrades = filteredTrades;
-
-            // Extract currency and gross profit
+            // Extract currency and gross profit from all trades
             let accCurrency = "USD";
-            filteredTrades.forEach(t => {
-                // Parse Side, Currency and Gross Profit from side string (e.g. "Buy_EUR_5.50")
-                const sideParts = t.side.split('_');
-                t.side = sideParts[0]; 
-                
-                if (sideParts.length > 1) {
-                    accCurrency = sideParts[1];
+            trades.forEach(t => {
+                // Check if we haven't already split it (e.g. if run multiple times)
+                if (t.side.includes('_')) {
+                    const sideParts = t.side.split('_');
+                    t.side = sideParts[0]; 
+                    
+                    if (sideParts.length > 1) {
+                        accCurrency = sideParts[1];
+                    }
+                    
+                    let grossProfit = parseFloat(t.net_profit); // fallback
+                    if (sideParts.length > 2) {
+                        grossProfit = parseFloat(sideParts[2]);
+                    }
+                    t.gross_profit = grossProfit;
+                } else if (t.gross_profit === undefined) {
+                    t.gross_profit = parseFloat(t.net_profit);
                 }
-                
-                let grossProfit = parseFloat(t.net_profit); // fallback
-                if (sideParts.length > 2) {
-                    grossProfit = parseFloat(sideParts[2]);
-                }
-                
-                t.gross_profit = grossProfit;
             });
 
-            // Map standard currency codes to symbols
             const currencyMap = {
                 "EUR": "€", "USD": "$", "GBP": "£", "JPY": "¥", "CHF": "CHF", "AUD": "A$", "CAD": "C$", "NZD": "NZ$"
             };
             const curSym = currencyMap[accCurrency] || accCurrency;
-
             window.currentCurSym = curSym;
+
+            renderCalendarAndMonthly(trades, curSym);
+
+            const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
+            currentFilteredTrades = filteredTrades;
+
             processData(filteredTrades, curSym);
         } catch (err) {
             showError(err.message);
@@ -1119,6 +1123,112 @@ document.addEventListener("DOMContentLoaded", () => {
         renderChart(labels, equityCurve);
         renderHeatmap(heatmapData, curSym);
         renderSymbolChart(symbolProfits, curSym);
+    }
+
+    function renderCalendarAndMonthly(trades, curSym) {
+        const dailyProfit = {};
+        const monthlyProfit = {};
+        
+        trades.forEach(t => {
+            const date = new Date(t.close_time * 1000);
+            const y = date.getFullYear();
+            const m = date.getMonth(); // 0-11
+            const d = date.getDate();
+            
+            const dayKey = `${y}-${m}-${d}`;
+            const monthKey = `${y}-${m}`;
+            
+            if(!dailyProfit[dayKey]) dailyProfit[dayKey] = 0;
+            dailyProfit[dayKey] += parseFloat(t.net_profit);
+            
+            if(!monthlyProfit[monthKey]) monthlyProfit[monthKey] = 0;
+            monthlyProfit[monthKey] += parseFloat(t.net_profit);
+        });
+        
+        // Update mode badges
+        document.querySelectorAll(".mode-badge").forEach(b => b.innerText = `MODE: ${curSym}`);
+        
+        // --- Monthly Overview ---
+        const monthlyContainer = document.getElementById("monthly-overview-container");
+        if(monthlyContainer) {
+            monthlyContainer.innerHTML = "";
+            const years = [...new Set(Object.keys(monthlyProfit).map(k => parseInt(k.split('-')[0])))].sort((a,b) => b - a);
+            
+            const monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+            
+            const now = new Date();
+            const currY = now.getFullYear();
+            const currM = now.getMonth();
+            
+            years.forEach(year => {
+                const yearDiv = document.createElement("div");
+                yearDiv.className = "monthly-year-group";
+                yearDiv.innerHTML = `<div class="monthly-year-title">${year}</div><div class="monthly-grid"></div>`;
+                const grid = yearDiv.querySelector(".monthly-grid");
+                
+                for(let m = 0; m < 12; m++) {
+                    const mKey = `${year}-${m}`;
+                    if(monthlyProfit[mKey] !== undefined) {
+                        const val = monthlyProfit[mKey];
+                        const isCurrent = (year === currY && m === currM);
+                        const cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
+                        const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
+                        grid.innerHTML += `
+                            <div class="month-card ${cls} ${isCurrent ? 'current' : ''}">
+                                <span class="m-name">${monthNames[m]} ${year}</span>
+                                <span class="m-val">${displayVal}</span>
+                            </div>
+                        `;
+                    }
+                }
+                if(grid.innerHTML !== "") {
+                    monthlyContainer.appendChild(yearDiv);
+                }
+            });
+        }
+        
+        // --- Daily Calendar (Current Month) ---
+        const calContainer = document.getElementById("daily-calendar-container");
+        const monthTitle = document.getElementById("cal-month-title");
+        if(calContainer && monthTitle) {
+            calContainer.innerHTML = "";
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            
+            const fullMonthNames = ["JANUAR", "FEBRUAR", "MÄRZ", "APRIL", "MAI", "JUNI", "JULI", "AUGUST", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DEZEMBER"];
+            monthTitle.innerText = `${fullMonthNames[m]} ${y}`;
+            
+            let gridHtml = `<div class="cal-grid">`;
+            const daysHeader = ["M", "D", "M", "D", "F", "S", "S"];
+            daysHeader.forEach(dh => {
+                gridHtml += `<div class="cal-header">${dh}</div>`;
+            });
+            
+            const firstDay = new Date(y, m, 1).getDay(); // 0 (Sun) - 6 (Sat)
+            let startOffset = firstDay === 0 ? 6 : firstDay - 1; // Make Monday 0
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            
+            for(let i = 0; i < startOffset; i++) {
+                gridHtml += `<div class="cal-day empty"></div>`;
+            }
+            
+            for(let d = 1; d <= daysInMonth; d++) {
+                const dayKey = `${y}-${m}-${d}`;
+                const val = dailyProfit[dayKey];
+                let content = `<span class="cal-date">${d}</span>`;
+                let cls = "";
+                if(val !== undefined) {
+                    cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
+                    const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
+                    content += `<span class="cal-val">${displayVal}</span>`;
+                }
+                gridHtml += `<div class="cal-day ${cls}">${content}</div>`;
+            }
+            
+            gridHtml += `</div>`;
+            calContainer.innerHTML = gridHtml;
+        }
     }
 
     function renderHeatmap(data, curSym) {
