@@ -23,6 +23,7 @@ const i18n = {
         kpi_hold_loss: "Ø Haltezeit (Verlierer)",
         kpi_drawdown: "Max Drawdown",
         chart_title: "Kapitalkurve",
+        trade_list_title: "Letzte Trades (Gefiltert)",
         profile_title: "Trader Profil",
         profile_sub: "Vor der KI-Analyse einstellen",
         prof_style_scalper: "Scalper",
@@ -57,6 +58,7 @@ const i18n = {
         kpi_hold_loss: "Avg Hold (Loss)",
         kpi_drawdown: "Max Drawdown",
         chart_title: "Equity Curve",
+        trade_list_title: "Recent Trades (Filtered)",
         profile_title: "Trader Profile",
         profile_sub: "Set this before asking the AI",
         prof_style_scalper: "Scalper",
@@ -91,6 +93,7 @@ const i18n = {
         kpi_hold_loss: "Duración Media (Pierde)",
         kpi_drawdown: "Drawdown Máximo",
         chart_title: "Curva de Capital",
+        trade_list_title: "Operaciones Recientes",
         profile_title: "Perfil de Trader",
         profile_sub: "Configura antes de consultar",
         prof_style_scalper: "Scalper",
@@ -125,6 +128,7 @@ const i18n = {
         kpi_hold_loss: "Ort. Süre (Kayıp)",
         kpi_drawdown: "Maks. Düşüş",
         chart_title: "Sermaye Eğrisi",
+        trade_list_title: "Son İşlemler (Filtrelenmiş)",
         profile_title: "Trader Profili",
         profile_sub: "Yapay zekaya sormadan önce ayarlayın",
         prof_style_scalper: "Scalper",
@@ -328,6 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 startTime = Math.floor(startOfWeek.getTime() / 1000);
             }
 
+            // Note: MT5 Server timestamps might cause slight timezone shifts relative to local JS Midnight
             const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
 
             processData(filteredTrades);
@@ -453,6 +458,41 @@ document.addEventListener("DOMContentLoaded", () => {
         updateKPI("kpi-drawdown", "-$" + maxDrawdown.toFixed(2), false);
 
         renderChart(labels, equityCurve);
+        renderTradeTable(trades);
+    }
+
+    function renderTradeTable(trades) {
+        const tbody = document.getElementById("trade-table-body");
+        if (!tbody) return;
+        
+        tbody.innerHTML = "";
+        
+        if (trades.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='6' style='padding: 15px; text-align: center; color: var(--text-muted);'>No trades found.</td></tr>";
+            return;
+        }
+
+        // Display newest first
+        const sorted = [...trades].sort((a,b) => b.close_time - a.close_time);
+
+        sorted.forEach(t => {
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+            
+            const dateStr = new Date(t.close_time * 1000).toLocaleString();
+            const profitStr = parseFloat(t.net_profit).toFixed(2);
+            const profitColor = t.net_profit > 0 ? "var(--color-positive)" : (t.net_profit < 0 ? "var(--color-negative)" : "var(--text-main)");
+
+            tr.innerHTML = `
+                <td style="padding: 10px; font-size: 0.9rem;">#${t.ticket}</td>
+                <td style="padding: 10px; font-size: 0.9rem; font-weight: bold;">${t.symbol}</td>
+                <td style="padding: 10px; font-size: 0.9rem;">${t.side}</td>
+                <td style="padding: 10px; font-size: 0.9rem;">${t.volume.toFixed(2)}</td>
+                <td style="padding: 10px; font-size: 0.9rem; font-weight: bold; color: ${profitColor};">$${profitStr}</td>
+                <td style="padding: 10px; font-size: 0.85rem; color: var(--text-muted);">${dateStr}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     function updateKPI(id, text, isPositive) {

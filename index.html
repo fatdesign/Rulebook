@@ -128,7 +128,7 @@
                 </div>
 
                 <!-- AI Insights (Phase 4) -->
-                <div class="ai-insights glass-panel">
+                <div class="ai-insights glass-panel" style="margin-bottom: 20px;">
                     <div class="ai-header">
                         <span class="sparkle-icon">✨</span>
                         <h3 data-i18n="ai_title">AI Trading Coach</h3>
@@ -143,9 +143,31 @@
                         <p class="ai-placeholder-text" data-i18n="ai_placeholder">Click the button above to get a harsh but helpful AI analysis of your recent trades.</p>
                     </div>
                 </div>
+
+                <!-- Raw Trade List Table -->
+                <div class="trade-list-container glass-panel">
+                    <h3 data-i18n="trade_list_title" style="margin-bottom: 15px;">Recent Trades</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="trade-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <th style="padding: 10px; color: var(--text-muted);">Ticket</th>
+                                    <th style="padding: 10px; color: var(--text-muted);">Symbol</th>
+                                    <th style="padding: 10px; color: var(--text-muted);">Side</th>
+                                    <th style="padding: 10px; color: var(--text-muted);">Volume</th>
+                                    <th style="padding: 10px; color: var(--text-muted);">Net Profit</th>
+                                    <th style="padding: 10px; color: var(--text-muted);">Close Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trade-table-body">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>
