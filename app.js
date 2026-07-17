@@ -1,0 +1,168 @@
+const API_URL = "https://trademaster.f-klavun.workers.dev/";
+let equityChartInstance = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    const loginScreen = document.getElementById("login-screen");
+    const dashboard = document.getElementById("dashboard");
+    const connectBtn = document.getElementById("connect-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const licenseInput = document.getElementById("license-key");
+    const errorMsg = document.getElementById("login-error");
+
+    // Check if already logged in
+    const savedKey = localStorage.getItem("tm_license_key");
+    if (savedKey) {
+        licenseInput.value = savedKey;
+        loadDashboard(savedKey);
+    }
+
+    connectBtn.addEventListener("click", () => {
+        const key = licenseInput.value.trim();
+        if (!key) {
+            showError("Please enter a License Key.");
+            return;
+        }
+        loadDashboard(key);
+    });
+
+    logoutBtn.addEventListener("click", () => {
+        localStorage.removeItem("tm_license_key");
+        dashboard.classList.add("hidden");
+        loginScreen.classList.add("active");
+    });
+
+    async function loadDashboard(key) {
+        connectBtn.innerText = "Loading...";
+        errorMsg.classList.add("hidden");
+
+        try {
+            // Fetch data from Cloudflare Worker
+            const response = await fetch(`${API_URL}?key=${encodeURIComponent(key)}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Invalid License Key or Server Error.");
+            }
+
+            const trades = await response.json();
+            
+            if (trades.length === 0) {
+                throw new Error("No trades found for this License Key.");
+            }
+
+            // Success! Save key and show dashboard
+            localStorage.setItem("tm_license_key", key);
+            document.getElementById("display-key").innerText = `Key: ${key.substring(0, 4)}••••`;
+            
+            loginScreen.classList.remove("active");
+            dashboard.classList.remove("hidden");
+            
+            processData(trades);
+
+        } catch (err) {
+            showError(err.message);
+        } finally {
+            connectBtn.innerText = "Connect & Analyze";
+        }
+    }
+
+    function showError(msg) {
+        errorMsg.innerText = msg;
+        errorMsg.classList.remove("hidden");
+    }
+
+    function processData(trades) {
+        let totalProfit = 0;
+        let wins = 0;
+        let grossProfit = 0;
+        let grossLoss = 0;
+        
+        let balance = 0;
+        const equityCurve = [0];
+        const labels = ["Start"];
+
+        trades.forEach((trade, index) => {
+            const p = parseFloat(trade.net_profit);
+            totalProfit += p;
+            
+            if (p > 0) {
+                wins++;
+                grossProfit += p;
+            } else {
+                grossLoss += Math.abs(p);
+            }
+
+            balance += p;
+            equityCurve.push(balance);
+            labels.push(`Trade ${index + 1}`);
+        });
+
+        const winrate = (wins / trades.length) * 100;
+        const profitFactor = grossLoss === 0 ? grossProfit : (grossProfit / grossLoss);
+
+        // Update UI
+        updateKPI("kpi-profit", `$${totalProfit.toFixed(2)}`, totalProfit >= 0);
+        updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
+        document.getElementById("kpi-trades").innerText = trades.length;
+        updateKPI("kpi-pf", profitFactor.toFixed(2), profitFactor >= 1.5);
+
+        renderChart(labels, equityCurve);
+    }
+
+    function updateKPI(id, text, isPositive) {
+        const el = document.getElementById(id);
+        el.innerText = text;
+        el.className = "kpi-value " + (isPositive ? "positive" : "negative");
+    }
+
+    function renderChart(labels, data) {
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        
+        if (equityChartInstance) {
+            equityChartInstance.destroy();
+        }
+
+        equityChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Net Equity',
+                    data: data,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { display: false }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+            }
+        });
+    }
+});

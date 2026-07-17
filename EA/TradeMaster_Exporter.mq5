@@ -143,18 +143,18 @@ void SendToServer(string jsonPayload)
    string headers = "Content-Type: application/json\r\n";
    headers += "Authorization: " + InpLicenseKey + "\r\n";
    
-   char data[];
+   uchar data[];
    StringToCharArray(jsonPayload, data, 0, WHOLE_ARRAY, CP_UTF8);
    
    // StringToCharArray adds a null terminator at the end. WebRequest doesn't need it.
    int dataLen = ArraySize(data) - 1; 
-   if(dataLen < 0) dataLen = 0;
+   if(dataLen > 0) ArrayResize(data, dataLen);
    
-   char result[];
+   uchar result[];
    string resultHeaders;
    
    Print("Sending data to server: ", url);
-   int res = WebRequest("POST", url, headers, 10000, data, dataLen, result, resultHeaders);
+   int res = WebRequest("POST", url, headers, 10000, data, result, resultHeaders);
    
    if(res == 200)
    {

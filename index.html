@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeMaster AI - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Login / Setup Screen -->
+        <div id="login-screen" class="glass-panel active">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>TradeMaster AI</h1>
+            </div>
+            <p class="subtitle">Connect your MT5 account to view AI insights.</p>
+            <div class="input-group">
+                <input type="text" id="license-key" placeholder="Enter your License Key" value="DEMO_KEY">
+                <button id="connect-btn">Connect & Analyze</button>
+            </div>
+            <div id="login-error" class="error-msg hidden"></div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="dashboard hidden">
+            <header class="dashboard-header">
+                <div class="logo">
+                    <div class="logo-icon small"></div>
+                    <h2>TradeMaster</h2>
+                </div>
+                <div class="user-info">
+                    <span id="display-key">Key: ••••</span>
+                    <button id="logout-btn" class="secondary-btn">Disconnect</button>
+                </div>
+            </header>
+
+            <main class="dashboard-grid">
+                <!-- KPIs -->
+                <div class="kpi-row">
+                    <div class="kpi-card glass-panel">
+                        <h3>Net Profit</h3>
+                        <p id="kpi-profit" class="kpi-value positive">$0.00</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <h3>Win Rate</h3>
+                        <p id="kpi-winrate" class="kpi-value">0%</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <h3>Total Trades</h3>
+                        <p id="kpi-trades" class="kpi-value">0</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <h3>Profit Factor</h3>
+                        <p id="kpi-pf" class="kpi-value">0.00</p>
+                    </div>
+                </div>
+
+                <!-- Main Chart -->
+                <div class="chart-container glass-panel">
+                    <h3>Equity Curve</h3>
+                    <canvas id="equityChart"></canvas>
+                </div>
+
+                <!-- AI Insights (Phase 4 placeholder) -->
+                <div class="ai-insights glass-panel">
+                    <div class="ai-header">
+                        <span class="sparkle-icon">✨</span>
+                        <h3>AI Trading Coach</h3>
+                    </div>
+                    <div id="ai-content" class="ai-content">
+                        <div class="skeleton-loader"></div>
+                        <div class="skeleton-loader" style="width: 80%"></div>
+                        <p class="ai-placeholder-text">Analyzing your trading patterns. The AI coach will be activated in Phase 4...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
