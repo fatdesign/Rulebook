@@ -675,9 +675,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const trades = await response.json();
             
-            if (trades.length === 0) {
-                throw new Error("No trades found for this License Key.");
-            }
+            // Empty array is valid for accounts with no trades. Process it normally to clear the dashboard.
+
 
             // Success! Save key and show dashboard
             localStorage.setItem("tm_license_key", key);
