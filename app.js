@@ -476,7 +476,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const tr = document.createElement("tr");
             tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
             
-            const dateStr = new Date(t.close_time * 1000).toLocaleString();
+            const d = new Date(t.close_time * 1000);
+            const dateStr = d.getUTCFullYear() + "." + 
+                            String(d.getUTCMonth()+1).padStart(2, '0') + "." + 
+                            String(d.getUTCDate()).padStart(2, '0') + " " + 
+                            String(d.getUTCHours()).padStart(2, '0') + ":" + 
+                            String(d.getUTCMinutes()).padStart(2, '0');
+                            
             const profitStr = parseFloat(t.net_profit).toFixed(2);
             const profitColor = t.net_profit > 0 ? "var(--color-positive)" : (t.net_profit < 0 ? "var(--color-negative)" : "var(--text-main)");
 
