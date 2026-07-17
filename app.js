@@ -332,14 +332,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
 
-            // Extract currency from the first trade that has it, default to USD
+            // Extract currency and gross profit
             let accCurrency = "USD";
             filteredTrades.forEach(t => {
-                const parts = t.side.split('_');
-                t.side = parts[0]; // Clean up side for display
-                if (parts.length > 1) {
-                    accCurrency = parts[1];
+                // Parse Side and Currency
+                const sideParts = t.side.split('_');
+                t.side = sideParts[0]; 
+                if (sideParts.length > 1) {
+                    accCurrency = sideParts[1];
                 }
+                
+                // Parse Ticket and Gross Profit
+                let actualTicket = t.ticket;
+                let grossProfit = parseFloat(t.net_profit); // fallback
+                if (typeof t.ticket === "string" && t.ticket.includes("_gross:")) {
+                    const ticketParts = t.ticket.split("_gross:");
+                    actualTicket = ticketParts[0];
+                    grossProfit = parseFloat(ticketParts[1]);
+                }
+                t.ticket = actualTicket;
+                t.gross_profit = grossProfit;
             });
 
             // Map standard currency codes to symbols
@@ -414,22 +426,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const labels = ["Start"];
 
         trades.forEach((trade, index) => {
-            const p = parseFloat(trade.net_profit);
+            const netP = parseFloat(trade.net_profit);
+            const grossP = trade.gross_profit !== undefined ? trade.gross_profit : netP;
             const holdSec = trade.close_time - trade.open_time;
             
-            totalProfit += p;
+            totalProfit += netP;
             
-            if (p > 0) {
+            // Win Rate and Profit Factor based on Gross Profit (Market Movement)
+            if (grossP > 0) {
                 wins++;
-                grossProfit += p;
+                grossProfit += grossP;
                 totalHoldWins += holdSec;
-            } else if (p < 0) {
+            } else if (grossP < 0) {
                 losses++;
-                grossLoss += Math.abs(p);
+                grossLoss += Math.abs(grossP);
                 totalHoldLosses += Math.max(0, holdSec);
             }
 
-            balance += p;
+            balance += netP;
             if (balance > peakBalance) peakBalance = balance;
             const drawdown = peakBalance - balance;
             if (drawdown > maxDrawdown) maxDrawdown = drawdown;
