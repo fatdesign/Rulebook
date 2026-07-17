@@ -1181,6 +1181,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderChart(labels, equityCurve);
         renderHeatmap(heatmapData, curSym);
         renderSymbolChart(symbolProfits, curSym);
+        renderDailyStatsTable(trades, curSym);
     }
 
     function renderCalendarAndMonthly(trades, curSym) {
@@ -1344,6 +1345,103 @@ document.addEventListener("DOMContentLoaded", () => {
             gridHtml += `</div>`;
             calContainer.innerHTML = gridHtml;
         }
+    }
+
+    function renderDailyStatsTable(trades, curSym) {
+        const tbody = document.querySelector("#daily-stats-table tbody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        const daysMap = {};
+        
+        trades.forEach(t => {
+            const dateObj = new Date(t.close_time * 1000);
+            const dateKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+            
+            if (!daysMap[dateKey]) {
+                daysMap[dateKey] = {
+                    dateStr: dateObj.toLocaleDateString(),
+                    timestamp: dateObj.getTime(),
+                    netProfit: 0,
+                    grossProfit: 0,
+                    grossLoss: 0,
+                    tradesCount: 0,
+                    wins: 0,
+                    losses: 0,
+                    maxWin: 0,
+                    maxLoss: 0,
+                    commission: 0,
+                    longs: 0,
+                    shorts: 0
+                };
+            }
+            
+            const day = daysMap[dateKey];
+            const netP = parseFloat(t.net_profit);
+            const grossP = t.gross_profit !== undefined ? parseFloat(t.gross_profit) : netP;
+            
+            day.netProfit += netP;
+            day.tradesCount++;
+            
+            if (t.side && t.side.startsWith("Buy")) day.longs++;
+            if (t.side && t.side.startsWith("Sell")) day.shorts++;
+            
+            if (grossP > 0) {
+                day.grossProfit += grossP;
+                day.wins++;
+                if (grossP > day.maxWin) day.maxWin = grossP;
+            } else if (grossP < 0) {
+                day.grossLoss += Math.abs(grossP);
+                day.losses++;
+                if (grossP < day.maxLoss) day.maxLoss = grossP;
+            } else {
+                if (netP > 0) {
+                    day.wins++;
+                    if (netP > day.maxWin) day.maxWin = netP;
+                } else if (netP < 0) {
+                    day.losses++;
+                    if (netP < day.maxLoss) day.maxLoss = netP;
+                }
+            }
+            
+            if (t.commission) {
+                day.commission += parseFloat(t.commission);
+            }
+        });
+        
+        const sortedDays = Object.values(daysMap).sort((a, b) => b.timestamp - a.timestamp);
+        
+        if (sortedDays.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px; color: var(--text-muted);" data-i18n="no_trades_found">No trades found for this period.</td></tr>`;
+            return;
+        }
+        
+        sortedDays.forEach(day => {
+            const tr = document.createElement("tr");
+            
+            const pf = day.grossLoss === 0 ? (day.grossProfit > 0 ? day.grossProfit : 0) : (day.grossProfit / day.grossLoss);
+            const winRate = day.tradesCount > 0 ? ((day.wins / day.tradesCount) * 100) : 0;
+            const avgWin = day.wins > 0 ? (day.grossProfit / day.wins) : 0;
+            const avgLoss = day.losses > 0 ? (day.grossLoss / day.losses) : 0;
+            
+            const pClass = day.netProfit > 0 ? "text-success" : (day.netProfit < 0 ? "text-danger" : "");
+            
+            tr.innerHTML = `
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.dateStr}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${pClass}">${day.netProfit > 0 ? '+' : ''}${curSym}${day.netProfit.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">-</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${pf.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${day.tradesCount}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${winRate.toFixed(0)}%</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--success);">${curSym}${avgWin.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--danger);">${avgLoss === 0 ? '' : '-'}${curSym}${avgLoss.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--success);">${curSym}${day.maxWin.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--danger);">${day.maxLoss < 0 ? '-' : ''}${curSym}${Math.abs(day.maxLoss).toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.commission !== 0 ? curSym + day.commission.toFixed(2) : '-'}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${day.longs} / ${day.shorts}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     function renderHeatmap(data, curSym) {

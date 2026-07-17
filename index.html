@@ -327,6 +327,34 @@
                     </div>
                 </div>
 
+                <!-- Daily Stats Table -->
+                <div class="glass-panel table-container" style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="ph ph-calendar-check"></i> <span data-i18n="daily_stats_title">Daily Statistics</span></h3>
+                    <div style="overflow-x: auto;">
+                        <table id="daily-stats-table" style="width: 100%; text-align: left; white-space: nowrap;">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_date">Date</th>
+                                    <th data-i18n="th_profit">Profit</th>
+                                    <th data-i18n="th_gain_pct">% Gain</th>
+                                    <th data-i18n="th_pf">Profit Factor</th>
+                                    <th data-i18n="th_trades">Trades</th>
+                                    <th data-i18n="th_winrate">Win Rate</th>
+                                    <th data-i18n="th_avg_win">Avg Win</th>
+                                    <th data-i18n="th_avg_loss">Avg Loss</th>
+                                    <th data-i18n="th_max_win">Max Win</th>
+                                    <th data-i18n="th_max_loss">Max Loss</th>
+                                    <th data-i18n="th_commission">Commission</th>
+                                    <th data-i18n="th_ls">L / S</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Recent Trades Table -->
                 <div class="glass-panel table-container" style="margin-bottom: 20px;">
                     <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="ph ph-list-dashes"></i> <span data-i18n="trades_title">Recent Trades & Tags</span></h3>
