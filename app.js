@@ -1048,6 +1048,82 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("kpi-best-day").innerText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
         document.getElementById("kpi-worst-day").innerText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
 
+        // NEW: Tag Analysis & Mistake Tax
+        let mistakeTax = 0;
+        const setupStats = {};
+        const mistakeStats = {};
+        const mistakeKeywords = ['#fomo', '#revenge', '#tilt', '#mistake', '#overtrade', '#greed', '#fear', '#moved_sl', '#hesitation', '#early', '#late'];
+        
+        trades.forEach(t => {
+            const net = parseFloat(t.net_profit) || 0;
+            const note = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "").toLowerCase() : "";
+            const tags = note.match(/#\w+/g) || [];
+            
+            let isMistakeTrade = false;
+            
+            tags.forEach(tag => {
+                const isMistake = mistakeKeywords.includes(tag);
+                if (isMistake) isMistakeTrade = true;
+                
+                const targetDict = isMistake ? mistakeStats : setupStats;
+                if (!targetDict[tag]) targetDict[tag] = { count: 0, netProfit: 0, wins: 0 };
+                
+                targetDict[tag].count++;
+                targetDict[tag].netProfit += net;
+                if (net >= 0) targetDict[tag].wins++;
+            });
+            
+            if (isMistakeTrade && net < 0) {
+                mistakeTax += Math.abs(net);
+            }
+        });
+        
+        // Render Watchdog
+        const dailyCostEl = document.getElementById("watchdog-daily-cost");
+        const dailyCost = dailyCostEl ? parseFloat(dailyCostEl.value) || 50 : 50;
+        const currentBalanceForWatchdog = totalProfit > 0 ? totalProfit : 0;
+        const breathingRoom = dailyCost > 0 ? Math.floor(currentBalanceForWatchdog / dailyCost) : 0;
+        
+        const wdMistakeTaxEl = document.getElementById("watchdog-mistake-tax");
+        if (wdMistakeTaxEl) wdMistakeTaxEl.innerText = `${curSym}${mistakeTax.toFixed(2)}`;
+        const wdScoreEl = document.getElementById("watchdog-discipline-score");
+        if (wdScoreEl) wdScoreEl.innerText = `${discScore.toFixed(1)} / 100`;
+        const wdBreathingEl = document.getElementById("watchdog-breathing-room");
+        if (wdBreathingEl) wdBreathingEl.innerText = `${breathingRoom} Days`;
+        const wdRoastEl = document.getElementById("watchdog-ai-roast");
+        if (wdRoastEl) {
+            if (mistakeTax > 0) wdRoastEl.innerText = `"You burned ${curSym}${mistakeTax.toFixed(2)} on stupid mistakes. Stop donating your money."`;
+            else wdRoastEl.innerText = `"Clean trading. Keep it up and stick to the rules."`;
+        }
+        
+        // Render Tag Analysis Grids
+        const renderTagTable = (dict, tbodyId) => {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            const sortedTags = Object.keys(dict).sort((a, b) => dict[a].netProfit > dict[b].netProfit ? -1 : 1);
+            let html = "";
+            sortedTags.forEach(tag => {
+                const s = dict[tag];
+                const wr = ((s.wins / s.count) * 100).toFixed(1);
+                const color = s.netProfit >= 0 ? "var(--success)" : "var(--danger)";
+                html += `
+                    <tr>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${tag}</td>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: ${color}; font-weight: bold;">${curSym}${s.netProfit.toFixed(2)}</td>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${wr}%</td>
+                        <td style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${s.count}</td>
+                    </tr>
+                `;
+            });
+            if (html === "") html = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 10px;">No tags found. Add #tags to your trade notes!</td></tr>`;
+            tbody.innerHTML = html;
+        };
+        renderTagTable(setupStats, "setup-analysis-body");
+        renderTagTable(mistakeStats, "mistake-analysis-body");
+
+        // Apex Tracker Update
+        if (typeof updateApexTracker === "function") updateApexTracker(totalProfit);
+
         // Trades Table rendering
         const tbody = document.querySelector("#trades-table tbody");
         if (tbody) {
@@ -1092,6 +1168,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (window.tradeNotesMap) window.tradeNotesMap[ticket] = note;
                         inputEl.style.borderColor = "#10b981"; // Green = saved
                         setTimeout(() => { inputEl.style.borderColor = origBorder; }, 1500);
+                        // Refresh Mistake Tax & Tag Analysis
+                        if (typeof calculateKPIs === "function" && currentFilteredTrades) {
+                            calculateKPIs(currentFilteredTrades);
+                        }
                     } else {
                         console.error("Note save failed:", res.status);
                         inputEl.style.borderColor = "#ef4444"; // Red = error
@@ -1399,5 +1479,95 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+    // --- New Features Logic ---
+    window.runCompoundCalc = function() {
+        const start = parseFloat(document.getElementById("calc-start")?.value) || 0;
+        const rate = parseFloat(document.getElementById("calc-rate")?.value) || 0;
+        const days = parseInt(document.getElementById("calc-days")?.value) || 0;
+        
+        let endCapital = start;
+        for (let i = 0; i < days; i++) {
+            endCapital += (endCapital * (rate / 100));
+        }
+        
+        const netProfit = endCapital - start;
+        const curSym = (localStorage.getItem("tm_license_key") || "").toLowerCase().includes("usd") ? "$" : "€";
+        
+        const resEl = document.getElementById("calc-result-val");
+        if (resEl) resEl.innerText = `${curSym}${endCapital.toFixed(2)}`;
+        const profEl = document.getElementById("calc-profit-val");
+        if (profEl) profEl.innerText = `+${curSym}${netProfit.toFixed(2)}`;
+    };
+
+    window.updateApexTracker = function(currentProfit = null) {
+        if (currentProfit === null) {
+            const kpiProfit = document.getElementById("kpi-profit");
+            if (kpiProfit) {
+                currentProfit = parseFloat(kpiProfit.innerText.replace(/[^0-9.-]+/g,"")) || 0;
+            }
+        }
+        
+        const size = document.getElementById("apex-account-size")?.value || "100k";
+        const rules = {
+            '25k':  { initial: 25000, target: 1500, drawdown: 1500 },
+            '50k':  { initial: 50000, target: 3000, drawdown: 2500 },
+            '100k': { initial: 100000, target: 6000, drawdown: 3000 },
+            '150k': { initial: 150000, target: 9000, drawdown: 4500 }
+        };
+        const rule = rules[size];
+        if(!rule) return;
+        
+        const goal = rule.target;
+        const maxDrawdown = rule.drawdown;
+        const curSym = (localStorage.getItem("tm_license_key") || "").toLowerCase().includes("usd") ? "$" : "€";
+        
+        const balVal = document.getElementById("apex-balance-val");
+        if (balVal) balVal.innerText = `${curSym}${currentProfit.toFixed(2)}`;
+        
+        const balProg = document.getElementById("apex-balance-progress");
+        if (balProg) {
+            const pct = Math.min(100, Math.max(0, (currentProfit / goal) * 100));
+            balProg.style.width = `${pct}%`;
+        }
+        
+        const safeVal = document.getElementById("apex-safety-val");
+        if (safeVal) safeVal.innerText = `${curSym}${maxDrawdown}`;
+        const minReq = document.getElementById("apex-min-req-val");
+        if (minReq) minReq.innerText = `${curSym}${(rule.initial - maxDrawdown).toLocaleString()}`;
+        
+        const statusEl = document.getElementById("apex-payout-status");
+        if (statusEl) {
+            if (currentProfit >= goal) {
+                statusEl.innerText = "PASSED!";
+                statusEl.style.background = "var(--success)";
+                statusEl.style.color = "#000";
+            } else if (currentProfit <= -maxDrawdown) {
+                statusEl.innerText = "BLOWN ACCOUNT";
+                statusEl.style.background = "var(--danger)";
+                statusEl.style.color = "#fff";
+            } else {
+                statusEl.innerText = "IN PROGRESS";
+                statusEl.style.background = "rgba(255,255,255,0.1)";
+                statusEl.style.color = "var(--text-main)";
+            }
+        }
+    };
+
+    // Attach Event Listeners
+    document.getElementById("calc-start")?.addEventListener("input", window.runCompoundCalc);
+    document.getElementById("calc-rate")?.addEventListener("input", window.runCompoundCalc);
+    document.getElementById("calc-days")?.addEventListener("input", window.runCompoundCalc);
+    
+    document.getElementById("apex-phase")?.addEventListener("change", () => window.updateApexTracker());
+    document.getElementById("apex-account-size")?.addEventListener("change", () => window.updateApexTracker());
+    
+    document.getElementById("watchdog-daily-cost")?.addEventListener("input", () => {
+        if(typeof calculateKPIs === "function" && currentFilteredTrades) {
+            calculateKPIs(currentFilteredTrades);
+        }
+    });
+
+    // Run calc once on load
+    setTimeout(window.runCompoundCalc, 500);
 
 });
