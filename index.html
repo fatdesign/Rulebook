@@ -11,15 +11,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Global Language Selector for Login -->
+    <div id="login-lang-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+        <select id="login-lang" class="profile-select" style="width: auto; padding: 4px 8px; font-size: 0.85rem; box-shadow: 2px 2px 0px rgba(0,0,0,0.5);">
+            <option value="de">DE</option>
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+            <option value="tr">TR</option>
+        </select>
+    </div>
+
     <div class="app-container">
         <!-- Login / Setup Screen -->
-        <div id="login-screen" class="glass-panel active" style="position: relative;">
-            <select id="login-lang" class="profile-select" style="position: absolute; top: 15px; right: 15px; width: auto; padding: 6px 10px; background: rgba(0,0,0,0.3);">
-                <option value="de">DE</option>
-                <option value="en">EN</option>
-                <option value="es">ES</option>
-                <option value="tr">TR</option>
-            </select>
+        <div id="login-screen" class="glass-panel active">
             <div class="logo">
                 <img src="logo.png" width="48" height="48" alt="TradeMaster Logo" style="border-radius: 4px; margin-right: 10px;">
                 <h1>TradeMaster AI</h1>
@@ -33,12 +37,12 @@
             <div id="login-error" class="error-msg hidden"></div>
             
             <!-- Setup Guide Accordion -->
-            <div class="setup-accordion" style="margin-top: 30px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                <button id="setup-accordion-btn" class="secondary-btn" style="width: 100%; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
+            <div class="setup-accordion" style="margin-top: 30px; text-align: left; border-top: 1px solid var(--border-dark); padding-top: 20px;">
+                <button type="button" id="setup-accordion-btn" class="secondary-btn" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                     <span data-i18n="setup_btn">How to Setup & Get the EA</span>
-                    <i class="ph ph-caret-down" id="setup-caret"></i>
+                    <span id="setup-caret">▼</span>
                 </button>
-                <div id="setup-accordion-content" class="hidden" style="margin-top: 15px; font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                <div id="setup-accordion-content" class="hidden" style="margin-top: 15px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; background: var(--input-bg); color: var(--input-text); padding: 15px; border: 2px solid var(--border-darker);">
                     <ol style="padding-left: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
                         <li data-i18n="setup_step1">Download the TradeMaster Exporter EA from MQL5 Market.</li>
                         <li data-i18n="setup_step2">Attach it to ONE chart in your MetaTrader 5 terminal.</li>

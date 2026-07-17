@@ -357,6 +357,8 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem("tm_license_key");
         dashboard.classList.add("hidden");
         loginScreen.classList.add("active");
+        const llc = document.getElementById("login-lang-container");
+        if (llc) llc.style.display = "block";
     });
 
     if (refreshBtn) {
@@ -442,6 +444,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             loginScreen.classList.remove("active");
             dashboard.classList.remove("hidden");
+            const llc = document.getElementById("login-lang-container");
+            if (llc) llc.style.display = "none";
             
             // Load Settings once
             loadSettings(key);
