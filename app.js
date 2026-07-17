@@ -307,6 +307,31 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Theme Logic
+    const themeToggle = document.getElementById("theme-toggle");
+    const savedTheme = localStorage.getItem("tm_theme") || "dark";
+    if (savedTheme === "light") {
+        document.documentElement.setAttribute("data-theme", "light");
+        if (themeToggle) themeToggle.innerText = "🌙";
+    } else {
+        if (themeToggle) themeToggle.innerText = "☀️";
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            if (currentTheme === "light") {
+                document.documentElement.removeAttribute("data-theme");
+                localStorage.setItem("tm_theme", "dark");
+                themeToggle.innerText = "☀️";
+            } else {
+                document.documentElement.setAttribute("data-theme", "light");
+                localStorage.setItem("tm_theme", "light");
+                themeToggle.innerText = "🌙";
+            }
+        });
+    }
+
     // Check if already logged in
     const savedKey = localStorage.getItem("tm_license_key");
     if (savedKey) {
