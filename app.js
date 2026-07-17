@@ -1300,7 +1300,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Kill-Switch Settings ---
     async function loadSettings(key) {
         try {
-            const response = await fetch(`${API_URL}?action=settings`, {
+            const response = await fetch(`${API_URL}?action=settings&account_id=${encodeURIComponent(key)}`, {
                 method: "GET",
                 headers: { "Authorization": localStorage.getItem("tm_master_token") }
             });
