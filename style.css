@@ -544,19 +544,19 @@ th {
 .logo::after {
     content: "";
     position: absolute;
-    top: 0;
-    left: -150%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0) 100%);
-    transform: skewX(-25deg);
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%);
+    background-size: 200% 100%;
+    background-position: 200% 0;
     animation: glass-sweep 15s infinite;
     z-index: 10;
     pointer-events: none;
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
 }
 
 @keyframes glass-sweep {
-    0% { left: -150%; }
-    20% { left: 200%; }
-    100% { left: 200%; }
+    0% { background-position: 200% 0; }
+    20% { background-position: -50% 0; }
+    100% { background-position: -50% 0; }
 }
