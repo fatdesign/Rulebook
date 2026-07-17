@@ -6,6 +6,8 @@
     <title>TradeMaster AI - Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css"/>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -34,10 +36,10 @@
                 </div>
                 <div class="user-info">
                     <select id="global-lang" class="profile-select" style="width: auto; padding: 6px 10px; margin-right: 10px;">
-                        <option value="de">🇩🇪 DE</option>
-                        <option value="en">🇬🇧 EN</option>
-                        <option value="tr">🇹🇷 TR</option>
-                        <option value="es">🇪🇸 ES</option>
+                        <option value="de">DE</option>
+                        <option value="en">EN</option>
+                        <option value="tr">TR</option>
+                        <option value="es">ES</option>
                     </select>
                     <span id="display-key">Key: ••••</span>
                     <button id="refresh-btn" class="secondary-btn" style="padding: 6px 10px; margin-left: 10px;" data-i18n="refresh_btn">↻ Refresh</button>
@@ -95,6 +97,49 @@
                     </div>
                 </div>
 
+                <!-- Premium Features: Risk & Behavior -->
+                <div class="premium-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    
+                    <!-- Tilt-Meter & Kill-Switch -->
+                    <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+                        <div>
+                            <h3 style="color: #ef4444; margin-bottom: 5px;"><i class="ph ph-fire"></i> Tilt-Meter</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Revenge Trades (< 15 mins nach Verlust)</p>
+                            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                <span id="kpi-revenge" style="font-size: 2rem; font-weight: bold; color: #ef4444;">0</span>
+                                <span id="kpi-discipline" style="font-size: 1rem; color: #10b981;">Disziplin: 100%</span>
+                            </div>
+                        </div>
+                        
+                        <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 5px 0;"></div>
+                        
+                        <div>
+                            <h3 style="color: #f59e0b; margin-bottom: 5px;"><i class="ph ph-shield-check"></i> Kill-Switch</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">EA blockiert Trades bei Tagesverlust-Limit</p>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <label class="switch">
+                                    <input type="checkbox" id="kill-switch-toggle">
+                                    <span class="slider round"></span>
+                                </label>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <span style="font-size: 0.9rem;">Limit: €</span>
+                                    <input type="number" id="kill-switch-limit" class="profile-select" style="width: 80px; padding: 5px;" value="150" min="0">
+                                </div>
+                                <button id="kill-switch-save" class="secondary-btn" style="padding: 5px 10px; font-size: 0.8rem;">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profit Heatmap -->
+                    <div class="glass-panel heatmap-container" style="padding: 20px;">
+                        <h3 style="margin-bottom: 5px;"><i class="ph ph-map-trifold"></i> Profit Heatmap</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Wann verdienst du am meisten?</p>
+                        <div id="heatmap-grid" class="heatmap-grid">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Main Chart -->
                 <div class="chart-container glass-panel">
                     <h3 data-i18n="chart_title">Equity Curve</h3>
@@ -104,7 +149,7 @@
                 <!-- Trader Profile Settings -->
                 <div class="profile-settings glass-panel" style="margin-bottom: 20px; padding: 20px;">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <span class="sparkle-icon" style="font-size: 1.2rem;">👤</span>
+                        <i class="ph ph-user" style="font-size: 1.2rem; color: #a855f7;"></i>
                         <h3 style="color: var(--text-main); font-size: 1rem;" data-i18n="profile_title">Trader Profile</h3>
                         <span style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted);" data-i18n="profile_sub">Set this before asking the AI</span>
                     </div>
@@ -130,7 +175,7 @@
                 <!-- AI Insights (Phase 4) -->
                 <div class="ai-insights glass-panel" style="margin-bottom: 20px;">
                     <div class="ai-header">
-                        <span class="sparkle-icon">✨</span>
+                        <i class="ph ph-sparkle" style="color: #a855f7; font-size: 1.2rem;"></i>
                         <h3 data-i18n="ai_title">AI Trading Coach</h3>
                         <span id="ai-limit" class="ai-limit" style="margin-left:auto; font-size: 0.8rem; color: #a855f7;"></span>
                     </div>
@@ -147,6 +192,19 @@
             </main>
         </div>
     </div>
-    <script src="app.js?v=11"></script>
+    
+    <!-- Kill-Switch Warning Modal -->
+    <div id="kill-switch-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="border: 1px solid #ef4444; max-width: 400px; text-align: center;">
+            <h2 style="color: #ef4444; margin-bottom: 15px;"><i class="ph ph-warning"></i> WARNUNG</h2>
+            <p style="margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;">Das Deaktivieren des Kill-Switches ist hochriskant. Du bist dabei, deinen Schutzmechanismus abzuschalten und könntest deinen Tagesverlust überschreiten!</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="modal-cancel-btn" class="secondary-btn">Abbrechen (Sicher bleiben)</button>
+                <button id="modal-confirm-btn" class="secondary-btn" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">Trotzdem deaktivieren</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=12"></script>
 </body>
 </html>

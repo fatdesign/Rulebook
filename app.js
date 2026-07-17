@@ -313,6 +313,9 @@ document.addEventListener("DOMContentLoaded", () => {
             loginScreen.classList.remove("active");
             dashboard.classList.remove("hidden");
             
+            // Load Settings once
+            loadSettings(key);
+            
             // Filter trades based on timeframe
             const now = new Date();
             let startTime = 0;
@@ -424,10 +427,27 @@ document.addEventListener("DOMContentLoaded", () => {
         const equityCurve = [0];
         const labels = ["Start"];
 
-        trades.forEach((trade, index) => {
+        const ascendingTrades = [...trades].reverse();
+        let revengeTrades = 0;
+        const heatmapData = new Array(7).fill(0).map(() => new Array(24).fill(0));
+
+        ascendingTrades.forEach((trade, index) => {
             const netP = parseFloat(trade.net_profit);
             const grossP = trade.gross_profit !== undefined ? trade.gross_profit : netP;
             const holdSec = trade.close_time - trade.open_time;
+            
+            // Revenge trade check
+            if (index > 0) {
+                const prevTrade = ascendingTrades[index - 1];
+                const prevGross = prevTrade.gross_profit !== undefined ? prevTrade.gross_profit : parseFloat(prevTrade.net_profit);
+                if (prevGross < 0 && (trade.open_time - prevTrade.close_time) < 900) {
+                    revengeTrades++;
+                }
+            }
+            
+            // Heatmap aggregation
+            const date = new Date(trade.close_time * 1000);
+            heatmapData[date.getDay()][date.getHours()] += grossP;
             
             totalProfit += netP;
             
@@ -483,7 +503,55 @@ document.addEventListener("DOMContentLoaded", () => {
         updateKPI("kpi-hold-loss", formatHoldTime(avgHoldLoss), false);
         updateKPI("kpi-drawdown", `-${curSym}${maxDrawdown.toFixed(2)}`, false);
 
+        // Revenge Trades & Discipline
+        const discScore = trades.length > 0 ? Math.max(0, 100 - (revengeTrades / trades.length) * 100) : 100;
+        document.getElementById("kpi-revenge").innerText = revengeTrades;
+        document.getElementById("kpi-discipline").innerText = `Disziplin: ${discScore.toFixed(0)}%`;
+        document.getElementById("kpi-discipline").style.color = discScore > 80 ? "#10b981" : (discScore > 50 ? "#f59e0b" : "#ef4444");
+
         renderChart(labels, equityCurve);
+        renderHeatmap(heatmapData, curSym);
+    }
+
+    function renderHeatmap(data, curSym) {
+        const grid = document.getElementById("heatmap-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+        
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        
+        // Add Header Row
+        grid.appendChild(document.createElement("div")); // Empty top-left
+        for (let h = 0; h < 24; h++) {
+            const hDiv = document.createElement("div");
+            hDiv.innerText = h;
+            hDiv.style.textAlign = "center";
+            grid.appendChild(hDiv);
+        }
+        
+        for (let d = 0; d < 7; d++) {
+            const rowLabel = document.createElement("div");
+            rowLabel.className = "heatmap-label";
+            rowLabel.innerText = days[d];
+            grid.appendChild(rowLabel);
+            
+            for (let h = 0; h < 24; h++) {
+                const val = data[d][h];
+                const cell = document.createElement("div");
+                cell.className = "heatmap-cell";
+                if (val > 0) {
+                    const intensity = Math.min(1, val / 50); // Scale up to $50
+                    cell.style.background = `rgba(16, 185, 129, ${0.2 + intensity * 0.8})`;
+                } else if (val < 0) {
+                    const intensity = Math.min(1, Math.abs(val) / 50);
+                    cell.style.background = `rgba(239, 68, 68, ${0.2 + intensity * 0.8})`;
+                }
+                if (val !== 0) {
+                    cell.title = `${days[d]} ${h}:00 -> ${curSym}${val.toFixed(2)}`;
+                }
+                grid.appendChild(cell);
+            }
+        }
     }
 
 
@@ -609,5 +677,76 @@ document.addEventListener("DOMContentLoaded", () => {
                 aiBtn.disabled = false;
             }
         });
+        });
     }
+
+    // --- Kill-Switch Settings ---
+    async function loadSettings(key) {
+        try {
+            const response = await fetch(`${API_URL}?action=settings`, {
+                method: "GET",
+                headers: { "Authorization": key }
+            });
+            if (response.ok) {
+                const settings = await response.json();
+                const ksToggle = document.getElementById("kill-switch-toggle");
+                const ksLimit = document.getElementById("kill-switch-limit");
+                if(ksToggle) ksToggle.checked = settings.kill_switch_active === 1;
+                if(ksLimit) ksLimit.value = settings.max_daily_loss;
+            }
+        } catch (e) {
+            console.error("Failed to load settings", e);
+        }
+    }
+
+    async function saveSettings(key) {
+        try {
+            await fetch(`${API_URL}?action=settings`, {
+                method: "POST",
+                headers: { "Authorization": key, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    kill_switch_active: document.getElementById("kill-switch-toggle").checked,
+                    max_daily_loss: parseFloat(document.getElementById("kill-switch-limit").value) || 0
+                })
+            });
+        } catch (e) {
+            console.error("Failed to save settings", e);
+        }
+    }
+
+    const ksToggle = document.getElementById("kill-switch-toggle");
+    const ksSaveBtn = document.getElementById("kill-switch-save");
+    const ksModal = document.getElementById("kill-switch-modal");
+    const ksCancel = document.getElementById("modal-cancel-btn");
+    const ksConfirm = document.getElementById("modal-confirm-btn");
+
+    if (ksToggle && ksSaveBtn) {
+        ksToggle.addEventListener("change", (e) => {
+            if (!e.target.checked) {
+                ksModal.classList.remove("hidden");
+                e.target.checked = true; // revert until confirmed
+            } else {
+                saveSettings(localStorage.getItem("tm_license_key"));
+            }
+        });
+
+        ksCancel.addEventListener("click", () => {
+            ksModal.classList.add("hidden");
+        });
+
+        ksConfirm.addEventListener("click", () => {
+            ksToggle.checked = false;
+            saveSettings(localStorage.getItem("tm_license_key"));
+            ksModal.classList.add("hidden");
+        });
+
+        ksSaveBtn.addEventListener("click", () => {
+            saveSettings(localStorage.getItem("tm_license_key"));
+            ksSaveBtn.innerText = "Saved!";
+            setTimeout(() => ksSaveBtn.innerText = "Save", 2000);
+        });
+    }
+
+    // Attach loadSettings to window so it can be called from loadDashboard
+    window.loadSettings = loadSettings;
 });

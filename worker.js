@@ -134,6 +134,35 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         return new Response(JSON.stringify({ success: true, inserted: batch.length }), { headers: corsHeaders });
       }
 
+      // --- SETTINGS ROUTE (POST) ---
+      if (request.method === "POST" && action === "settings") {
+        const authHeader = request.headers.get("Authorization");
+        if (!authHeader) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
+        
+        const [username, password] = authHeader.split(":");
+        const license_key = `${username}:${password}`;
+        
+        const body = await request.json();
+        
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS user_settings (
+            license_key TEXT PRIMARY KEY,
+            kill_switch_active INTEGER DEFAULT 0,
+            max_daily_loss REAL DEFAULT 0
+          )
+        `).run();
+        
+        await env.DB.prepare(`
+          INSERT INTO user_settings (license_key, kill_switch_active, max_daily_loss)
+          VALUES (?, ?, ?)
+          ON CONFLICT(license_key) DO UPDATE SET 
+            kill_switch_active=excluded.kill_switch_active,
+            max_daily_loss=excluded.max_daily_loss
+        `).bind(license_key, body.kill_switch_active ? 1 : 0, body.max_daily_loss || 0).run();
+        
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
       // --- FETCH TRADES ROUTE ---
       if (request.method === "GET") {
         const authHeader = request.headers.get("Authorization");
@@ -144,6 +173,18 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         
         const [username, password] = keyData.split(":");
         const license_key = `${username}:${password}`;
+        
+        if (action === "settings") {
+            await env.DB.prepare(`
+              CREATE TABLE IF NOT EXISTS user_settings (
+                license_key TEXT PRIMARY KEY,
+                kill_switch_active INTEGER DEFAULT 0,
+                max_daily_loss REAL DEFAULT 0
+              )
+            `).run();
+            const res = await env.DB.prepare("SELECT kill_switch_active, max_daily_loss FROM user_settings WHERE license_key = ?").bind(license_key).first();
+            return new Response(JSON.stringify(res || { kill_switch_active: 0, max_daily_loss: 0 }), { headers: corsHeaders });
+        }
         
         const { results } = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC").bind(license_key).all();
         return new Response(JSON.stringify(results), { headers: corsHeaders });
