@@ -454,11 +454,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function setupEnterKey(inputId, btn) {
+        const el = document.getElementById(inputId);
+        if (el && btn) {
+            el.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    btn.click();
+                }
+            });
+        }
+    }
+
     if (masterLoginBtn) {
         masterLoginBtn.addEventListener("click", () => handleMasterAuth("login", document.getElementById("login-email").value, document.getElementById("login-password").value, masterLoginBtn));
+        setupEnterKey("login-email", masterLoginBtn);
+        setupEnterKey("login-password", masterLoginBtn);
     }
     if (masterRegisterBtn) {
         masterRegisterBtn.addEventListener("click", () => handleMasterAuth("register", document.getElementById("reg-email").value, document.getElementById("reg-password").value, masterRegisterBtn));
+        setupEnterKey("reg-email", masterRegisterBtn);
+        setupEnterKey("reg-password", masterRegisterBtn);
     }
 
     async function fetchLinkedAccounts() {
