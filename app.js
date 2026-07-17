@@ -17,6 +17,10 @@ const i18n = {
         kpi_winrate: "Gewinnrate",
         kpi_trades: "Gesamt Trades",
         kpi_pf: "Profit Faktor",
+        kpi_payoff: "Payoff Ratio",
+        kpi_hold_win: "Ø Haltezeit (Gewinner)",
+        kpi_hold_loss: "Ø Haltezeit (Verlierer)",
+        kpi_drawdown: "Max Drawdown",
         chart_title: "Kapitalkurve",
         profile_title: "Trader Profil",
         profile_sub: "Vor der KI-Analyse einstellen",
@@ -46,6 +50,10 @@ const i18n = {
         kpi_winrate: "Win Rate",
         kpi_trades: "Total Trades",
         kpi_pf: "Profit Factor",
+        kpi_payoff: "Payoff Ratio",
+        kpi_hold_win: "Avg Hold (Win)",
+        kpi_hold_loss: "Avg Hold (Loss)",
+        kpi_drawdown: "Max Drawdown",
         chart_title: "Equity Curve",
         profile_title: "Trader Profile",
         profile_sub: "Set this before asking the AI",
@@ -75,6 +83,10 @@ const i18n = {
         kpi_winrate: "Tasa de Acierto",
         kpi_trades: "Total",
         kpi_pf: "Factor de Beneficio",
+        kpi_payoff: "Ratio Payoff",
+        kpi_hold_win: "Duración Media (Gana)",
+        kpi_hold_loss: "Duración Media (Pierde)",
+        kpi_drawdown: "Drawdown Máximo",
         chart_title: "Curva de Capital",
         profile_title: "Perfil de Trader",
         profile_sub: "Configura antes de consultar",
@@ -104,6 +116,10 @@ const i18n = {
         kpi_winrate: "Kazanma Oranı",
         kpi_trades: "Toplam İşlem",
         kpi_pf: "Kar Faktörü",
+        kpi_payoff: "Ödül Oranı",
+        kpi_hold_win: "Ort. Süre (Kazanç)",
+        kpi_hold_loss: "Ort. Süre (Kayıp)",
+        kpi_drawdown: "Maks. Düşüş",
         chart_title: "Sermaye Eğrisi",
         profile_title: "Trader Profili",
         profile_sub: "Yapay zekaya sormadan önce ayarlayın",
@@ -330,8 +346,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function processData(trades) {
         let totalProfit = 0;
         let wins = 0;
+        let losses = 0;
         let grossProfit = 0;
         let grossLoss = 0;
+        
+        let totalHoldWins = 0;
+        let totalHoldLosses = 0;
+        let peakBalance = 0;
+        let maxDrawdown = 0;
         
         let balance = 0;
         const equityCurve = [0];
@@ -339,28 +361,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
         trades.forEach((trade, index) => {
             const p = parseFloat(trade.net_profit);
+            const holdSec = trade.close_time - trade.open_time;
+            
             totalProfit += p;
             
             if (p > 0) {
                 wins++;
                 grossProfit += p;
-            } else {
+                totalHoldWins += holdSec;
+            } else if (p < 0) {
+                losses++;
                 grossLoss += Math.abs(p);
+                totalHoldLosses += Math.max(0, holdSec);
             }
 
             balance += p;
+            if (balance > peakBalance) peakBalance = balance;
+            const drawdown = peakBalance - balance;
+            if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+
             equityCurve.push(balance);
             labels.push(`Trade ${index + 1}`);
         });
 
-        const winrate = (wins / trades.length) * 100;
+        const winrate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
         const profitFactor = grossLoss === 0 ? grossProfit : (grossProfit / grossLoss);
+        
+        const avgWin = wins > 0 ? (grossProfit / wins) : 0;
+        const avgLoss = losses > 0 ? (grossLoss / losses) : 0;
+        const payoffRatio = avgLoss > 0 ? (avgWin / avgLoss) : avgWin;
+        
+        const avgHoldWin = wins > 0 ? (totalHoldWins / wins) : 0;
+        const avgHoldLoss = losses > 0 ? (totalHoldLosses / losses) : 0;
+
+        function formatHoldTime(sec) {
+            if (sec < 60) return `${Math.round(sec)}s`;
+            const m = Math.floor(sec / 60);
+            if (m < 60) return `${m}m`;
+            const h = Math.floor(m / 60);
+            const rm = m % 60;
+            return `${h}h ${rm}m`;
+        }
 
         // Update UI
         updateKPI("kpi-profit", `$${totalProfit.toFixed(2)}`, totalProfit >= 0);
         updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
         document.getElementById("kpi-trades").innerText = trades.length;
         updateKPI("kpi-pf", profitFactor.toFixed(2), profitFactor >= 1.5);
+        
+        // Advanced UI
+        updateKPI("kpi-payoff", payoffRatio.toFixed(2), payoffRatio >= 1.0);
+        updateKPI("kpi-hold-win", formatHoldTime(avgHoldWin), true);
+        updateKPI("kpi-hold-loss", formatHoldTime(avgHoldLoss), false);
+        updateKPI("kpi-drawdown", "-$" + maxDrawdown.toFixed(2), false);
 
         renderChart(labels, equityCurve);
     }

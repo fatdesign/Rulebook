@@ -54,7 +54,7 @@
                     <button class="filter-btn" data-timeframe="all" data-i18n="filter_all">Alle Trades</button>
                 </div>
 
-                <!-- KPIs -->
+                <!-- KPIs Row 1 (Basics) -->
                 <div class="kpi-row">
                     <div class="kpi-card glass-panel">
                         <h3 data-i18n="kpi_profit">Net Profit</h3>
@@ -71,6 +71,26 @@
                     <div class="kpi-card glass-panel">
                         <h3 data-i18n="kpi_pf">Profit Factor</h3>
                         <p id="kpi-pf" class="kpi-value">0.00</p>
+                    </div>
+                </div>
+
+                <!-- KPIs Row 2 (Advanced) -->
+                <div class="kpi-row">
+                    <div class="kpi-card glass-panel" style="padding: 15px;">
+                        <h3 data-i18n="kpi_payoff" style="font-size: 0.85rem;">Payoff Ratio</h3>
+                        <p id="kpi-payoff" class="kpi-value" style="font-size: 1.2rem;">0.00</p>
+                    </div>
+                    <div class="kpi-card glass-panel" style="padding: 15px;">
+                        <h3 data-i18n="kpi_hold_win" style="font-size: 0.85rem;">Avg Hold (Win)</h3>
+                        <p id="kpi-hold-win" class="kpi-value positive" style="font-size: 1.2rem;">0m</p>
+                    </div>
+                    <div class="kpi-card glass-panel" style="padding: 15px;">
+                        <h3 data-i18n="kpi_hold_loss" style="font-size: 0.85rem;">Avg Hold (Loss)</h3>
+                        <p id="kpi-hold-loss" class="kpi-value negative" style="font-size: 1.2rem;">0m</p>
+                    </div>
+                    <div class="kpi-card glass-panel" style="padding: 15px;">
+                        <h3 data-i18n="kpi_drawdown" style="font-size: 0.85rem;">Max Drawdown</h3>
+                        <p id="kpi-drawdown" class="kpi-value negative" style="font-size: 1.2rem;">$0.00</p>
                     </div>
                 </div>
 
@@ -125,6 +145,6 @@
             </main>
         </div>
     </div>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>
