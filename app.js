@@ -773,8 +773,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.tradeNotesMap = {};
                     d.forEach(n => { window.tradeNotesMap[n.ticket] = n.note; });
                     // Re-render table if data already processed
-                    if (window.currentFilteredTrades) {
-                        processData(window.currentFilteredTrades, window.currentCurSym);
+                    if (currentFilteredTrades && currentFilteredTrades.length > 0) {
+                        processData(currentFilteredTrades, window.currentCurSym);
                     }
                 }).catch(e => console.error(e));
             
