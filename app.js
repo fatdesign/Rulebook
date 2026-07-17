@@ -372,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profSessionCheckboxes = document.querySelectorAll(".session-cb");
 
     // Timeframe state
-    let currentTimeframe = "today";
+    let currentTimeframe = "current_month";
     const filterBtns = document.querySelectorAll(".filter-btn");
     filterBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -384,6 +384,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (key) loadDashboard(key);
         });
     });
+
+    const monthSelector = document.getElementById("month-selector");
+    if(monthSelector) {
+        monthSelector.addEventListener("change", (e) => {
+            currentTimeframe = e.target.value;
+            filterBtns.forEach(b => b.classList.remove("active"));
+            
+            const key = localStorage.getItem("tm_license_key");
+            if (key) loadDashboard(key);
+        });
+    }
 
     // Language Handling
     function setLanguage(lang) {
@@ -763,6 +774,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 const day = now.getDay();
                 const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
                 startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), diff) / 1000);
+            } else if (currentTimeframe === "current_month") {
+                const y = now.getFullYear();
+                const m = now.getMonth();
+                startTime = Math.floor(Date.UTC(y, m, 1) / 1000);
+                endTime = Math.floor(Date.UTC(y, m + 1, 1) / 1000) - 1;
+            } else if (currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
+                const [y, m] = currentTimeframe.split('-').map(Number);
+                startTime = Math.floor(Date.UTC(y, m, 1) / 1000);
+                endTime = Math.floor(Date.UTC(y, m + 1, 1) / 1000) - 1;
+            } else if (currentTimeframe === "all") {
+                startTime = 0;
+                endTime = 2000000000;
             }
 
             // Extract currency and gross profit from all trades
@@ -792,6 +815,41 @@ document.addEventListener("DOMContentLoaded", () => {
             };
             const curSym = currencyMap[accCurrency] || accCurrency;
             window.currentCurSym = curSym;
+
+            const monthSel = document.getElementById("month-selector");
+            if (monthSel) {
+                const uniqueMonths = new Set();
+                trades.forEach(t => {
+                    const d = new Date(t.close_time * 1000);
+                    uniqueMonths.add(`${d.getFullYear()}-${d.getMonth()}`);
+                });
+                
+                uniqueMonths.add(`${now.getFullYear()}-${now.getMonth()}`);
+                
+                const sortedMonths = Array.from(uniqueMonths).sort((a,b) => {
+                    const [yA, mA] = a.split('-').map(Number);
+                    const [yB, mB] = b.split('-').map(Number);
+                    if(yA !== yB) return yB - yA;
+                    return mB - mA;
+                });
+                
+                const monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+                let optionsHtml = `<option value="all" data-i18n="filter_all">All Time</option>`;
+                
+                sortedMonths.forEach(mStr => {
+                    const [y, m] = mStr.split('-').map(Number);
+                    optionsHtml += `<option value="${mStr}">${monthNames[m]} ${y}</option>`;
+                });
+                
+                monthSel.innerHTML = optionsHtml;
+                
+                if (currentTimeframe === "current_month") {
+                    monthSel.value = `${now.getFullYear()}-${now.getMonth()}`;
+                    currentTimeframe = monthSel.value;
+                } else if (currentTimeframe === "all" || currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
+                    monthSel.value = currentTimeframe;
+                }
+            }
 
             renderCalendarAndMonthly(trades, curSym);
 

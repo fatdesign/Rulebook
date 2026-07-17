@@ -109,6 +109,10 @@
                         <option value="es">ES</option>
                     </select>
                     
+                    <select id="month-selector" class="profile-select" style="width: auto; padding: 6px 10px; margin-right: 10px;">
+                        <!-- Options generated dynamically -->
+                    </select>
+                    
                     <select id="account-switcher" class="profile-select" style="width: auto; padding: 6px 10px; margin-right: 5px;">
                         <!-- Options generated dynamically -->
                     </select>
@@ -123,7 +127,7 @@
             <main class="dashboard-grid">
                 <!-- Timeframe Filter -->
                 <div class="filter-group" id="timeframe-filters">
-                    <button class="filter-btn active" data-timeframe="today" data-i18n="filter_today">Heute</button>
+                    <button class="filter-btn" data-timeframe="today" data-i18n="filter_today">Heute</button>
                     <button class="filter-btn" data-timeframe="yesterday" data-i18n="filter_yesterday">Gestern</button>
                     <button class="filter-btn" data-timeframe="week" data-i18n="filter_week">Diese Woche</button>
                     <button class="filter-btn" data-timeframe="all" data-i18n="filter_all">Alle Trades</button>
