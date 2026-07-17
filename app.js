@@ -449,7 +449,8 @@ document.addEventListener("DOMContentLoaded", () => {
             labels.push(`Trade ${index + 1}`);
         });
 
-        const winrate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
+        const totalWinLoss = wins + losses;
+        const winrate = totalWinLoss > 0 ? (wins / totalWinLoss) * 100 : 0;
         const profitFactor = grossLoss === 0 ? grossProfit : (grossProfit / grossLoss);
         
         const avgWin = wins > 0 ? (grossProfit / wins) : 0;
