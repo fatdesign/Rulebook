@@ -332,8 +332,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
 
-            processData(filteredTrades);
+            // Extract currency from the first trade that has it, default to USD
+            let accCurrency = "USD";
+            filteredTrades.forEach(t => {
+                const parts = t.side.split('_');
+                t.side = parts[0]; // Clean up side for display
+                if (parts.length > 1) {
+                    accCurrency = parts[1];
+                }
+            });
 
+            // Map standard currency codes to symbols
+            const currencyMap = {
+                "EUR": "€", "USD": "$", "GBP": "£", "JPY": "¥", "CHF": "CHF", "AUD": "A$", "CAD": "C$", "NZD": "NZ$"
+            };
+            const curSym = currencyMap[accCurrency] || accCurrency;
+
+            processData(filteredTrades, curSym);
         } catch (err) {
             showError(err.message);
         } finally {
@@ -382,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorMsg.classList.remove("hidden");
     }
 
-    function processData(trades) {
+    function processData(trades, curSym) {
         let totalProfit = 0;
         let wins = 0;
         let losses = 0;
@@ -443,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Update UI
-        updateKPI("kpi-profit", `$${totalProfit.toFixed(2)}`, totalProfit >= 0);
+        updateKPI("kpi-profit", `${curSym}${totalProfit.toFixed(2)}`, totalProfit >= 0);
         updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
         document.getElementById("kpi-trades").innerText = trades.length;
         updateKPI("kpi-pf", profitFactor.toFixed(2), profitFactor >= 1.5);
@@ -452,13 +467,13 @@ document.addEventListener("DOMContentLoaded", () => {
         updateKPI("kpi-payoff", payoffRatio.toFixed(2), payoffRatio >= 1.0);
         updateKPI("kpi-hold-win", formatHoldTime(avgHoldWin), true);
         updateKPI("kpi-hold-loss", formatHoldTime(avgHoldLoss), false);
-        updateKPI("kpi-drawdown", "-$" + maxDrawdown.toFixed(2), false);
+        updateKPI("kpi-drawdown", `-${curSym}${maxDrawdown.toFixed(2)}`, false);
 
         renderChart(labels, equityCurve);
-        renderTradeTable(trades);
+        renderTradeTable(trades, curSym);
     }
 
-    function renderTradeTable(trades) {
+    function renderTradeTable(trades, curSym) {
         const tbody = document.getElementById("trade-table-body");
         if (!tbody) return;
         
@@ -491,7 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 10px; font-size: 0.9rem; font-weight: bold;">${t.symbol}</td>
                 <td style="padding: 10px; font-size: 0.9rem;">${t.side}</td>
                 <td style="padding: 10px; font-size: 0.9rem;">${t.volume.toFixed(2)}</td>
-                <td style="padding: 10px; font-size: 0.9rem; font-weight: bold; color: ${profitColor};">$${profitStr}</td>
+                <td style="padding: 10px; font-size: 0.9rem; font-weight: bold; color: ${profitColor};">${t.net_profit < 0 ? '-' : ''}${curSym}${Math.abs(t.net_profit).toFixed(2)}</td>
                 <td style="padding: 10px; font-size: 0.85rem; color: var(--text-muted);">${dateStr}</td>
             `;
             tbody.appendChild(tr);
