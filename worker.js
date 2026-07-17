@@ -209,7 +209,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         await env.DB.prepare("INSERT INTO user_accounts (user_id, license_key, alias) VALUES (?, ?, ?) ON CONFLICT DO NOTHING")
           .bind(user_id, account_id, account_id).run();
 
-        const stmt = env.DB.prepare("INSERT INTO trades (ticket, license_key, symbol, side, volume, net_profit, open_time, close_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ticket) DO UPDATE SET net_profit=excluded.net_profit");
+        const stmt = env.DB.prepare("INSERT INTO trades (ticket, license_key, symbol, side, volume, net_profit, open_time, close_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ticket) DO UPDATE SET net_profit=excluded.net_profit, license_key=excluded.license_key");
         const batch = [];
         for (const t of body.trades) {
           batch.push(stmt.bind(t.ticket, db_key, t.symbol, t.side, t.volume, t.net_profit, t.open_time, t.close_time));
