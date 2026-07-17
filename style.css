@@ -1,4 +1,4 @@
-﻿:root, :root[data-theme="neo-retro"] {
+:root, :root[data-theme="neo-retro"] {
     --bg-color: #050505;
     --panel-bg: #111111;
     --text-main: #39ff14; /* Neon green */
@@ -535,12 +535,11 @@ th {
 
 
 @keyframes logo-glow {
-    0% { box-shadow: 0 0 5px var(--text-main); filter: brightness(1); }
-    50% { box-shadow: 0 0 30px var(--text-main), 0 0 10px var(--text-main); filter: brightness(1.2); }
-    100% { box-shadow: 0 0 5px var(--text-main); filter: brightness(1); }
+    0% { filter: drop-shadow(0 0 2px var(--text-main)) brightness(1); }
+    50% { filter: drop-shadow(0 0 15px var(--text-main)) brightness(1.2); }
+    100% { filter: drop-shadow(0 0 2px var(--text-main)) brightness(1); }
 }
 
 .logo img {
     animation: logo-glow 6s infinite alternate ease-in-out;
-    border: 1px solid var(--border-dark);
 }
