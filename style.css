@@ -487,19 +487,25 @@ th {
     background: var(--input-bg);
     border: 1px solid var(--border-darker);
     border-radius: 4px;
-    padding: 8px 4px;
+    padding: 6px 2px;
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    cursor: pointer;
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+.month-card:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05);
 }
 .month-card .m-name {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     text-transform: uppercase;
 }
 .month-card .m-val {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: bold;
 }
 .month-card.current {

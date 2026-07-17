@@ -1232,7 +1232,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
                         const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
                         grid.innerHTML += `
-                            <div class="month-card ${cls} ${isCurrent ? 'current' : ''}">
+                            <div class="month-card clickable-month ${cls} ${isCurrent ? 'current' : ''}" data-month="${mKey}">
                                 <span class="m-name">${monthNames[m]} ${year}</span>
                                 <span class="m-val">${displayVal}</span>
                             </div>
@@ -1242,6 +1242,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 if(grid.innerHTML !== "") {
                     monthlyContainer.appendChild(yearDiv);
                 }
+            });
+            
+            // Add click listeners to month cards
+            monthlyContainer.querySelectorAll(".clickable-month").forEach(card => {
+                card.addEventListener("click", () => {
+                    const mKey = card.getAttribute("data-month");
+                    currentTimeframe = mKey;
+                    
+                    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+                    
+                    const monthSel = document.getElementById("month-selector");
+                    if (monthSel) monthSel.value = mKey;
+                    
+                    const key = localStorage.getItem("tm_license_key");
+                    if (key) loadDashboard(key);
+                });
             });
         }
         
