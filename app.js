@@ -185,7 +185,21 @@ const i18n = {
         setup_step2: "Añádelo a UN SOLO gráfico en tu MetaTrader 5.",
         setup_step3: "Introduce el Usuario y Contraseña que prefieras en los ajustes del EA.",
         setup_step4: "¡Usa esas credenciales aquí para iniciar sesión y analizar!",
-        mql5_link: "Ver TradeMaster en MQL5"
+        mql5_link: "Ver TradeMaster en MQL5",
+        master_login_sub: "Inicia sesión en tu Workspace de TradeMaster.",
+        email_ph: "Correo Electrónico",
+        master_register_sub: "Crea tu Workspace de TradeMaster.",
+        no_account: "¿No tienes cuenta?",
+        have_account: "¿Ya tienes cuenta?",
+        register_link: "Regístrate aquí",
+        login_link: "Inicia sesión aquí",
+        register_btn: "Crear Workspace",
+        link_account_title: "Vincular Cuenta MT5",
+        link_account_desc: "Introduce el usuario y contraseña que usas en el EA de MetaTrader.",
+        mt5_user_ph: "Usuario MT5",
+        mt5_pass_ph: "Contraseña MT5",
+        link_btn: "Vincular",
+        cancel_btn: "Cancelar"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -237,7 +251,21 @@ const i18n = {
         setup_step2: "MetaTrader 5'inizde SADECE BİR grafiğe ekleyin.",
         setup_step3: "EA ayarlarına istediğiniz Kullanıcı Adı ve Şifreyi girin.",
         setup_step4: "Analiz için buraya aynı bilgilerle giriş yapın!",
-        mql5_link: "MQL5'te TradeMaster'ı İncele"
+        mql5_link: "MQL5'te TradeMaster'ı İncele",
+        master_login_sub: "TradeMaster Workspace'inize giriş yapın.",
+        email_ph: "E-posta Adresi",
+        master_register_sub: "TradeMaster Workspace'inizi oluşturun.",
+        no_account: "Hesabınız yok mu?",
+        have_account: "Zaten bir hesabınız var mı?",
+        register_link: "Buradan kayıt olun",
+        login_link: "Buradan giriş yapın",
+        register_btn: "Workspace Oluştur",
+        link_account_title: "MT5 Hesabını Bağla",
+        link_account_desc: "MetaTrader EA'da kullandığınız kullanıcı adı ve şifreyi girin.",
+        mt5_user_ph: "MT5 Kullanıcı Adı",
+        mt5_pass_ph: "MT5 Şifresi",
+        link_btn: "Bağla",
+        cancel_btn: "İptal"
     }
 };
 
@@ -248,6 +276,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutBtn = document.getElementById("logout-btn");
     const refreshBtn = document.getElementById("refresh-btn");
     const resetBtn = document.getElementById("reset-btn");
+    const accountSwitcher = document.getElementById("account-switcher");
+    const addAccountBtn = document.getElementById("add-account-btn");
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const errorMsg = document.getElementById("login-error");
@@ -357,6 +387,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const showLoginLink = document.getElementById("show-login-link");
     const masterLoginBtn = document.getElementById("master-login-btn");
     const masterRegisterBtn = document.getElementById("master-register-btn");
+    
+    const errorMsg = document.getElementById("login-error");
+
+    function showError(msg) {
+        if (!errorMsg) return;
+        errorMsg.innerText = msg;
+        errorMsg.classList.remove("hidden");
+    }
     
     if (showRegisterLink) {
         showRegisterLink.addEventListener("click", (e) => {
