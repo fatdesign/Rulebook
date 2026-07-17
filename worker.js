@@ -142,6 +142,14 @@ export default {
             trades = tradesRes.results;
         }
         
+        const langMap = {
+            "de": "Deutsch",
+            "en": "English",
+            "es": "Español",
+            "tr": "Türkçe"
+        };
+        const promptLang = langMap[body.language] || "English";
+
         const prompt = `Du bist ein erfahrener, direkter und emotional intelligenter Trading-Mentor. 
 Analysiere die folgenden Trades.
 Profil des Traders: ${JSON.stringify({style: body.style, session: body.session, risk: body.risk})}
@@ -153,7 +161,7 @@ WICHTIGE REGELN:
 5. Konzentriere dich auf Verhaltensmuster, Profitabilität und Risikomanagement.
 6. ACHTE AUF TAGS/NOTIZEN: Einige Trades haben eine Eigenschaft 'tag'. Dies sind persönliche Notizen des Traders zu diesem Trade. Beziehe diese Erkenntnisse zwingend in deine Analyse ein!
 7. Gib am Ende EINEN starken, motivierenden Ratschlag zur Verbesserung.
-8. SPRACHE: Deine gesamte Antwort MUSS zwingend in der Sprache '${body.language}' verfasst sein!
+8. SPRACHE EXTREM WICHTIG: Du darfst NUR auf ${promptLang} antworten! Übersetze deine gesamte finale Antwort in ${promptLang}.
 Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
         
         if (!env.AI) {
