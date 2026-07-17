@@ -103,7 +103,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
       }
 
       // --- MT5 EA SYNC ROUTE ---
-      if (request.method === "POST") {
+      if (request.method === "POST" && (!action || action === "trades")) {
         const authHeader = request.headers.get("Authorization");
         if (!authHeader) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
         
