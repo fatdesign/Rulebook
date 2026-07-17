@@ -481,10 +481,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Success! Save key and show dashboard
+            let saved = JSON.parse(localStorage.getItem("tm_saved_accounts") || "[]");
+            if (!saved.includes(key)) {
+                saved.push(key);
+                localStorage.setItem("tm_saved_accounts", JSON.stringify(saved));
+            }
             localStorage.setItem("tm_license_key", key);
+            if (typeof updateAccountSwitcher === 'function') updateAccountSwitcher();
             
             const displayUser = key.split(":")[0];
-            document.getElementById("display-key").innerText = `User: ${displayUser}`;
+            const dk = document.getElementById("display-key");
+            if (dk) dk.innerText = `User: ${displayUser}`;
             
             loginScreen.classList.remove("active");
             dashboard.classList.remove("hidden");
