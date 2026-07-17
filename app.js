@@ -1085,7 +1085,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const res = await fetch(`${API_URL}?action=notes`, {
                         method: "POST",
                         headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
-                        body: JSON.stringify({ ticket: String(ticket), note })
+                        body: JSON.stringify({ account_id: key, ticket: String(ticket), note })
                     });
                     
                     if (res.ok) {
@@ -1382,7 +1382,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 await fetch(`${API_URL}?action=journal`, {
                     method: "POST",
                     headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
-                    body: JSON.stringify({ date: todayStr, content: text })
+                    body: JSON.stringify({ account_id: key, date: todayStr, content: text })
                 });
                 if (status) {
                     status.innerText = "Saved successfully!";
