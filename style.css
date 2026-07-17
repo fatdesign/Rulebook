@@ -1,26 +1,28 @@
-:root {
-    /* DEFAULT DARK MODE - Retro Terminal (MetaTrader Dark Style) */
-    --bg-color: #000000;
-    --panel-bg: #121212;
-    --text-main: #00ff00; /* Terminal Green */
-    --text-muted: #888888;
-    --border-light: #444444;
-    --border-dark: #000000;
+:root, :root[data-theme="neo-retro"] {
+    --bg-color: #050505;
+    --panel-bg: #111111;
+    --text-main: #39ff14; /* Neon green */
+    --text-muted: #555555;
+    --border-light: #222222;
+    --border-dark: #1a1a1a;
     --border-darker: #000000;
-    --title-bg: #000080;
-    --title-text: #ffffff;
-    --primary-color: #008080;
-    --primary-hover: #00a0a0;
-    --success: #00ff00;
-    --danger: #ff0000;
+    --title-bg: transparent;
+    --title-text: #39ff14;
+    --primary-color: #1a1a1a;
+    --primary-hover: #333333;
+    --success: #39ff14;
+    --danger: #ff0055;
     --input-bg: #000000;
-    --input-text: #00ff00;
+    --input-text: #39ff14;
+    --panel-radius: 6px;
+    --panel-shadow: 0 0 10px rgba(57, 255, 20, 0.1);
+    --font-family: 'Courier New', Courier, monospace;
+    --panel-border: 1px solid var(--border-light);
 }
 
-:root[data-theme="light"] {
-    /* LIGHT MODE - Win95 Classic */
-    --bg-color: #008080; /* Teal Desktop */
-    --panel-bg: #c0c0c0; /* Classic Grey */
+:root[data-theme="win95"] {
+    --bg-color: #008080;
+    --panel-bg: #c0c0c0;
     --text-main: #000000;
     --text-muted: #333333;
     --border-light: #ffffff;
@@ -34,13 +36,65 @@
     --danger: #ff0000;
     --input-bg: #ffffff;
     --input-text: #000000;
+    --panel-radius: 0px;
+    --panel-shadow: inset -1px -1px 0px var(--border-dark), inset 1px 1px 0px var(--border-light);
+    --font-family: 'Courier New', Courier, monospace;
+    --panel-border: 2px solid var(--border-light);
+    --panel-border-top: 2px solid var(--border-light);
+    --panel-border-left: 2px solid var(--border-light);
+    --panel-border-right: 2px solid var(--border-darker);
+    --panel-border-bottom: 2px solid var(--border-darker);
+}
+
+:root[data-theme="modern-dark"] {
+    --bg-color: #0f172a;
+    --panel-bg: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-light: #334155;
+    --border-dark: #1e293b;
+    --border-darker: #0f172a;
+    --title-bg: transparent;
+    --title-text: #f8fafc;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --success: #10b981;
+    --danger: #ef4444;
+    --input-bg: #0f172a;
+    --input-text: #f8fafc;
+    --panel-radius: 12px;
+    --panel-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --font-family: 'Inter', sans-serif;
+    --panel-border: 1px solid var(--border-light);
+}
+
+:root[data-theme="modern-light"] {
+    --bg-color: #f1f5f9;
+    --panel-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-light: #e2e8f0;
+    --border-dark: #cbd5e1;
+    --border-darker: #94a3b8;
+    --title-bg: transparent;
+    --title-text: #0f172a;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --success: #10b981;
+    --danger: #ef4444;
+    --input-bg: #f1f5f9;
+    --input-text: #0f172a;
+    --panel-radius: 12px;
+    --panel-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --font-family: 'Inter', sans-serif;
+    --panel-border: 1px solid var(--border-light);
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--font-family);
 }
 
 body {
@@ -58,15 +112,16 @@ body {
     padding: 20px;
 }
 
-/* --- Window Panels (Classic Win95 Style) --- */
+/* --- Window Panels (Dynamic Theme Support) --- */
 .glass-panel {
     background: var(--panel-bg);
-    border-top: 2px solid var(--border-light);
-    border-left: 2px solid var(--border-light);
-    border-right: 2px solid var(--border-darker);
-    border-bottom: 2px solid var(--border-darker);
-    box-shadow: inset -1px -1px 0px var(--border-dark), inset 1px 1px 0px var(--border-light);
-    border-radius: 0;
+    border: var(--panel-border);
+    border-top: var(--panel-border-top, var(--panel-border));
+    border-left: var(--panel-border-left, var(--panel-border));
+    border-right: var(--panel-border-right, var(--panel-border));
+    border-bottom: var(--panel-border-bottom, var(--panel-border));
+    box-shadow: var(--panel-shadow);
+    border-radius: var(--panel-radius);
     position: relative;
     padding: 15px;
     margin-bottom: 20px;

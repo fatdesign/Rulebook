@@ -53,7 +53,21 @@ const i18n = {
         setup_step2: "Ziehe ihn auf genau EINEN Chart in deinem MetaTrader 5.",
         setup_step3: "Trage in den EA-Einstellungen deinen gewünschten Benutzernamen & Passwort ein.",
         setup_step4: "Nutze diese Daten hier im Dashboard, um dich einzuloggen!",
-        mql5_link: "TradeMaster auf MQL5 ansehen"
+        mql5_link: "TradeMaster auf MQL5 ansehen",
+        master_login_sub: "Logge dich in deinen TradeMaster Workspace ein.",
+        email_ph: "E-Mail Adresse",
+        master_register_sub: "Erstelle deinen TradeMaster Workspace.",
+        no_account: "Noch keinen Account?",
+        have_account: "Bereits einen Account?",
+        register_link: "Hier registrieren",
+        login_link: "Hier einloggen",
+        register_btn: "Workspace erstellen",
+        link_account_title: "MT5 Account verknüpfen",
+        link_account_desc: "Gib den Benutzernamen und das Passwort ein, die du im MetaTrader EA verwendest.",
+        mt5_user_ph: "MT5 Benutzername",
+        mt5_pass_ph: "MT5 Passwort",
+        link_btn: "Verknüpfen",
+        cancel_btn: "Abbrechen"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -105,7 +119,21 @@ const i18n = {
         setup_step2: "Attach it to exactly ONE chart in your MetaTrader 5 terminal.",
         setup_step3: "Enter your chosen Username & Password in the EA inputs.",
         setup_step4: "Use those exact credentials here to log in and analyze!",
-        mql5_link: "Get TradeMaster on MQL5"
+        mql5_link: "Get TradeMaster on MQL5",
+        master_login_sub: "Login to your TradeMaster Workspace.",
+        email_ph: "Email Address",
+        master_register_sub: "Create your TradeMaster Workspace.",
+        no_account: "Don't have an account?",
+        have_account: "Already have an account?",
+        register_link: "Register here",
+        login_link: "Login here",
+        register_btn: "Create Workspace",
+        link_account_title: "Link MT5 Account",
+        link_account_desc: "Enter the username and password you use in the MetaTrader EA.",
+        mt5_user_ph: "MT5 Username",
+        mt5_pass_ph: "MT5 Password",
+        link_btn: "Link Account",
+        cancel_btn: "Cancel"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -307,102 +335,223 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Theme Logic
-    const themeToggles = document.querySelectorAll("#theme-toggle, #login-theme-toggle");
-    const savedTheme = localStorage.getItem("tm_theme") || "dark";
-    if (savedTheme === "light") {
-        document.documentElement.setAttribute("data-theme", "light");
-        themeToggles.forEach(t => t.innerText = "🌙");
-    } else {
-        themeToggles.forEach(t => t.innerText = "☀️");
-    }
-
-    themeToggles.forEach(toggle => {
-        toggle.addEventListener("click", () => {
-            const currentTheme = document.documentElement.getAttribute("data-theme");
-            if (currentTheme === "light") {
-                document.documentElement.removeAttribute("data-theme");
-                localStorage.setItem("tm_theme", "dark");
-                themeToggles.forEach(t => t.innerText = "☀️");
-            } else {
-                document.documentElement.setAttribute("data-theme", "light");
-                localStorage.setItem("tm_theme", "light");
-                themeToggles.forEach(t => t.innerText = "🌙");
-            }
+    // Theme Toggle Logic
+    const themeSelects = document.querySelectorAll(".theme-select");
+    const savedTheme = localStorage.getItem("tm_theme") || "neo-retro";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    
+    themeSelects.forEach(sel => {
+        sel.value = savedTheme;
+        sel.addEventListener("change", (e) => {
+            const t = e.target.value;
+            document.documentElement.setAttribute("data-theme", t);
+            localStorage.setItem("tm_theme", t);
+            themeSelects.forEach(s => s.value = t);
         });
     });
 
-    // Account Switcher Logic
-    const accountSwitcher = document.getElementById("account-switcher");
-    const addAccountBtn = document.getElementById("add-account-btn");
+    // --- Master Account Logic ---
+    const loginFormView = document.getElementById("login-form-view");
+    const registerFormView = document.getElementById("register-form-view");
+    const showRegisterLink = document.getElementById("show-register-link");
+    const showLoginLink = document.getElementById("show-login-link");
+    const masterLoginBtn = document.getElementById("master-login-btn");
+    const masterRegisterBtn = document.getElementById("master-register-btn");
     
-    function updateAccountSwitcher() {
-        if (!accountSwitcher) return;
-        const saved = JSON.parse(localStorage.getItem("tm_saved_accounts") || "[]");
-        const currentKey = localStorage.getItem("tm_license_key");
-        accountSwitcher.innerHTML = "";
-        saved.forEach(key => {
-            const user = key.split(":")[0];
-            const opt = document.createElement("option");
-            opt.value = key;
-            opt.innerText = user;
-            if (key === currentKey) opt.selected = true;
-            accountSwitcher.appendChild(opt);
+    if (showRegisterLink) {
+        showRegisterLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            loginFormView.classList.add("hidden");
+            registerFormView.classList.remove("hidden");
+            errorMsg.classList.add("hidden");
+        });
+    }
+    if (showLoginLink) {
+        showLoginLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            registerFormView.classList.add("hidden");
+            loginFormView.classList.remove("hidden");
+            errorMsg.classList.add("hidden");
         });
     }
 
-    if (accountSwitcher) {
-        accountSwitcher.addEventListener("change", (e) => {
-            const newKey = e.target.value;
-            localStorage.setItem("tm_license_key", newKey);
-            window.location.reload();
-        });
+    async function handleMasterAuth(action, email, password, btn) {
+        if (!email || !password) {
+            showError("Please enter Email and Password.");
+            return;
+        }
+        btn.disabled = true;
+        const oldText = btn.innerText;
+        btn.innerText = "Loading...";
+        errorMsg.classList.add("hidden");
+        try {
+            const res = await fetch(`${API_URL}?action=${action}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Authentication failed");
+            
+            localStorage.setItem("tm_master_token", data.token);
+            await fetchLinkedAccounts();
+        } catch (err) {
+            showError(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = oldText;
+        }
+    }
+
+    if (masterLoginBtn) {
+        masterLoginBtn.addEventListener("click", () => handleMasterAuth("login", document.getElementById("login-email").value, document.getElementById("login-password").value, masterLoginBtn));
+    }
+    if (masterRegisterBtn) {
+        masterRegisterBtn.addEventListener("click", () => handleMasterAuth("register", document.getElementById("reg-email").value, document.getElementById("reg-password").value, masterRegisterBtn));
+    }
+
+    async function fetchLinkedAccounts() {
+        const token = localStorage.getItem("tm_master_token");
+        if (!token) return;
+        try {
+            const res = await fetch(`${API_URL}?action=accounts`, {
+                method: "GET",
+                headers: { "Authorization": token }
+            });
+            if (!res.ok) {
+                localStorage.removeItem("tm_master_token");
+                return;
+            }
+            const accounts = await res.json();
+            
+            if (!accountSwitcher) return;
+            accountSwitcher.innerHTML = "";
+            
+            if (accounts.length === 0) {
+                const opt = document.createElement("option");
+                opt.value = "";
+                opt.innerText = "-- No MT5 Accounts --";
+                accountSwitcher.appendChild(opt);
+                
+                loginScreen.classList.remove("active");
+                dashboard.classList.remove("hidden");
+                const llc = document.getElementById("login-lang-container");
+                if (llc) llc.style.display = "none";
+                
+                showLinkAccountModal();
+            } else {
+                accounts.forEach(acc => {
+                    const opt = document.createElement("option");
+                    opt.value = acc.license_key;
+                    opt.innerText = acc.alias;
+                    accountSwitcher.appendChild(opt);
+                });
+                
+                let currentKey = localStorage.getItem("tm_license_key");
+                if (!accounts.some(a => a.license_key === currentKey)) {
+                    currentKey = accounts[0].license_key;
+                    localStorage.setItem("tm_license_key", currentKey);
+                }
+                accountSwitcher.value = currentKey;
+                
+                loginScreen.classList.remove("active");
+                dashboard.classList.remove("hidden");
+                const llc = document.getElementById("login-lang-container");
+                if (llc) llc.style.display = "none";
+                
+                loadDashboard(currentKey);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Link Account Modal Logic
+    const linkAccountModal = document.getElementById("link-account-modal");
+    const linkUsernameInput = document.getElementById("link-username");
+    const linkPasswordInput = document.getElementById("link-password");
+    const linkConfirmBtn = document.getElementById("link-confirm-btn");
+    const linkCancelBtn = document.getElementById("link-cancel-btn");
+    const linkError = document.getElementById("link-error");
+
+    function showLinkAccountModal() {
+        if (linkAccountModal) {
+            linkAccountModal.classList.remove("hidden");
+            linkUsernameInput.value = "";
+            linkPasswordInput.value = "";
+            linkError.classList.add("hidden");
+        }
     }
 
     if (addAccountBtn) {
-        addAccountBtn.addEventListener("click", () => {
-            dashboard.classList.add("hidden");
-            loginScreen.classList.add("active");
-            const llc = document.getElementById("login-lang-container");
-            if (llc) llc.style.display = "block";
+        addAccountBtn.addEventListener("click", showLinkAccountModal);
+    }
+    if (linkCancelBtn) {
+        linkCancelBtn.addEventListener("click", () => linkAccountModal.classList.add("hidden"));
+    }
+    
+    if (linkConfirmBtn) {
+        linkConfirmBtn.addEventListener("click", async () => {
+            const u = linkUsernameInput.value.trim();
+            const p = linkPasswordInput.value.trim();
+            if (!u || !p) {
+                linkError.innerText = "Please enter both fields.";
+                linkError.classList.remove("hidden");
+                return;
+            }
+            const token = localStorage.getItem("tm_master_token");
+            if (!token) return;
+            
+            linkConfirmBtn.disabled = true;
+            linkConfirmBtn.innerText = "Linking...";
+            
+            try {
+                const res = await fetch(`${API_URL}?action=link_account`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": token },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Failed to link account");
+                
+                linkAccountModal.classList.add("hidden");
+                localStorage.setItem("tm_license_key", data.license_key);
+                await fetchLinkedAccounts();
+            } catch (err) {
+                linkError.innerText = err.message;
+                linkError.classList.remove("hidden");
+            } finally {
+                linkConfirmBtn.disabled = false;
+                const lang = globalLang ? globalLang.value : "en";
+                linkConfirmBtn.innerText = i18n[lang] && i18n[lang].link_btn ? i18n[lang].link_btn : "Link Account";
+            }
+        });
+    }
+
+    // Account Switcher Logic
+    if (accountSwitcher) {
+        accountSwitcher.addEventListener("change", (e) => {
+            if (e.target.value) {
+                localStorage.setItem("tm_license_key", e.target.value);
+                loadDashboard(e.target.value);
+            }
         });
     }
 
     // Check if already logged in
-    const savedKey = localStorage.getItem("tm_license_key");
-    if (savedKey) {
-        loadDashboard(savedKey);
+    const savedToken = localStorage.getItem("tm_master_token");
+    if (savedToken) {
+        fetchLinkedAccounts();
     }
 
-    connectBtn.addEventListener("click", () => {
-        const user = usernameInput.value.trim();
-        const pass = passwordInput.value.trim();
-        
-        if (!user || !pass) {
-            showError("Please enter Username and Password.");
-            return;
-        }
-        
-        const key = user + ":" + pass;
-        loadDashboard(key);
-    });
-
     logoutBtn.addEventListener("click", () => {
-        const currentKey = localStorage.getItem("tm_license_key");
-        let saved = JSON.parse(localStorage.getItem("tm_saved_accounts") || "[]");
-        saved = saved.filter(k => k !== currentKey);
-        localStorage.setItem("tm_saved_accounts", JSON.stringify(saved));
-        
-        if (saved.length > 0) {
-            localStorage.setItem("tm_license_key", saved[0]);
-            window.location.reload();
-        } else {
-            localStorage.removeItem("tm_license_key");
-            dashboard.classList.add("hidden");
-            loginScreen.classList.add("active");
-            const llc = document.getElementById("login-lang-container");
-            if (llc) llc.style.display = "block";
-        }
+        localStorage.removeItem("tm_master_token");
+        localStorage.removeItem("tm_license_key");
+        dashboard.classList.add("hidden");
+        loginScreen.classList.remove("active"); // wait, should add 'active' to show it
+        loginScreen.classList.add("active");
+        const llc = document.getElementById("login-lang-container");
+        if (llc) llc.style.display = "flex";
     });
 
     if (refreshBtn) {
@@ -458,7 +607,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 60000);
 
     async function loadDashboard(key) {
-        connectBtn.innerText = "Loading...";
         errorMsg.classList.add("hidden");
 
         try {
@@ -481,17 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Success! Save key and show dashboard
-            let saved = JSON.parse(localStorage.getItem("tm_saved_accounts") || "[]");
-            if (!saved.includes(key)) {
-                saved.push(key);
-                localStorage.setItem("tm_saved_accounts", JSON.stringify(saved));
-            }
             localStorage.setItem("tm_license_key", key);
-            if (typeof updateAccountSwitcher === 'function') updateAccountSwitcher();
-            
-            const displayUser = key.split(":")[0];
-            const dk = document.getElementById("display-key");
-            if (dk) dk.innerText = `User: ${displayUser}`;
             
             loginScreen.classList.remove("active");
             dashboard.classList.remove("hidden");

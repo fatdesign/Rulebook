@@ -14,6 +14,91 @@ export default {
       const url = new URL(request.url);
       const action = url.searchParams.get("action");
 
+      async function hashPassword(password) {
+        const msgUint8 = new TextEncoder().encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      async function setupMasterTables(env) {
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE,
+            password_hash TEXT,
+            token TEXT UNIQUE
+          )
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS user_accounts (
+            user_id TEXT,
+            license_key TEXT,
+            alias TEXT,
+            PRIMARY KEY (user_id, license_key)
+          )
+        `).run();
+      }
+
+      // --- MASTER ACCOUNT ROUTES ---
+      if (request.method === "POST" && action === "register") {
+        await setupMasterTables(env);
+        const body = await request.json();
+        if (!body.email || !body.password) return new Response("Email and password required", { status: 400, headers: corsHeaders });
+        
+        const existing = await env.DB.prepare("SELECT email FROM users WHERE email = ?").bind(body.email).first();
+        if (existing) return new Response(JSON.stringify({ error: "Email already registered" }), { status: 400, headers: corsHeaders });
+        
+        const id = crypto.randomUUID();
+        const hash = await hashPassword(body.password);
+        const token = crypto.randomUUID(); // Simple persistent token for now
+        
+        await env.DB.prepare("INSERT INTO users (id, email, password_hash, token) VALUES (?, ?, ?, ?)")
+          .bind(id, body.email, hash, token).run();
+          
+        return new Response(JSON.stringify({ success: true, token, email: body.email }), { headers: corsHeaders });
+      }
+
+      if (request.method === "POST" && action === "login") {
+        await setupMasterTables(env);
+        const body = await request.json();
+        if (!body.email || !body.password) return new Response("Email and password required", { status: 400, headers: corsHeaders });
+        
+        const hash = await hashPassword(body.password);
+        const user = await env.DB.prepare("SELECT id, email, token FROM users WHERE email = ? AND password_hash = ?")
+          .bind(body.email, hash).first();
+          
+        if (!user) return new Response(JSON.stringify({ error: "Invalid email or password" }), { status: 401, headers: corsHeaders });
+        
+        return new Response(JSON.stringify({ success: true, token: user.token, email: user.email }), { headers: corsHeaders });
+      }
+
+      if (request.method === "POST" && action === "link_account") {
+        await setupMasterTables(env);
+        const token = request.headers.get("Authorization");
+        const user = await env.DB.prepare("SELECT id FROM users WHERE token = ?").bind(token).first();
+        if (!user) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+        
+        const body = await request.json();
+        if (!body.username || !body.password) return new Response("MT5 Username and Password required", { status: 400, headers: corsHeaders });
+        
+        const license_key = `${body.username}:${body.password}`;
+        await env.DB.prepare("INSERT INTO user_accounts (user_id, license_key, alias) VALUES (?, ?, ?) ON CONFLICT DO NOTHING")
+          .bind(user.id, license_key, body.username).run();
+          
+        return new Response(JSON.stringify({ success: true, license_key, alias: body.username }), { headers: corsHeaders });
+      }
+
+      if (request.method === "GET" && action === "accounts") {
+        await setupMasterTables(env);
+        const token = request.headers.get("Authorization");
+        const user = await env.DB.prepare("SELECT id FROM users WHERE token = ?").bind(token).first();
+        if (!user) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+        
+        const { results } = await env.DB.prepare("SELECT license_key, alias FROM user_accounts WHERE user_id = ?").bind(user.id).all();
+        return new Response(JSON.stringify(results), { headers: corsHeaders });
+      }
+
       // --- KI COACH ROUTE ---
       if (request.method === "POST" && action === "ai_coach") {
         const authHeader = request.headers.get("Authorization");
