@@ -54,7 +54,7 @@ body {
 
 .app-container {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1600px;
     padding: 20px;
 }
 
@@ -223,9 +223,9 @@ button:active, .filter-btn:active, .primary-btn:active, .secondary-btn:active {
 /* KPIs Layout */
 .kpi-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .kpi-card {
