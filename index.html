@@ -104,7 +104,7 @@
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 20px;">
                         <div>
                             <h3 style="color: #ef4444; margin-bottom: 5px;"><i class="ph ph-fire"></i> Tilt-Meter</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Revenge Trades (< 15 mins nach Verlust)</p>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;" data-i18n="tilt_sub">Revenge Trades (< 15 mins nach Verlust)</p>
                             <div style="display: flex; justify-content: space-between; align-items: baseline;">
                                 <span id="kpi-revenge" style="font-size: 2rem; font-weight: bold; color: #ef4444;">0</span>
                                 <span id="kpi-discipline" style="font-size: 1rem; color: #10b981;">Disziplin: 100%</span>
@@ -115,17 +115,17 @@
                         
                         <div>
                             <h3 style="color: #f59e0b; margin-bottom: 5px;"><i class="ph ph-shield-check"></i> Kill-Switch</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">EA blockiert Trades bei Tagesverlust-Limit</p>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;" data-i18n="killswitch_sub">EA blockiert Trades bei Tagesverlust-Limit</p>
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <label class="switch">
                                     <input type="checkbox" id="kill-switch-toggle">
                                     <span class="slider round"></span>
                                 </label>
                                 <div style="display: flex; align-items: center; gap: 5px;">
-                                    <span style="font-size: 0.9rem;">Limit: €</span>
+                                    <span style="font-size: 0.9rem;" data-i18n="limit_lbl">Limit: €</span>
                                     <input type="number" id="kill-switch-limit" class="profile-select" style="width: 80px; padding: 5px;" value="150" min="0">
                                 </div>
-                                <button id="kill-switch-save" class="secondary-btn" style="padding: 5px 10px; font-size: 0.8rem;">Save</button>
+                                <button id="kill-switch-save" class="secondary-btn" style="padding: 5px 10px; font-size: 0.8rem;" data-i18n="save_btn">Save</button>
                             </div>
                         </div>
                     </div>
@@ -133,7 +133,7 @@
                     <!-- Profit Heatmap -->
                     <div class="glass-panel heatmap-container" style="padding: 20px;">
                         <h3 style="margin-bottom: 5px;"><i class="ph ph-map-trifold"></i> Profit Heatmap</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Wann verdienst du am meisten?</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;" data-i18n="heatmap_sub">Wann verdienst du am meisten?</p>
                         <div id="heatmap-grid" class="heatmap-grid">
                             <!-- JS will populate this -->
                         </div>
@@ -196,11 +196,11 @@
     <!-- Kill-Switch Warning Modal -->
     <div id="kill-switch-modal" class="modal-overlay hidden">
         <div class="modal-content glass-panel" style="border: 1px solid #ef4444; max-width: 400px; text-align: center;">
-            <h2 style="color: #ef4444; margin-bottom: 15px;"><i class="ph ph-warning"></i> WARNUNG</h2>
-            <p style="margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;">Das Deaktivieren des Kill-Switches ist hochriskant. Du bist dabei, deinen Schutzmechanismus abzuschalten und könntest deinen Tagesverlust überschreiten!</p>
+            <h2 style="color: #ef4444; margin-bottom: 15px;"><i class="ph ph-warning"></i> <span data-i18n="modal_warn">WARNUNG</span></h2>
+            <p style="margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;" data-i18n="modal_desc">Das Deaktivieren des Kill-Switches ist hochriskant. Du bist dabei, deinen Schutzmechanismus abzuschalten und könntest deinen Tagesverlust überschreiten!</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="modal-cancel-btn" class="secondary-btn">Abbrechen (Sicher bleiben)</button>
-                <button id="modal-confirm-btn" class="secondary-btn" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">Trotzdem deaktivieren</button>
+                <button id="modal-cancel-btn" class="secondary-btn" data-i18n="modal_cancel">Abbrechen (Sicher bleiben)</button>
+                <button id="modal-confirm-btn" class="secondary-btn" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;" data-i18n="modal_confirm">Trotzdem deaktivieren</button>
             </div>
         </div>
     </div>

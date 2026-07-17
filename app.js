@@ -36,7 +36,17 @@ const i18n = {
         ai_title: "KI Trading Coach",
         ai_btn: "Coach nach Analyse fragen",
         ai_placeholder: "Klicke auf den Button, um eine ehrliche und hilfreiche Analyse deiner letzten Trades zu erhalten.",
-        ai_loading: "Konsultiere den KI Coach..."
+        ai_loading: "Konsultiere den KI Coach...",
+        tilt_sub: "Revenge Trades (< 15 mins nach Verlust)",
+        killswitch_sub: "EA blockiert Trades bei Tagesverlust-Limit",
+        heatmap_sub: "Wann verdienst du am meisten?",
+        save_btn: "Speichern",
+        limit_lbl: "Limit: ",
+        modal_warn: "WARNUNG",
+        modal_desc: "Das Deaktivieren des Kill-Switches ist hochriskant. Du bist dabei, deinen Schutzmechanismus abzuschalten und könntest deinen Tagesverlust überschreiten!",
+        modal_cancel: "Abbrechen (Sicher bleiben)",
+        modal_confirm: "Trotzdem deaktivieren",
+        discipline_lbl: "Disziplin"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -71,7 +81,17 @@ const i18n = {
         ai_title: "AI Trading Coach",
         ai_btn: "Ask Coach for Analysis",
         ai_placeholder: "Click the button above to get a harsh but helpful AI analysis of your recent trades.",
-        ai_loading: "Consulting the AI Coach..."
+        ai_loading: "Consulting the AI Coach...",
+        tilt_sub: "Revenge Trades (< 15 mins after loss)",
+        killswitch_sub: "EA blocks trades at daily loss limit",
+        heatmap_sub: "When do you earn the most?",
+        save_btn: "Save",
+        limit_lbl: "Limit: ",
+        modal_warn: "WARNING",
+        modal_desc: "Deactivating the Kill-Switch is highly risky. You are about to disable your protection mechanism and could exceed your daily loss limit!",
+        modal_cancel: "Cancel (Stay Safe)",
+        modal_confirm: "Deactivate anyway",
+        discipline_lbl: "Discipline"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -106,7 +126,17 @@ const i18n = {
         ai_title: "Coach de Trading IA",
         ai_btn: "Pedir Análisis al Coach",
         ai_placeholder: "Haz clic en el botón de arriba para obtener un análisis honesto de tus operaciones recientes.",
-        ai_loading: "Consultando al Coach IA..."
+        ai_loading: "Consultando al Coach IA...",
+        tilt_sub: "Operaciones de Revancha (< 15 mins post-pérdida)",
+        killswitch_sub: "El EA bloquea trades al llegar al límite diario",
+        heatmap_sub: "¿Cuándo ganas más?",
+        save_btn: "Guardar",
+        limit_lbl: "Límite: ",
+        modal_warn: "ADVERTENCIA",
+        modal_desc: "Desactivar el Kill-Switch es muy arriesgado. ¡Estás a punto de deshabilitar tu protección y podrías superar tu límite de pérdida diaria!",
+        modal_cancel: "Cancelar (Mantener Seguro)",
+        modal_confirm: "Desactivar de todos modos",
+        discipline_lbl: "Disciplina"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -141,7 +171,17 @@ const i18n = {
         ai_title: "Yapay Zeka Koçu",
         ai_btn: "Koçtan Analiz İste",
         ai_placeholder: "Son işlemlerinizin dürüst ve faydalı bir analizini almak için yukarıdaki düğmeye tıklayın.",
-        ai_loading: "Yapay Zeka Koçuna Danışılıyor..."
+        ai_loading: "Yapay Zeka Koçuna Danışılıyor...",
+        tilt_sub: "İntikam İşlemleri (Kayıptan < 15 dk sonra)",
+        killswitch_sub: "Günlük kayıp limitinde işlemleri durdurur",
+        heatmap_sub: "En çok ne zaman kazanıyorsun?",
+        save_btn: "Kaydet",
+        limit_lbl: "Limit: ",
+        modal_warn: "UYARI",
+        modal_desc: "Kill-Switch'i devre dışı bırakmak yüksek risklidir. Koruma mekanizmanızı kapatmak üzeresiniz ve günlük kayıp limitinizi aşabilirsiniz!",
+        modal_cancel: "İptal (Güvende Kal)",
+        modal_confirm: "Yine de Kapat",
+        discipline_lbl: "Disiplin"
     }
 };
 
@@ -188,6 +228,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const key = el.getAttribute("data-i18n-placeholder");
             if (i18n[lang][key]) el.placeholder = i18n[lang][key];
         });
+        
+        const discSpan = document.getElementById("kpi-discipline");
+        if(discSpan) {
+            const currentText = discSpan.innerText;
+            const scoreMatch = currentText.match(/:\s*(\d+)%/);
+            if(scoreMatch) {
+                 discSpan.innerText = `${i18n[lang].discipline_lbl}: ${scoreMatch[1]}%`;
+            }
+        }
     }
 
     if (globalLang) {
@@ -506,7 +555,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Revenge Trades & Discipline
         const discScore = trades.length > 0 ? Math.max(0, 100 - (revengeTrades / trades.length) * 100) : 100;
         document.getElementById("kpi-revenge").innerText = revengeTrades;
-        document.getElementById("kpi-discipline").innerText = `Disziplin: ${discScore.toFixed(0)}%`;
+        const lang = globalLang ? globalLang.value : "en";
+        const discLbl = i18n[lang] && i18n[lang].discipline_lbl ? i18n[lang].discipline_lbl : "Disziplin";
+        document.getElementById("kpi-discipline").innerText = `${discLbl}: ${discScore.toFixed(0)}%`;
         document.getElementById("kpi-discipline").style.color = discScore > 80 ? "#10b981" : (discScore > 50 ? "#f59e0b" : "#ef4444");
 
         renderChart(labels, equityCurve);
