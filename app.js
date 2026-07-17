@@ -47,7 +47,13 @@ const i18n = {
         modal_desc: "Das Deaktivieren des Kill-Switches ist hochriskant. Du bist dabei, deinen Schutzmechanismus abzuschalten und könntest deinen Tagesverlust überschreiten!",
         modal_cancel: "Abbrechen (Sicher bleiben)",
         modal_confirm: "Trotzdem deaktivieren",
-        discipline_lbl: "Disziplin"
+        discipline_lbl: "Disziplin",
+        setup_btn: "Wie richte ich den EA ein?",
+        setup_step1: "Lade den TradeMaster Exporter EA im MQL5 Market herunter.",
+        setup_step2: "Ziehe ihn auf genau EINEN Chart in deinem MetaTrader 5.",
+        setup_step3: "Trage in den EA-Einstellungen deinen gewünschten Benutzernamen & Passwort ein.",
+        setup_step4: "Nutze diese Daten hier im Dashboard, um dich einzuloggen!",
+        mql5_link: "TradeMaster auf MQL5 ansehen"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -93,7 +99,13 @@ const i18n = {
         modal_desc: "Deactivating the Kill-Switch is highly risky. You are about to disable your protection mechanism and could exceed your daily loss limit!",
         modal_cancel: "Cancel (Stay Safe)",
         modal_confirm: "Deactivate anyway",
-        discipline_lbl: "Discipline"
+        discipline_lbl: "Discipline",
+        setup_btn: "How to Setup & Get the EA",
+        setup_step1: "Download the TradeMaster Exporter EA from MQL5 Market.",
+        setup_step2: "Attach it to exactly ONE chart in your MetaTrader 5 terminal.",
+        setup_step3: "Enter your chosen Username & Password in the EA inputs.",
+        setup_step4: "Use those exact credentials here to log in and analyze!",
+        mql5_link: "Get TradeMaster on MQL5"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -139,7 +151,13 @@ const i18n = {
         modal_desc: "Desactivar el Kill-Switch es muy arriesgado. ¡Estás a punto de deshabilitar tu protección y podrías superar tu límite de pérdida diaria!",
         modal_cancel: "Cancelar (Mantener Seguro)",
         modal_confirm: "Desactivar de todos modos",
-        discipline_lbl: "Disciplina"
+        discipline_lbl: "Disciplina",
+        setup_btn: "Cómo configurar y obtener el EA",
+        setup_step1: "Descarga el EA TradeMaster Exporter desde MQL5 Market.",
+        setup_step2: "Añádelo a UN SOLO gráfico en tu MetaTrader 5.",
+        setup_step3: "Introduce el Usuario y Contraseña que prefieras en los ajustes del EA.",
+        setup_step4: "¡Usa esas credenciales aquí para iniciar sesión y analizar!",
+        mql5_link: "Ver TradeMaster en MQL5"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -185,7 +203,13 @@ const i18n = {
         modal_desc: "Kill-Switch'i devre dışı bırakmak yüksek risklidir. Koruma mekanizmanızı kapatmak üzeresiniz ve günlük kayıp limitinizi aşabilirsiniz!",
         modal_cancel: "İptal (Güvende Kal)",
         modal_confirm: "Yine de Kapat",
-        discipline_lbl: "Disiplin"
+        discipline_lbl: "Disiplin",
+        setup_btn: "Kurulum ve EA'yı İndirme",
+        setup_step1: "TradeMaster Exporter EA'yı MQL5 Market'ten indirin.",
+        setup_step2: "MetaTrader 5'inizde SADECE BİR grafiğe ekleyin.",
+        setup_step3: "EA ayarlarına istediğiniz Kullanıcı Adı ve Şifreyi girin.",
+        setup_step4: "Analiz için buraya aynı bilgilerle giriş yapın!",
+        mql5_link: "MQL5'te TradeMaster'ı İncele"
     }
 };
 
@@ -201,6 +225,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMsg = document.getElementById("login-error");
 
     const globalLang = document.getElementById("global-lang");
+    const loginLang = document.getElementById("login-lang");
+    
+    // Accordion Logic
+    const accordionBtn = document.getElementById("setup-accordion-btn");
+    const accordionContent = document.getElementById("setup-accordion-content");
+    const setupCaret = document.getElementById("setup-caret");
+    
+    if (accordionBtn) {
+        accordionBtn.addEventListener("click", () => {
+            accordionContent.classList.toggle("hidden");
+            if (accordionContent.classList.contains("hidden")) {
+                setupCaret.style.transform = "rotate(0deg)";
+            } else {
+                setupCaret.style.transform = "rotate(180deg)";
+            }
+        });
+    }
 
     // Profile Elements
     const profStyle = document.getElementById("prof-style");
@@ -246,11 +287,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (globalLang) {
         const savedLang = localStorage.getItem("tm_global_lang") || "de";
         globalLang.value = savedLang;
+        if (loginLang) loginLang.value = savedLang;
         setLanguage(savedLang);
 
         globalLang.addEventListener("change", (e) => {
             const newLang = e.target.value;
             localStorage.setItem("tm_global_lang", newLang);
+            if (loginLang) loginLang.value = newLang;
+            setLanguage(newLang);
+        });
+    }
+    
+    if (loginLang) {
+        loginLang.addEventListener("change", (e) => {
+            const newLang = e.target.value;
+            localStorage.setItem("tm_global_lang", newLang);
+            if (globalLang) globalLang.value = newLang;
             setLanguage(newLang);
         });
     }

@@ -13,7 +13,13 @@
 <body>
     <div class="app-container">
         <!-- Login / Setup Screen -->
-        <div id="login-screen" class="glass-panel active">
+        <div id="login-screen" class="glass-panel active" style="position: relative;">
+            <select id="login-lang" class="profile-select" style="position: absolute; top: 15px; right: 15px; width: auto; padding: 6px 10px; background: rgba(0,0,0,0.3);">
+                <option value="de">DE</option>
+                <option value="en">EN</option>
+                <option value="es">ES</option>
+                <option value="tr">TR</option>
+            </select>
             <div class="logo">
                 <i class="ph-fill ph-chart-line-up" style="font-size: 2rem; color: #a855f7; margin-right: 10px;"></i>
                 <h1>TradeMaster AI</h1>
@@ -25,6 +31,25 @@
                 <button id="connect-btn" data-i18n="login_btn">Login & Analyze</button>
             </div>
             <div id="login-error" class="error-msg hidden"></div>
+            
+            <!-- Setup Guide Accordion -->
+            <div class="setup-accordion" style="margin-top: 30px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <button id="setup-accordion-btn" class="secondary-btn" style="width: 100%; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
+                    <span data-i18n="setup_btn">How to Setup & Get the EA</span>
+                    <i class="ph ph-caret-down" id="setup-caret"></i>
+                </button>
+                <div id="setup-accordion-content" class="hidden" style="margin-top: 15px; font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <ol style="padding-left: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+                        <li data-i18n="setup_step1">Download the TradeMaster Exporter EA from MQL5 Market.</li>
+                        <li data-i18n="setup_step2">Attach it to ONE chart in your MetaTrader 5 terminal.</li>
+                        <li data-i18n="setup_step3">Enter your chosen Username & Password in the EA inputs and click OK.</li>
+                        <li data-i18n="setup_step4">Use the same credentials here to log in and analyze your performance!</li>
+                    </ol>
+                    <a href="https://www.mql5.com/en/market/product/YOUR_PRODUCT_ID_HERE" target="_blank" class="primary-btn" style="text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; gap: 8px;" data-i18n="mql5_link">
+                        <i class="ph-fill ph-download-simple"></i> Get TradeMaster on MQL5
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Main Dashboard -->
