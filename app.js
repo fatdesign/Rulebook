@@ -9,6 +9,7 @@ const i18n = {
         login_btn: "Einloggen & Analysieren",
         disconnect_btn: "Trennen",
         refresh_btn: "↻ Aktualisieren",
+        reset_btn: "⚠ Reset",
         filter_today: "Heute",
         filter_yesterday: "Gestern",
         filter_week: "Diese Woche",
@@ -42,6 +43,7 @@ const i18n = {
         login_btn: "Login & Analyze",
         disconnect_btn: "Disconnect",
         refresh_btn: "↻ Refresh",
+        reset_btn: "⚠ Reset",
         filter_today: "Today",
         filter_yesterday: "Yesterday",
         filter_week: "This Week",
@@ -75,6 +77,7 @@ const i18n = {
         login_btn: "Iniciar sesión",
         disconnect_btn: "Desconectar",
         refresh_btn: "↻ Actualizar",
+        reset_btn: "⚠ Reset",
         filter_today: "Hoy",
         filter_yesterday: "Ayer",
         filter_week: "Esta Semana",
@@ -108,6 +111,7 @@ const i18n = {
         login_btn: "Giriş Yap",
         disconnect_btn: "Çıkış Yap",
         refresh_btn: "↻ Yenile",
+        reset_btn: "⚠ Sıfırla",
         filter_today: "Bugün",
         filter_yesterday: "Dün",
         filter_week: "Bu Hafta",
@@ -142,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const connectBtn = document.getElementById("connect-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const refreshBtn = document.getElementById("refresh-btn");
+    const resetBtn = document.getElementById("reset-btn");
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const errorMsg = document.getElementById("login-error");
@@ -225,8 +230,40 @@ document.addEventListener("DOMContentLoaded", () => {
             if (key) {
                 refreshBtn.innerText = "↻ ...";
                 loadDashboard(key).then(() => {
-                    refreshBtn.innerText = "↻ Refresh";
+                    const lang = globalLang ? globalLang.value : "en";
+                    refreshBtn.innerText = i18n[lang] && i18n[lang].refresh_btn ? i18n[lang].refresh_btn : "↻ Refresh";
                 });
+            }
+        });
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener("click", async () => {
+            const key = localStorage.getItem("tm_license_key");
+            if (!key) return;
+            
+            const lang = globalLang ? globalLang.value : "de";
+            const msg = lang === "de" 
+                ? "Bist du sicher? Alle Trades im Dashboard werden gelöscht (dein MT5 bleibt unangetastet!). Der EA wird in 60s neu synchronisieren."
+                : "Are you sure? All trades in the dashboard will be deleted (your MT5 is untouched!). The EA will resync in 60s.";
+                
+            if (confirm(msg)) {
+                resetBtn.innerText = "⏳...";
+                try {
+                    const response = await fetch(`${API_URL}?key=${encodeURIComponent(key)}`, {
+                        method: "DELETE"
+                    });
+                    if(response.ok) {
+                        alert(lang === "de" ? "Dashboard geleert! Warte 60s auf den nächsten EA Sync." : "Dashboard cleared! Wait 60s for the next EA sync.");
+                        window.location.reload();
+                    } else {
+                        alert("Error resetting dashboard.");
+                    }
+                } catch(err) {
+                    alert(err.message);
+                } finally {
+                    resetBtn.innerText = i18n[lang] && i18n[lang].reset_btn ? i18n[lang].reset_btn : "⚠ Reset";
+                }
             }
         });
     }
