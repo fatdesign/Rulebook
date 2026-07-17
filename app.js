@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const dashboard = document.getElementById("dashboard");
     const connectBtn = document.getElementById("connect-btn");
     const logoutBtn = document.getElementById("logout-btn");
+    const refreshBtn = document.getElementById("refresh-btn");
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const errorMsg = document.getElementById("login-error");
@@ -36,6 +37,26 @@ document.addEventListener("DOMContentLoaded", () => {
         dashboard.classList.add("hidden");
         loginScreen.classList.add("active");
     });
+
+    if (refreshBtn) {
+        refreshBtn.addEventListener("click", () => {
+            const key = localStorage.getItem("tm_license_key");
+            if (key) {
+                refreshBtn.innerText = "↻ ...";
+                loadDashboard(key).then(() => {
+                    refreshBtn.innerText = "↻ Refresh";
+                });
+            }
+        });
+    }
+
+    // Auto-refresh every 60 seconds
+    setInterval(() => {
+        const key = localStorage.getItem("tm_license_key");
+        if (key && !dashboard.classList.contains("hidden")) {
+            loadDashboard(key);
+        }
+    }, 60000);
 
     async function loadDashboard(key) {
         connectBtn.innerText = "Loading...";
