@@ -16,11 +16,11 @@
                 <div class="logo-icon"></div>
                 <h1>TradeMaster AI</h1>
             </div>
-            <p class="subtitle">Connect your MT5 account to view AI insights.</p>
+            <p class="subtitle" data-i18n="login_sub">Connect your MT5 account to view AI insights.</p>
             <div class="input-group">
-                <input type="text" id="username" placeholder="Username" autocomplete="username">
-                <input type="password" id="password" placeholder="Password" autocomplete="current-password">
-                <button id="connect-btn">Login & Analyze</button>
+                <input type="text" id="username" placeholder="Username" data-i18n-placeholder="username_ph" autocomplete="username">
+                <input type="password" id="password" placeholder="Password" data-i18n-placeholder="password_ph" autocomplete="current-password">
+                <button id="connect-btn" data-i18n="login_btn">Login & Analyze</button>
             </div>
             <div id="login-error" class="error-msg hidden"></div>
         </div>
@@ -33,44 +33,50 @@
                     <h2>TradeMaster</h2>
                 </div>
                 <div class="user-info">
+                    <select id="global-lang" class="profile-select" style="width: auto; padding: 6px 10px; margin-right: 10px;">
+                        <option value="de">🇩🇪 DE</option>
+                        <option value="en">🇬🇧 EN</option>
+                        <option value="tr">🇹🇷 TR</option>
+                        <option value="es">🇪🇸 ES</option>
+                    </select>
                     <span id="display-key">Key: ••••</span>
-                    <button id="refresh-btn" class="secondary-btn" style="padding: 6px 10px; margin-left: 10px;">↻ Refresh</button>
-                    <button id="logout-btn" class="secondary-btn">Disconnect</button>
+                    <button id="refresh-btn" class="secondary-btn" style="padding: 6px 10px; margin-left: 10px;" data-i18n="refresh_btn">↻ Refresh</button>
+                    <button id="logout-btn" class="secondary-btn" data-i18n="disconnect_btn">Disconnect</button>
                 </div>
             </header>
 
             <main class="dashboard-grid">
                 <!-- Timeframe Filter -->
                 <div class="filter-group" id="timeframe-filters">
-                    <button class="filter-btn active" data-timeframe="today">Heute</button>
-                    <button class="filter-btn" data-timeframe="yesterday">Gestern</button>
-                    <button class="filter-btn" data-timeframe="week">Diese Woche</button>
-                    <button class="filter-btn" data-timeframe="all">Alle Trades</button>
+                    <button class="filter-btn active" data-timeframe="today" data-i18n="filter_today">Heute</button>
+                    <button class="filter-btn" data-timeframe="yesterday" data-i18n="filter_yesterday">Gestern</button>
+                    <button class="filter-btn" data-timeframe="week" data-i18n="filter_week">Diese Woche</button>
+                    <button class="filter-btn" data-timeframe="all" data-i18n="filter_all">Alle Trades</button>
                 </div>
 
                 <!-- KPIs -->
                 <div class="kpi-row">
                     <div class="kpi-card glass-panel">
-                        <h3>Net Profit</h3>
+                        <h3 data-i18n="kpi_profit">Net Profit</h3>
                         <p id="kpi-profit" class="kpi-value positive">$0.00</p>
                     </div>
                     <div class="kpi-card glass-panel">
-                        <h3>Win Rate</h3>
+                        <h3 data-i18n="kpi_winrate">Win Rate</h3>
                         <p id="kpi-winrate" class="kpi-value">0%</p>
                     </div>
                     <div class="kpi-card glass-panel">
-                        <h3>Total Trades</h3>
+                        <h3 data-i18n="kpi_trades">Total Trades</h3>
                         <p id="kpi-trades" class="kpi-value">0</p>
                     </div>
                     <div class="kpi-card glass-panel">
-                        <h3>Profit Factor</h3>
+                        <h3 data-i18n="kpi_pf">Profit Factor</h3>
                         <p id="kpi-pf" class="kpi-value">0.00</p>
                     </div>
                 </div>
 
                 <!-- Main Chart -->
                 <div class="chart-container glass-panel">
-                    <h3>Equity Curve</h3>
+                    <h3 data-i18n="chart_title">Equity Curve</h3>
                     <canvas id="equityChart"></canvas>
                 </div>
 
@@ -78,14 +84,14 @@
                 <div class="profile-settings glass-panel" style="margin-bottom: 20px; padding: 20px;">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
                         <span class="sparkle-icon" style="font-size: 1.2rem;">👤</span>
-                        <h3 style="color: var(--text-main); font-size: 1rem;">Trader Profile</h3>
-                        <span style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted);">Set this before asking the AI</span>
+                        <h3 style="color: var(--text-main); font-size: 1rem;" data-i18n="profile_title">Trader Profile</h3>
+                        <span style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted);" data-i18n="profile_sub">Set this before asking the AI</span>
                     </div>
                     <div class="kpi-row" style="gap: 15px; align-items: flex-start;">
                         <select id="prof-style" class="profile-select" style="flex: 1;">
-                            <option value="Scalper">Scalper</option>
-                            <option value="Day Trader" selected>Day Trader</option>
-                            <option value="Swing Trader">Swing Trader</option>
+                            <option value="Scalper" data-i18n="prof_style_scalper">Scalper</option>
+                            <option value="Day Trader" selected data-i18n="prof_style_day">Day Trader</option>
+                            <option value="Swing Trader" data-i18n="prof_style_swing">Swing Trader</option>
                         </select>
                         <div class="session-group" id="prof-session-group" style="flex: 2;">
                             <label class="session-pill"><input type="checkbox" value="London" class="session-cb"> London</label>
@@ -93,15 +99,9 @@
                             <label class="session-pill"><input type="checkbox" value="Asian" class="session-cb"> Asian</label>
                         </div>
                         <select id="prof-risk" class="profile-select" style="flex: 1;">
-                            <option value="Conservative">Conservative</option>
-                            <option value="Moderate" selected>Moderate Risk</option>
-                            <option value="Aggressive">Aggressive</option>
-                        </select>
-                        <select id="prof-lang" class="profile-select" style="flex: 1;">
-                            <option value="de">🇩🇪 Deutsch</option>
-                            <option value="en">🇬🇧 English</option>
-                            <option value="tr">🇹🇷 Türkçe</option>
-                            <option value="es">🇪🇸 Español</option>
+                            <option value="Conservative" data-i18n="prof_risk_cons">Conservative</option>
+                            <option value="Moderate" selected data-i18n="prof_risk_mod">Moderate Risk</option>
+                            <option value="Aggressive" data-i18n="prof_risk_agg">Aggressive</option>
                         </select>
                     </div>
                 </div>
@@ -110,16 +110,16 @@
                 <div class="ai-insights glass-panel">
                     <div class="ai-header">
                         <span class="sparkle-icon">✨</span>
-                        <h3>AI Trading Coach</h3>
+                        <h3 data-i18n="ai_title">AI Trading Coach</h3>
                         <span id="ai-limit" class="ai-limit" style="margin-left:auto; font-size: 0.8rem; color: #a855f7;"></span>
                     </div>
                     <div id="ai-controls" style="margin-bottom: 15px;">
-                        <button id="ai-btn" class="secondary-btn" style="background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: #fff;">
+                        <button id="ai-btn" class="secondary-btn" style="background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: #fff;" data-i18n="ai_btn">
                             Ask Coach for Analysis
                         </button>
                     </div>
                     <div id="ai-content" class="ai-content">
-                        <p class="ai-placeholder-text">Click the button above to get a harsh but helpful AI analysis of your recent trades.</p>
+                        <p class="ai-placeholder-text" data-i18n="ai_placeholder">Click the button above to get a harsh but helpful AI analysis of your recent trades.</p>
                     </div>
                 </div>
             </main>

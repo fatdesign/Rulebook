@@ -1,6 +1,125 @@
 const API_URL = "https://trademaster.f-klavun.workers.dev/";
 let equityChartInstance = null;
 
+const i18n = {
+    de: {
+        login_sub: "Verbinde dein MT5 Konto für KI Analysen.",
+        username_ph: "Benutzername",
+        password_ph: "Passwort",
+        login_btn: "Einloggen & Analysieren",
+        disconnect_btn: "Trennen",
+        refresh_btn: "↻ Aktualisieren",
+        filter_today: "Heute",
+        filter_yesterday: "Gestern",
+        filter_week: "Diese Woche",
+        filter_all: "Alle Trades",
+        kpi_profit: "Nettogewinn",
+        kpi_winrate: "Gewinnrate",
+        kpi_trades: "Gesamt Trades",
+        kpi_pf: "Profit Faktor",
+        chart_title: "Kapitalkurve",
+        profile_title: "Trader Profil",
+        profile_sub: "Vor der KI-Analyse einstellen",
+        prof_style_scalper: "Scalper",
+        prof_style_day: "Day Trader",
+        prof_style_swing: "Swing Trader",
+        prof_risk_cons: "Konservativ",
+        prof_risk_mod: "Moderates Risiko",
+        prof_risk_agg: "Aggressiv",
+        ai_title: "KI Trading Coach",
+        ai_btn: "Coach nach Analyse fragen",
+        ai_placeholder: "Klicke auf den Button, um eine ehrliche und hilfreiche Analyse deiner letzten Trades zu erhalten.",
+        ai_loading: "Konsultiere den KI Coach..."
+    },
+    en: {
+        login_sub: "Connect your MT5 account to view AI insights.",
+        username_ph: "Username",
+        password_ph: "Password",
+        login_btn: "Login & Analyze",
+        disconnect_btn: "Disconnect",
+        refresh_btn: "↻ Refresh",
+        filter_today: "Today",
+        filter_yesterday: "Yesterday",
+        filter_week: "This Week",
+        filter_all: "All Trades",
+        kpi_profit: "Net Profit",
+        kpi_winrate: "Win Rate",
+        kpi_trades: "Total Trades",
+        kpi_pf: "Profit Factor",
+        chart_title: "Equity Curve",
+        profile_title: "Trader Profile",
+        profile_sub: "Set this before asking the AI",
+        prof_style_scalper: "Scalper",
+        prof_style_day: "Day Trader",
+        prof_style_swing: "Swing Trader",
+        prof_risk_cons: "Conservative",
+        prof_risk_mod: "Moderate Risk",
+        prof_risk_agg: "Aggressive",
+        ai_title: "AI Trading Coach",
+        ai_btn: "Ask Coach for Analysis",
+        ai_placeholder: "Click the button above to get a harsh but helpful AI analysis of your recent trades.",
+        ai_loading: "Consulting the AI Coach..."
+    },
+    es: {
+        login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
+        username_ph: "Usuario",
+        password_ph: "Contraseña",
+        login_btn: "Iniciar sesión",
+        disconnect_btn: "Desconectar",
+        refresh_btn: "↻ Actualizar",
+        filter_today: "Hoy",
+        filter_yesterday: "Ayer",
+        filter_week: "Esta Semana",
+        filter_all: "Todas",
+        kpi_profit: "Beneficio Neto",
+        kpi_winrate: "Tasa de Acierto",
+        kpi_trades: "Total",
+        kpi_pf: "Factor de Beneficio",
+        chart_title: "Curva de Capital",
+        profile_title: "Perfil de Trader",
+        profile_sub: "Configura antes de consultar",
+        prof_style_scalper: "Scalper",
+        prof_style_day: "Day Trader",
+        prof_style_swing: "Swing Trader",
+        prof_risk_cons: "Conservador",
+        prof_risk_mod: "Moderado",
+        prof_risk_agg: "Agresivo",
+        ai_title: "Coach de Trading IA",
+        ai_btn: "Pedir Análisis al Coach",
+        ai_placeholder: "Haz clic en el botón de arriba para obtener un análisis honesto de tus operaciones recientes.",
+        ai_loading: "Consultando al Coach IA..."
+    },
+    tr: {
+        login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
+        username_ph: "Kullanıcı Adı",
+        password_ph: "Şifre",
+        login_btn: "Giriş Yap",
+        disconnect_btn: "Çıkış Yap",
+        refresh_btn: "↻ Yenile",
+        filter_today: "Bugün",
+        filter_yesterday: "Dün",
+        filter_week: "Bu Hafta",
+        filter_all: "Tüm İşlemler",
+        kpi_profit: "Net Kar",
+        kpi_winrate: "Kazanma Oranı",
+        kpi_trades: "Toplam İşlem",
+        kpi_pf: "Kar Faktörü",
+        chart_title: "Sermaye Eğrisi",
+        profile_title: "Trader Profili",
+        profile_sub: "Yapay zekaya sormadan önce ayarlayın",
+        prof_style_scalper: "Scalper",
+        prof_style_day: "Day Trader",
+        prof_style_swing: "Swing Trader",
+        prof_risk_cons: "Muhafazakar",
+        prof_risk_mod: "Orta Risk",
+        prof_risk_agg: "Agresif",
+        ai_title: "Yapay Zeka Koçu",
+        ai_btn: "Koçtan Analiz İste",
+        ai_placeholder: "Son işlemlerinizin dürüst ve faydalı bir analizini almak için yukarıdaki düğmeye tıklayın.",
+        ai_loading: "Yapay Zeka Koçuna Danışılıyor..."
+    }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const loginScreen = document.getElementById("login-screen");
     const dashboard = document.getElementById("dashboard");
@@ -11,10 +130,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const passwordInput = document.getElementById("password");
     const errorMsg = document.getElementById("login-error");
 
+    const globalLang = document.getElementById("global-lang");
+
     // Profile Elements
     const profStyle = document.getElementById("prof-style");
     const profRisk = document.getElementById("prof-risk");
-    const profLang = document.getElementById("prof-lang");
     const profSessionCheckboxes = document.querySelectorAll(".session-cb");
 
     // Timeframe state
@@ -30,6 +150,31 @@ document.addEventListener("DOMContentLoaded", () => {
             if (key) loadDashboard(key);
         });
     });
+
+    // Language Handling
+    function setLanguage(lang) {
+        if (!i18n[lang]) return;
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            if (i18n[lang][key]) el.innerText = i18n[lang][key];
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+            const key = el.getAttribute("data-i18n-placeholder");
+            if (i18n[lang][key]) el.placeholder = i18n[lang][key];
+        });
+    }
+
+    if (globalLang) {
+        const savedLang = localStorage.getItem("tm_global_lang") || "de";
+        globalLang.value = savedLang;
+        setLanguage(savedLang);
+
+        globalLang.addEventListener("change", (e) => {
+            const newLang = e.target.value;
+            localStorage.setItem("tm_global_lang", newLang);
+            setLanguage(newLang);
+        });
+    }
 
     // Check if already logged in
     const savedKey = localStorage.getItem("tm_license_key");
@@ -149,7 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadProfileSettings() {
         if(profStyle && localStorage.getItem("tm_prof_style")) profStyle.value = localStorage.getItem("tm_prof_style");
         if(profRisk && localStorage.getItem("tm_prof_risk")) profRisk.value = localStorage.getItem("tm_prof_risk");
-        if(profLang && localStorage.getItem("tm_prof_lang")) profLang.value = localStorage.getItem("tm_prof_lang");
         
         const savedSessions = localStorage.getItem("tm_prof_session");
         if(savedSessions) {
@@ -162,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     loadProfileSettings();
 
-    const profileSelects = [profStyle, profRisk, profLang];
+    const profileSelects = [profStyle, profRisk];
     profileSelects.forEach(select => {
         if(select) {
             select.addEventListener("change", (e) => {
@@ -284,7 +428,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             aiBtn.innerText = "Analyzing...";
             aiBtn.disabled = true;
-            aiContent.innerHTML = `<div class="skeleton-loader"></div><div class="skeleton-loader" style="width: 80%"></div><p class="ai-placeholder-text">Consulting the AI Coach...</p>`;
+            if (globalLang) {
+                const lang = globalLang.value;
+                aiContent.innerHTML = `<div class="skeleton-loader"></div><div class="skeleton-loader" style="width: 80%"></div><p class="ai-placeholder-text">${i18n[lang] ? i18n[lang].ai_loading : "Consulting the AI Coach..."}</p>`;
+            }
 
             try {
                 const selectedSessions = Array.from(profSessionCheckboxes).filter(c => c.checked).map(c => c.value);
@@ -292,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     style: profStyle ? profStyle.value : "Unknown",
                     session: selectedSessions.length > 0 ? selectedSessions.join(", ") : "Any",
                     risk: profRisk ? profRisk.value : "Unknown",
-                    language: profLang ? profLang.value : "de",
+                    language: globalLang ? globalLang.value : "de",
                     timeframe: currentTimeframe
                 };
 
@@ -325,7 +472,9 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (err) {
                 aiContent.innerHTML = `<p class="error-msg">${err.message}</p>`;
             } finally {
-                aiBtn.innerText = "Ask Coach for Analysis";
+                if (globalLang) {
+                    aiBtn.innerText = i18n[globalLang.value] ? i18n[globalLang.value].ai_btn : "Ask Coach for Analysis";
+                }
                 aiBtn.disabled = false;
             }
         });
