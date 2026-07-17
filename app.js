@@ -1302,7 +1302,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n/g, '<br>');
 
-                aiContent.innerHTML = `<div style="font-size: 0.95rem; line-height: 1.5; color: #f8fafc;">${htmlContent}</div>`;
+                aiContent.innerHTML = `<div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main);">${htmlContent}</div>`;
                 
                 if (data.limitLeft !== undefined) {
                     document.getElementById("ai-limit").innerText = `${data.limitLeft} analyzes left today`;
