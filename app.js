@@ -388,8 +388,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const masterLoginBtn = document.getElementById("master-login-btn");
     const masterRegisterBtn = document.getElementById("master-register-btn");
     
-    const errorMsg = document.getElementById("login-error");
-
     function showError(msg) {
         if (!errorMsg) return;
         errorMsg.innerText = msg;
