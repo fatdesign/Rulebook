@@ -6,22 +6,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const dashboard = document.getElementById("dashboard");
     const connectBtn = document.getElementById("connect-btn");
     const logoutBtn = document.getElementById("logout-btn");
-    const licenseInput = document.getElementById("license-key");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
     const errorMsg = document.getElementById("login-error");
 
     // Check if already logged in
     const savedKey = localStorage.getItem("tm_license_key");
     if (savedKey) {
-        licenseInput.value = savedKey;
+        // Automatically try to login if we have a saved key
         loadDashboard(savedKey);
     }
 
     connectBtn.addEventListener("click", () => {
-        const key = licenseInput.value.trim();
-        if (!key) {
-            showError("Please enter a License Key.");
+        const user = usernameInput.value.trim();
+        const pass = passwordInput.value.trim();
+        
+        if (!user || !pass) {
+            showError("Please enter Username and Password.");
             return;
         }
+        
+        // We combine them just like the EA does
+        const key = user + ":" + pass;
         loadDashboard(key);
     });
 
@@ -56,7 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Success! Save key and show dashboard
             localStorage.setItem("tm_license_key", key);
-            document.getElementById("display-key").innerText = `Key: ${key.substring(0, 4)}••••`;
+            
+            const displayUser = key.split(":")[0];
+            document.getElementById("display-key").innerText = `User: ${displayUser}`;
             
             loginScreen.classList.remove("active");
             dashboard.classList.remove("hidden");
