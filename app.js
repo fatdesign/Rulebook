@@ -340,6 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutBtn = document.getElementById("logout-btn");
     const refreshBtn = document.getElementById("refresh-btn");
     const resetBtn = document.getElementById("reset-btn");
+    const deleteAccountBtn = document.getElementById("delete-account-btn");
     const accountSwitcher = document.getElementById("account-switcher");
     const addAccountBtn = document.getElementById("add-account-btn");
     const usernameInput = document.getElementById("username");
@@ -648,6 +649,38 @@ document.addEventListener("DOMContentLoaded", () => {
                     alert(err.message);
                 } finally {
                     resetBtn.innerText = i18n[lang] && i18n[lang].reset_btn ? i18n[lang].reset_btn : "⚠ Reset";
+                }
+            }
+        });
+    }
+
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener("click", async () => {
+            const key = localStorage.getItem("tm_license_key");
+            if (!key) return;
+            
+            const lang = globalLang ? globalLang.value : "de";
+            const msg = lang === "de" 
+                ? "Bist du sicher? Dieser Trading Account und ALLE zugehörigen Daten (Trades, Journal, Notizen) werden permanent gelöscht! Der Account verschwindet aus der Liste."
+                : "Are you sure? This trading account and ALL associated data (trades, journal, notes) will be permanently deleted! The account will be removed from the list.";
+                
+            if (confirm(msg)) {
+                deleteAccountBtn.innerText = "⏳";
+                try {
+                    const response = await fetch(`${API_URL}?action=account&account_id=${encodeURIComponent(key)}`, {
+                        method: "DELETE", headers: { "Authorization": localStorage.getItem("tm_master_token") }
+                    });
+                    if(response.ok) {
+                        alert(lang === "de" ? "Account erfolgreich gelöscht." : "Account successfully deleted.");
+                        localStorage.removeItem("tm_license_key"); // Clear current key so it picks the next one
+                        window.location.reload();
+                    } else {
+                        alert("Error deleting account.");
+                    }
+                } catch(err) {
+                    alert(err.message);
+                } finally {
+                    deleteAccountBtn.innerText = "🗑️";
                 }
             }
         });
