@@ -548,15 +548,15 @@ th {
     left: -150%;
     width: 50%;
     height: 100%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0) 100%);
     transform: skewX(-25deg);
-    animation: glass-sweep 6s infinite;
+    animation: glass-sweep 15s infinite;
     z-index: 10;
     pointer-events: none;
 }
 
 @keyframes glass-sweep {
     0% { left: -150%; }
-    15% { left: 200%; }
+    20% { left: 200%; }
     100% { left: 200%; }
 }
