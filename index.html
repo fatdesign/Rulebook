@@ -175,13 +175,15 @@
                     <!-- Main Chart -->
                     <div class="chart-container glass-panel" style="margin-bottom: 0;">
                         <h3 data-i18n="chart_title">Equity Curve</h3>
-                        <canvas id="equityChart"></canvas>
+                        <div style="position: relative; width: 100%; height: 350px;">
+                            <canvas id="equityChart"></canvas>
+                        </div>
                     </div>
                     
                     <!-- Symbol Performance -->
-                    <div class="chart-container glass-panel" style="margin-bottom: 0; display: flex; flex-direction: column;">
+                    <div class="chart-container glass-panel" style="margin-bottom: 0;">
                         <h3 data-i18n="chart_symbols" style="margin-bottom: 15px;"><i class="ph ph-pie-chart"></i> Symbol Performance</h3>
-                        <div style="position: relative; flex: 1; min-height: 200px;">
+                        <div style="position: relative; width: 100%; height: 350px;">
                             <canvas id="symbolChart"></canvas>
                         </div>
                     </div>
