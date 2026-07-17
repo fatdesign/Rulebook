@@ -821,7 +821,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const uniqueMonths = new Set();
                 trades.forEach(t => {
                     const d = new Date(t.close_time * 1000);
-                    uniqueMonths.add(`${d.getFullYear()}-${d.getMonth()}`);
+                    uniqueMonths.add(`${d.getUTCFullYear()}-${d.getUTCMonth()}`);
                 });
                 
                 uniqueMonths.add(`${now.getFullYear()}-${now.getMonth()}`);
@@ -1014,7 +1014,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Heatmap aggregation
             const date = new Date(trade.close_time * 1000);
-            heatmapData[date.getDay()][date.getHours()] += grossP;
+            heatmapData[date.getUTCDay()][date.getUTCHours()] += grossP;
             
             totalProfit += netP;
             
@@ -1120,7 +1120,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const sideColor = t.side.startsWith("Buy") ? "var(--success)" : "var(--danger)";
                 const netProfitNum = parseFloat(t.net_profit);
                 const profitColor = netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
-                const closeDate = new Date(t.close_time * 1000).toLocaleString();
+                const dateObj = new Date(t.close_time * 1000);
+                const closeDate = dateObj.toLocaleDateString(undefined, { timeZone: 'UTC' }) + ' ' + dateObj.toLocaleTimeString(undefined, { timeZone: 'UTC', hour12: false });
                 const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
                 
                 tr.innerHTML = `
@@ -1190,9 +1191,9 @@ document.addEventListener("DOMContentLoaded", () => {
         
         trades.forEach(t => {
             const date = new Date(t.close_time * 1000);
-            const y = date.getFullYear();
-            const m = date.getMonth(); // 0-11
-            const d = date.getDate();
+            const y = date.getUTCFullYear();
+            const m = date.getUTCMonth(); // 0-11
+            const d = date.getUTCDate();
             
             const dayKey = `${y}-${m}-${d}`;
             const monthKey = `${y}-${m}`;
@@ -1356,12 +1357,16 @@ document.addEventListener("DOMContentLoaded", () => {
         
         trades.forEach(t => {
             const dateObj = new Date(t.close_time * 1000);
-            const dateKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+            const y = dateObj.getUTCFullYear();
+            const m = dateObj.getUTCMonth() + 1;
+            const d = dateObj.getUTCDate();
+            
+            const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             
             if (!daysMap[dateKey]) {
                 daysMap[dateKey] = {
-                    dateStr: dateObj.toLocaleDateString(),
-                    timestamp: dateObj.getTime(),
+                    dateStr: `${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}.${y}`,
+                    timestamp: Date.UTC(y, m-1, d),
                     netProfit: 0,
                     grossProfit: 0,
                     grossLoss: 0,
