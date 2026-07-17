@@ -490,7 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch(`${API_URL}?action=${action}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json" , "Authorization": localStorage.getItem("tm_master_token") },
                 body: JSON.stringify({ email, password })
             });
             const data = await res.json();
@@ -549,15 +549,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (accounts.length === 0) {
                 const opt = document.createElement("option");
                 opt.value = "";
-                opt.innerText = "-- No MT5 Accounts --";
+                opt.innerText = "-- Waiting for EA Data --";
                 accountSwitcher.appendChild(opt);
                 
                 loginScreen.classList.remove("active");
                 dashboard.classList.remove("hidden");
                 const llc = document.getElementById("login-lang-container");
                 if (llc) llc.style.display = "none";
-                
-                showLinkAccountModal();
             } else {
                 accounts.forEach(acc => {
                     const opt = document.createElement("option");
@@ -583,68 +581,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
             console.error(err);
         }
-    }
-
-    // Link Account Modal Logic
-    const linkAccountModal = document.getElementById("link-account-modal");
-    const linkUsernameInput = document.getElementById("link-username");
-    const linkPasswordInput = document.getElementById("link-password");
-    const linkConfirmBtn = document.getElementById("link-confirm-btn");
-    const linkCancelBtn = document.getElementById("link-cancel-btn");
-    const linkError = document.getElementById("link-error");
-
-    function showLinkAccountModal() {
-        if (linkAccountModal) {
-            linkAccountModal.classList.remove("hidden");
-            linkUsernameInput.value = "";
-            linkPasswordInput.value = "";
-            linkError.classList.add("hidden");
-        }
-    }
-
-    if (addAccountBtn) {
-        addAccountBtn.addEventListener("click", showLinkAccountModal);
-    }
-    if (linkCancelBtn) {
-        linkCancelBtn.addEventListener("click", () => linkAccountModal.classList.add("hidden"));
-    }
-    
-    if (linkConfirmBtn) {
-        linkConfirmBtn.addEventListener("click", async () => {
-            const u = linkUsernameInput.value.trim();
-            const p = linkPasswordInput.value.trim();
-            if (!u || !p) {
-                linkError.innerText = "Please enter both fields.";
-                linkError.classList.remove("hidden");
-                return;
-            }
-            const token = localStorage.getItem("tm_master_token");
-            if (!token) return;
-            
-            linkConfirmBtn.disabled = true;
-            linkConfirmBtn.innerText = "Linking...";
-            
-            try {
-                const res = await fetch(`${API_URL}?action=link_account`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": token },
-                    body: JSON.stringify({ username: u, password: p })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Failed to link account");
-                
-                linkAccountModal.classList.add("hidden");
-                localStorage.setItem("tm_license_key", data.license_key);
-                await fetchLinkedAccounts();
-            } catch (err) {
-                linkError.innerText = err.message;
-                linkError.classList.remove("hidden");
-            } finally {
-                linkConfirmBtn.disabled = false;
-                const lang = globalLang ? globalLang.value : "en";
-                linkConfirmBtn.innerText = i18n[lang] && i18n[lang].link_btn ? i18n[lang].link_btn : "Link Account";
-            }
-        });
     }
 
     // Account Switcher Logic
@@ -699,8 +635,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (confirm(msg)) {
                 resetBtn.innerText = "⏳...";
                 try {
-                    const response = await fetch(`${API_URL}?key=${encodeURIComponent(key)}`, {
-                        method: "DELETE"
+                    const response = await fetch(`${API_URL}?account_id=${encodeURIComponent(key)}`, {
+                        method: "DELETE", headers: { "Authorization": localStorage.getItem("tm_master_token") }
                     });
                     if(response.ok) {
                         alert(lang === "de" ? "Dashboard geleert! Warte 60s auf den nächsten EA Sync." : "Dashboard cleared! Wait 60s for the next EA sync.");
@@ -730,11 +666,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             // Fetch data from Cloudflare Worker
-            const response = await fetch(`${API_URL}?key=${encodeURIComponent(key)}`, {
+            const response = await fetch(`${API_URL}?account_id=${encodeURIComponent(key)}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json"
-                }
+                , "Authorization": localStorage.getItem("tm_master_token") }
             });
 
             if (!response.ok) {
@@ -759,7 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Load Journal for today
             const todayStr = new Date().toISOString().split("T")[0];
-            fetch(`${API_URL}?action=journal&key=${encodeURIComponent(key)}&date=${todayStr}`)
+            fetch(`${API_URL}?action=journal&account_id=${encodeURIComponent(key)}&date=${todayStr}`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
                 .then(r => r.json())
                 .then(d => {
                     const jt = document.getElementById("journal-text");
@@ -767,7 +703,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }).catch(e => console.error(e));
 
             // Load Trade Notes
-            fetch(`${API_URL}?action=notes&key=${encodeURIComponent(key)}`)
+            fetch(`${API_URL}?action=notes&account_id=${encodeURIComponent(key)}`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
                 .then(r => r.json())
                 .then(d => {
                     window.tradeNotesMap = {};
@@ -1115,7 +1051,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     const res = await fetch(`${API_URL}?action=notes`, {
                         method: "POST",
-                        headers: { "Authorization": key, "Content-Type": "application/json" },
+                        headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
                         body: JSON.stringify({ ticket: String(ticket), note })
                     });
                     
@@ -1295,9 +1231,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": key
+                        "Authorization": localStorage.getItem("tm_master_token")
                     },
-                    body: JSON.stringify(profileData)
+                    body: JSON.stringify({ ...profileData, account_id: key })
                 });
 
                 const data = await response.json();
@@ -1333,7 +1269,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(`${API_URL}?action=settings`, {
                 method: "GET",
-                headers: { "Authorization": key }
+                headers: { "Authorization": localStorage.getItem("tm_master_token") }
             });
             if (response.ok) {
                 const settings = await response.json();
@@ -1351,9 +1287,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             await fetch(`${API_URL}?action=settings`, {
                 method: "POST",
-                headers: { "Authorization": key, "Content-Type": "application/json" },
+                headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    kill_switch_active: document.getElementById("kill-switch-toggle").checked,
+                        account_id: key,
+                        kill_switch_active: document.getElementById("kill-switch-toggle").checked,
                     max_daily_loss: parseFloat(document.getElementById("kill-switch-limit").value) || 0
                 })
             });
@@ -1411,7 +1348,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 await fetch(`${API_URL}?action=journal`, {
                     method: "POST",
-                    headers: { "Authorization": key, "Content-Type": "application/json" },
+                    headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
                     body: JSON.stringify({ date: todayStr, content: text })
                 });
                 if (status) {

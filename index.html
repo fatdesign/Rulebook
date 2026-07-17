@@ -110,7 +110,6 @@
                     <select id="account-switcher" class="profile-select" style="width: auto; padding: 6px 10px; margin-right: 5px;">
                         <!-- Options generated dynamically -->
                     </select>
-                    <button id="add-account-btn" class="secondary-btn" style="padding: 6px 10px; margin-right: 10px;" title="Add another account">➕</button>
                     
                     <button id="refresh-btn" class="secondary-btn" style="padding: 6px 10px; margin-left: 10px;" data-i18n="refresh_btn">↻ Refresh</button>
                     <button id="reset-btn" class="secondary-btn" style="padding: 6px 10px; margin-left: 5px; border-color: #ef4444; color: #ef4444;" data-i18n="reset_btn">⚠ Reset</button>
@@ -327,25 +326,6 @@
         </div>
     </div>
 
-    <!-- Link MT5 Account Modal -->
-    <div id="link-account-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-panel" style="max-width: 400px;">
-            <h2 style="margin-bottom: 15px; color: var(--text-main);"><i class="ph ph-link"></i> <span data-i18n="link_account_title">Link MT5 Account</span></h2>
-            <p style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted);" data-i18n="link_account_desc">
-                Gib den Benutzernamen und das Passwort ein, die du im MetaTrader EA verwendest, um diesen Trading-Account mit deinem Workspace zu verknüpfen.
-            </p>
-            <div class="input-group" style="margin-bottom: 20px;">
-                <input type="text" id="link-username" placeholder="MT5 Username" data-i18n-placeholder="mt5_user_ph" style="background: var(--input-bg); color: var(--input-text);">
-                <input type="password" id="link-password" placeholder="MT5 Password" data-i18n-placeholder="mt5_pass_ph" style="background: var(--input-bg); color: var(--input-text);">
-            </div>
-            <div id="link-error" class="error-msg hidden" style="margin-bottom: 15px;"></div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button id="link-cancel-btn" class="secondary-btn" data-i18n="cancel_btn">Cancel</button>
-                <button id="link-confirm-btn" class="primary-btn" data-i18n="link_btn">Link Account</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="app.js?v=24"></script>
+    <script src="app.js?v=25"></script>
 </body>
 </html>
