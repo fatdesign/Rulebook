@@ -1199,9 +1199,6 @@ document.addEventListener("DOMContentLoaded", () => {
             monthlyProfit[monthKey] += parseFloat(t.net_profit);
         });
         
-        // Update mode badges
-        document.querySelectorAll(".mode-badge").forEach(b => b.innerText = `MODE: ${curSym}`);
-        
         // --- Monthly Overview ---
         const monthlyContainer = document.getElementById("monthly-overview-container");
         if(monthlyContainer) {
