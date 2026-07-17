@@ -11,6 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const passwordInput = document.getElementById("password");
     const errorMsg = document.getElementById("login-error");
 
+    // Profile Elements
+    const profStyle = document.getElementById("prof-style");
+    const profSession = document.getElementById("prof-session");
+    const profRisk = document.getElementById("prof-risk");
+    const profInstrument = document.getElementById("prof-instrument");
+    const profLang = document.getElementById("prof-lang");
+
     // Check if already logged in
     const savedKey = localStorage.getItem("tm_license_key");
     if (savedKey) {
@@ -98,6 +105,30 @@ document.addEventListener("DOMContentLoaded", () => {
             connectBtn.innerText = "Connect & Analyze";
         }
     }
+
+    function formatCurrency(num) {
+        return num >= 0 ? "+$" + num.toFixed(2) : "-$" + Math.abs(num).toFixed(2);
+    }
+
+    // --- Profile Settings Auto-Save ---
+    function loadProfileSettings() {
+        if(profStyle && localStorage.getItem("tm_prof_style")) profStyle.value = localStorage.getItem("tm_prof_style");
+        if(profSession && localStorage.getItem("tm_prof_session")) profSession.value = localStorage.getItem("tm_prof_session");
+        if(profRisk && localStorage.getItem("tm_prof_risk")) profRisk.value = localStorage.getItem("tm_prof_risk");
+        if(profInstrument && localStorage.getItem("tm_prof_instrument")) profInstrument.value = localStorage.getItem("tm_prof_instrument");
+        if(profLang && localStorage.getItem("tm_prof_lang")) profLang.value = localStorage.getItem("tm_prof_lang");
+    }
+    
+    loadProfileSettings();
+
+    const profileSelects = [profStyle, profSession, profRisk, profInstrument, profLang];
+    profileSelects.forEach(select => {
+        if(select) {
+            select.addEventListener("change", (e) => {
+                localStorage.setItem("tm_" + e.target.id.replace("-", "_"), e.target.value);
+            });
+        }
+    });
 
     function showError(msg) {
         errorMsg.innerText = msg;
@@ -208,12 +239,21 @@ document.addEventListener("DOMContentLoaded", () => {
             aiContent.innerHTML = `<div class="skeleton-loader"></div><div class="skeleton-loader" style="width: 80%"></div><p class="ai-placeholder-text">Consulting the AI Coach...</p>`;
 
             try {
+                const profileData = {
+                    style: profStyle ? profStyle.value : "Unknown",
+                    session: profSession ? profSession.value : "Unknown",
+                    risk: profRisk ? profRisk.value : "Unknown",
+                    instrument: profInstrument ? profInstrument.value : "Unknown",
+                    language: profLang ? profLang.value : "de"
+                };
+
                 const response = await fetch(`${API_URL}?action=ai_coach`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": key
-                    }
+                    },
+                    body: JSON.stringify(profileData)
                 });
 
                 const data = await response.json();

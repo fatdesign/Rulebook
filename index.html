@@ -66,6 +66,45 @@
                     <canvas id="equityChart"></canvas>
                 </div>
 
+                <!-- Trader Profile Settings -->
+                <div class="profile-settings glass-panel" style="margin-bottom: 20px; padding: 20px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <span class="sparkle-icon" style="font-size: 1.2rem;">👤</span>
+                        <h3 style="color: var(--text-main); font-size: 1rem;">Trader Profile</h3>
+                        <span style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted);">Set this before asking the AI</span>
+                    </div>
+                    <div class="kpi-row" style="gap: 15px;">
+                        <select id="prof-style" class="profile-select">
+                            <option value="Scalper">Scalper</option>
+                            <option value="Day Trader" selected>Day Trader</option>
+                            <option value="Swing Trader">Swing Trader</option>
+                        </select>
+                        <select id="prof-session" class="profile-select">
+                            <option value="Any">Any Session</option>
+                            <option value="London">London Session</option>
+                            <option value="New York" selected>New York Session</option>
+                            <option value="Asian">Asian Session</option>
+                        </select>
+                        <select id="prof-risk" class="profile-select">
+                            <option value="Conservative">Conservative</option>
+                            <option value="Moderate" selected>Moderate Risk</option>
+                            <option value="Aggressive">Aggressive</option>
+                        </select>
+                        <select id="prof-instrument" class="profile-select">
+                            <option value="Any">Any Instrument</option>
+                            <option value="Gold/XAU">Gold (XAU)</option>
+                            <option value="Forex">Forex Majors</option>
+                            <option value="Indices" selected>Indices (US30, NAS)</option>
+                        </select>
+                        <select id="prof-lang" class="profile-select">
+                            <option value="de">🇩🇪 Deutsch</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="tr">🇹🇷 Türkçe</option>
+                            <option value="es">🇪🇸 Español</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- AI Insights (Phase 4) -->
                 <div class="ai-insights glass-panel">
                     <div class="ai-header">
