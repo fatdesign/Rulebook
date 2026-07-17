@@ -737,14 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Load Settings once
             loadSettings(key);
             
-            // Load Journal for today
-            const todayStr = new Date().toISOString().split("T")[0];
-            fetch(`${API_URL}?action=journal&account_id=${encodeURIComponent(key)}&date=${todayStr}`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
-                .then(r => r.json())
-                .then(d => {
-                    const jt = document.getElementById("journal-text");
-                    if (jt) jt.value = d.content || "";
-                }).catch(e => console.error(e));
+            // Note: Journal is now loaded dynamically when opening the modal for a specific day.
 
             // Load Trade Notes
             fetch(`${API_URL}?action=notes&account_id=${encodeURIComponent(key)}`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
@@ -1365,6 +1358,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (!daysMap[dateKey]) {
                 daysMap[dateKey] = {
+                    dateKey: dateKey,
                     dateStr: `${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}.${y}`,
                     timestamp: Date.UTC(y, m-1, d),
                     netProfit: 0,
@@ -1417,7 +1411,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const sortedDays = Object.values(daysMap).sort((a, b) => b.timestamp - a.timestamp);
         
         if (sortedDays.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px; color: var(--text-muted);" data-i18n="no_trades_found">No trades found for this period.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding: 20px; color: var(--text-muted);" data-i18n="no_trades_found">No trades found for this period.</td></tr>`;
             return;
         }
         
@@ -1444,8 +1438,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--danger);">${day.maxLoss < 0 ? '-' : ''}${curSym}${Math.abs(day.maxLoss).toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.commission !== 0 ? curSym + day.commission.toFixed(2) : '-'}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${day.longs} / ${day.shorts}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); text-align: center;">
+                    <button class="secondary-btn open-journal-btn" data-datekey="${day.dateKey}" data-datestr="${day.dateStr}" style="padding: 4px 8px; font-size: 0.8rem;" title="Mental Journal"><i class="ph ph-book-open"></i></button>
+                </td>
             `;
             tbody.appendChild(tr);
+        });
+
+        document.querySelectorAll(".open-journal-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const dKey = btn.getAttribute("data-datekey");
+                const dStr = btn.getAttribute("data-datestr");
+                openJournalModal(dKey, dStr);
+            });
         });
     }
 
@@ -1714,35 +1719,70 @@ document.addEventListener("DOMContentLoaded", () => {
     // Attach loadSettings to window so it can be called from loadDashboard
     window.loadSettings = loadSettings;
 
-    // --- Journal Save Logic ---
-    const journalSaveBtn = document.getElementById("journal-save-btn");
-    if (journalSaveBtn) {
-        journalSaveBtn.addEventListener("click", async () => {
-            const key = localStorage.getItem("tm_license_key");
-            const text = document.getElementById("journal-text").value;
-            const status = document.getElementById("journal-status");
-            const todayStr = new Date().toISOString().split("T")[0];
-            
-            journalSaveBtn.innerText = "Saving...";
+    // --- Journal Modal Logic ---
+    window.openJournalModal = async function(dateKey, dateStr) {
+        const modal = document.getElementById("journal-modal");
+        const title = document.getElementById("journal-modal-title");
+        const textObj = document.getElementById("journal-modal-text");
+        const status = document.getElementById("journal-modal-status");
+        const saveBtn = document.getElementById("journal-modal-save");
+        
+        if (!modal || !title || !textObj || !saveBtn) return;
+        
+        const key = localStorage.getItem("tm_license_key");
+        if (!key) return;
+
+        title.innerText = `Mental Journal - ${dateStr}`;
+        textObj.value = "Loading...";
+        textObj.disabled = true;
+        status.innerText = "";
+        modal.classList.remove("hidden");
+        
+        // Fetch journal for this specific day
+        try {
+            const res = await fetch(`${API_URL}?action=journal&account_id=${encodeURIComponent(key)}&date=${dateKey}`, {
+                headers: { 'Authorization': localStorage.getItem('tm_master_token') }
+            });
+            const data = await res.json();
+            textObj.value = data.content || "";
+        } catch (e) {
+            console.error("Failed to load journal", e);
+            textObj.value = "";
+            status.innerText = "Error loading!";
+            status.style.color = "var(--danger)";
+        } finally {
+            textObj.disabled = false;
+        }
+
+        // Remove old event listeners to prevent duplicate saves
+        const newSaveBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+        
+        newSaveBtn.addEventListener("click", async () => {
+            newSaveBtn.innerText = "Saving...";
+            status.style.color = "var(--success)";
             try {
                 await fetch(`${API_URL}?action=journal`, {
                     method: "POST",
                     headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
-                    body: JSON.stringify({ account_id: key, date: todayStr, content: text })
+                    body: JSON.stringify({ account_id: key, date: dateKey, content: textObj.value })
                 });
-                if (status) {
-                    status.innerText = "Saved successfully!";
-                    setTimeout(() => status.innerText = "", 3000);
-                }
+                status.innerText = "Saved successfully!";
+                setTimeout(() => { modal.classList.add("hidden"); }, 1000);
             } catch (err) {
                 console.error("Journal save error", err);
-                if (status) {
-                    status.innerText = "Error saving!";
-                    status.style.color = "var(--danger)";
-                }
+                status.innerText = "Error saving!";
+                status.style.color = "var(--danger)";
             } finally {
-                journalSaveBtn.innerText = "Save Entry";
+                newSaveBtn.innerText = "Save Entry";
             }
+        });
+    };
+
+    const journalModalClose = document.getElementById("journal-modal-close");
+    if (journalModalClose) {
+        journalModalClose.addEventListener("click", () => {
+            document.getElementById("journal-modal").classList.add("hidden");
         });
     }
     // --- New Features Logic ---
