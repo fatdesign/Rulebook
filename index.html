@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeMaster AI - Dashboard</title>
+    <title>Rulebook AI - Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css"/>
@@ -15,14 +15,14 @@
         <!-- Master Account Login / Setup Screen -->
         <div id="login-screen" class="glass-panel active">
             <div class="logo">
-                <img src="logo.png" width="48" height="48" alt="TradeMaster Logo" style="border-radius: 4px; margin-right: 10px;">
-                <h1>TradeMaster</h1>
+                <img src="logo.png" width="48" height="48" alt="Rulebook Logo" style="border-radius: 4px; margin-right: 10px;">
+                <h1>Rulebook</h1>
             </div>
             
             <div id="master-auth-forms">
                 <!-- Login Form -->
                 <div id="login-form-view">
-                    <p class="subtitle" data-i18n="master_login_sub">Login to your TradeMaster Workspace.</p>
+                    <p class="subtitle" data-i18n="master_login_sub">Login to your Rulebook Workspace.</p>
                     <div class="input-group">
                         <input type="email" id="login-email" placeholder="Email Address" data-i18n-placeholder="email_ph" autocomplete="email">
                         <input type="password" id="login-password" placeholder="Password" data-i18n-placeholder="password_ph" autocomplete="current-password">
@@ -36,7 +36,7 @@
                 
                 <!-- Register Form -->
                 <div id="register-form-view" class="hidden">
-                    <p class="subtitle" data-i18n="master_register_sub">Create your TradeMaster Workspace.</p>
+                    <p class="subtitle" data-i18n="master_register_sub">Create your Rulebook Workspace.</p>
                     <div class="input-group">
                         <input type="email" id="reg-email" placeholder="Email Address" data-i18n-placeholder="email_ph" autocomplete="email">
                         <input type="password" id="reg-password" placeholder="Password" data-i18n-placeholder="password_ph" autocomplete="new-password">
@@ -59,13 +59,13 @@
                 </button>
                 <div id="setup-accordion-content" class="hidden" style="margin-top: 15px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; background: var(--input-bg); color: var(--input-text); padding: 15px; border: 2px solid var(--border-darker);">
                     <ol style="padding-left: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
-                        <li data-i18n="setup_step1">Download the TradeMaster Exporter EA from MQL5 Market.</li>
+                        <li data-i18n="setup_step1">Download the Rulebook Exporter EA from MQL5 Market.</li>
                         <li data-i18n="setup_step2">Attach it to ONE chart in your MetaTrader 5 terminal.</li>
                         <li data-i18n="setup_step3">Enter your chosen Username & Password in the EA inputs and click OK.</li>
                         <li data-i18n="setup_step4">Use the same credentials here to log in and analyze your performance!</li>
                     </ol>
                     <a href="https://www.mql5.com/en/market/product/YOUR_PRODUCT_ID_HERE" target="_blank" class="primary-btn" style="text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; gap: 8px;" data-i18n="mql5_link">
-                        <i class="ph-fill ph-download-simple"></i> Get TradeMaster on MQL5
+                        <i class="ph-fill ph-download-simple"></i> Get Rulebook on MQL5
                     </a>
                 </div>
             </div>
@@ -73,7 +73,7 @@
             <!-- Language Selector & Theme Selector at the bottom of login panel -->
             <div id="login-lang-container" style="margin-top: 25px; text-align: center; border-top: 1px solid var(--border-dark); padding-top: 15px; display: flex; justify-content: center; align-items: center; gap: 10px;">
                 <select class="theme-select profile-select" style="width: auto; padding: 4px 12px; font-size: 0.85rem; cursor: pointer;">
-                    <option value="neo-retro">TradeMaster Neo-Retro</option>
+                    <option value="neo-retro">Rulebook Neo-Retro</option>
                     <option value="win95">Windows 95 Classic</option>
                     <option value="modern-dark">Modern Dark (Prop Firm)</option>
                     <option value="modern-light">Modern Light</option>
@@ -91,8 +91,8 @@
         <div id="dashboard" class="dashboard hidden">
             <header class="dashboard-header">
                 <div class="logo">
-                    <img src="logo.png" width="32" height="32" alt="TradeMaster Logo" style="border-radius: 4px; margin-right: 10px;">
-                    <h2>TradeMaster</h2>
+                    <img src="logo.png" width="32" height="32" alt="Rulebook Logo" style="border-radius: 4px; margin-right: 10px;">
+                    <h2>Rulebook</h2>
                 </div>
                 <div class="user-info" style="display: flex; align-items: center;">
                     <select class="theme-select profile-select" style="width: auto; padding: 6px 10px; margin-right: 10px;">
