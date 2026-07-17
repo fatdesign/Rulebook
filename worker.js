@@ -125,21 +125,27 @@ Fasse dich kurz und präzise!`;
       // --- FETCH TRADES ROUTE ---
       if (request.method === "GET") {
         const authHeader = request.headers.get("Authorization");
-        if (!authHeader) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
+        const urlKey = url.searchParams.get("key");
+        const keyData = authHeader || urlKey;
         
-        const [username, password] = authHeader.split(":");
+        if (!keyData) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
+        
+        const [username, password] = keyData.split(":");
         const license_key = `${username}:${password}`;
         
         const { results } = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC").bind(license_key).all();
-        return new Response(JSON.stringify({ success: true, trades: results }), { headers: corsHeaders });
+        return new Response(JSON.stringify(results), { headers: corsHeaders });
       }
 
       // --- RESET DATABASE ROUTE ---
       if (request.method === "DELETE") {
         const authHeader = request.headers.get("Authorization");
-        if (!authHeader) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
+        const urlKey = url.searchParams.get("key");
+        const keyData = authHeader || urlKey;
+
+        if (!keyData) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
         
-        const [username, password] = authHeader.split(":");
+        const [username, password] = keyData.split(":");
         const license_key = `${username}:${password}`;
         
         await env.DB.prepare("DELETE FROM trades WHERE license_key = ?").bind(license_key).run();
