@@ -163,7 +163,56 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
       }
 
-      // --- FETCH TRADES ROUTE ---
+      // --- JOURNAL ROUTE (POST) ---
+      if (request.method === "POST" && action === "journal") {
+        const authHeader = request.headers.get("Authorization");
+        if (!authHeader) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
+        const [username, password] = authHeader.split(":");
+        const license_key = `${username}:${password}`;
+        
+        const body = await request.json();
+        const dateStr = body.date || new Date().toISOString().split("T")[0];
+        
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS journal (
+            license_key TEXT, date TEXT, content TEXT, PRIMARY KEY (license_key, date)
+          )
+        `).run();
+        
+        await env.DB.prepare(`
+          INSERT INTO journal (license_key, date, content)
+          VALUES (?, ?, ?)
+          ON CONFLICT(license_key, date) DO UPDATE SET content=excluded.content
+        `).bind(license_key, dateStr, body.content || "").run();
+        
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
+      // --- TRADE NOTES ROUTE (POST) ---
+      if (request.method === "POST" && action === "notes") {
+        const authHeader = request.headers.get("Authorization");
+        if (!authHeader) return new Response("Missing Auth", { status: 401, headers: corsHeaders });
+        const [username, password] = authHeader.split(":");
+        const license_key = `${username}:${password}`;
+        
+        const body = await request.json();
+        
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS trade_notes (
+            license_key TEXT, ticket TEXT, note TEXT, PRIMARY KEY (license_key, ticket)
+          )
+        `).run();
+        
+        await env.DB.prepare(`
+          INSERT INTO trade_notes (license_key, ticket, note)
+          VALUES (?, ?, ?)
+          ON CONFLICT(license_key, ticket) DO UPDATE SET note=excluded.note
+        `).bind(license_key, body.ticket, body.note || "").run();
+        
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
+      // --- FETCH DATA ROUTES (GET) ---
       if (request.method === "GET") {
         const authHeader = request.headers.get("Authorization");
         const urlKey = url.searchParams.get("key");
@@ -177,13 +226,32 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         if (action === "settings") {
             await env.DB.prepare(`
               CREATE TABLE IF NOT EXISTS user_settings (
-                license_key TEXT PRIMARY KEY,
-                kill_switch_active INTEGER DEFAULT 0,
-                max_daily_loss REAL DEFAULT 0
+                license_key TEXT PRIMARY KEY, kill_switch_active INTEGER DEFAULT 0, max_daily_loss REAL DEFAULT 0
               )
             `).run();
             const res = await env.DB.prepare("SELECT kill_switch_active, max_daily_loss FROM user_settings WHERE license_key = ?").bind(license_key).first();
             return new Response(JSON.stringify(res || { kill_switch_active: 0, max_daily_loss: 0 }), { headers: corsHeaders });
+        }
+
+        if (action === "journal") {
+            const dateStr = url.searchParams.get("date") || new Date().toISOString().split("T")[0];
+            await env.DB.prepare(`
+              CREATE TABLE IF NOT EXISTS journal (
+                license_key TEXT, date TEXT, content TEXT, PRIMARY KEY (license_key, date)
+              )
+            `).run();
+            const res = await env.DB.prepare("SELECT content FROM journal WHERE license_key = ? AND date = ?").bind(license_key, dateStr).first();
+            return new Response(JSON.stringify(res || { content: "" }), { headers: corsHeaders });
+        }
+
+        if (action === "notes") {
+            await env.DB.prepare(`
+              CREATE TABLE IF NOT EXISTS trade_notes (
+                license_key TEXT, ticket TEXT, note TEXT, PRIMARY KEY (license_key, ticket)
+              )
+            `).run();
+            const { results } = await env.DB.prepare("SELECT ticket, note FROM trade_notes WHERE license_key = ?").bind(license_key).all();
+            return new Response(JSON.stringify(results), { headers: corsHeaders });
         }
         
         const { results } = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC").bind(license_key).all();

@@ -308,34 +308,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Theme Logic
-    const themeToggle = document.getElementById("theme-toggle");
+    const themeToggles = document.querySelectorAll("#theme-toggle, #login-theme-toggle");
     const savedTheme = localStorage.getItem("tm_theme") || "dark";
     if (savedTheme === "light") {
         document.documentElement.setAttribute("data-theme", "light");
-        if (themeToggle) themeToggle.innerText = "🌙";
+        themeToggles.forEach(t => t.innerText = "🌙");
     } else {
-        if (themeToggle) themeToggle.innerText = "☀️";
+        themeToggles.forEach(t => t.innerText = "☀️");
     }
 
-    if (themeToggle) {
-        themeToggle.addEventListener("click", () => {
+    themeToggles.forEach(toggle => {
+        toggle.addEventListener("click", () => {
             const currentTheme = document.documentElement.getAttribute("data-theme");
             if (currentTheme === "light") {
                 document.documentElement.removeAttribute("data-theme");
                 localStorage.setItem("tm_theme", "dark");
-                themeToggle.innerText = "☀️";
+                themeToggles.forEach(t => t.innerText = "☀️");
             } else {
                 document.documentElement.setAttribute("data-theme", "light");
                 localStorage.setItem("tm_theme", "light");
-                themeToggle.innerText = "🌙";
+                themeToggles.forEach(t => t.innerText = "🌙");
             }
+        });
+    });
+
+    // Account Switcher Logic
+    const accountSwitcher = document.getElementById("account-switcher");
+    const addAccountBtn = document.getElementById("add-account-btn");
+    
+    function updateAccountSwitcher() {
+        if (!accountSwitcher) return;
+        const saved = JSON.parse(localStorage.getItem("tm_saved_accounts") || "[]");
+        const currentKey = localStorage.getItem("tm_license_key");
+        accountSwitcher.innerHTML = "";
+        saved.forEach(key => {
+            const user = key.split(":")[0];
+            const opt = document.createElement("option");
+            opt.value = key;
+            opt.innerText = user;
+            if (key === currentKey) opt.selected = true;
+            accountSwitcher.appendChild(opt);
+        });
+    }
+
+    if (accountSwitcher) {
+        accountSwitcher.addEventListener("change", (e) => {
+            const newKey = e.target.value;
+            localStorage.setItem("tm_license_key", newKey);
+            window.location.reload();
+        });
+    }
+
+    if (addAccountBtn) {
+        addAccountBtn.addEventListener("click", () => {
+            dashboard.classList.add("hidden");
+            loginScreen.classList.add("active");
+            const llc = document.getElementById("login-lang-container");
+            if (llc) llc.style.display = "block";
         });
     }
 
     // Check if already logged in
     const savedKey = localStorage.getItem("tm_license_key");
     if (savedKey) {
-        // Automatically try to login if we have a saved key
         loadDashboard(savedKey);
     }
 
@@ -348,17 +383,26 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         
-        // We combine them just like the EA does
         const key = user + ":" + pass;
         loadDashboard(key);
     });
 
     logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("tm_license_key");
-        dashboard.classList.add("hidden");
-        loginScreen.classList.add("active");
-        const llc = document.getElementById("login-lang-container");
-        if (llc) llc.style.display = "block";
+        const currentKey = localStorage.getItem("tm_license_key");
+        let saved = JSON.parse(localStorage.getItem("tm_saved_accounts") || "[]");
+        saved = saved.filter(k => k !== currentKey);
+        localStorage.setItem("tm_saved_accounts", JSON.stringify(saved));
+        
+        if (saved.length > 0) {
+            localStorage.setItem("tm_license_key", saved[0]);
+            window.location.reload();
+        } else {
+            localStorage.removeItem("tm_license_key");
+            dashboard.classList.add("hidden");
+            loginScreen.classList.add("active");
+            const llc = document.getElementById("login-lang-container");
+            if (llc) llc.style.display = "block";
+        }
     });
 
     if (refreshBtn) {
@@ -450,6 +494,27 @@ document.addEventListener("DOMContentLoaded", () => {
             // Load Settings once
             loadSettings(key);
             
+            // Load Journal for today
+            const todayStr = new Date().toISOString().split("T")[0];
+            fetch(`${API_URL}?action=journal&key=${encodeURIComponent(key)}&date=${todayStr}`)
+                .then(r => r.json())
+                .then(d => {
+                    const jt = document.getElementById("journal-text");
+                    if (jt) jt.value = d.content || "";
+                }).catch(e => console.error(e));
+
+            // Load Trade Notes
+            fetch(`${API_URL}?action=notes&key=${encodeURIComponent(key)}`)
+                .then(r => r.json())
+                .then(d => {
+                    window.tradeNotesMap = {};
+                    d.forEach(n => { window.tradeNotesMap[n.ticket] = n.note; });
+                    // Re-render table if data already processed
+                    if (window.currentFilteredTrades) {
+                        processData(window.currentFilteredTrades, window.currentCurSym);
+                    }
+                }).catch(e => console.error(e));
+            
             // Filter trades based on timeframe
             const now = new Date();
             let startTime = 0;
@@ -496,6 +561,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
             const curSym = currencyMap[accCurrency] || accCurrency;
 
+            window.currentCurSym = curSym;
             processData(filteredTrades, curSym);
         } catch (err) {
             showError(err.message);
@@ -734,6 +800,63 @@ document.addEventListener("DOMContentLoaded", () => {
         const discLbl = i18n[lang] && i18n[lang].discipline_lbl ? i18n[lang].discipline_lbl : "Disziplin";
         document.getElementById("kpi-discipline").innerText = `${discLbl}: ${discScore.toFixed(0)}%`;
         document.getElementById("kpi-discipline").style.color = discScore > 80 ? "#10b981" : (discScore > 50 ? "#f59e0b" : "#ef4444");
+
+        // Best / Worst Trading Day KPI
+        const dayTotals = heatmapData.map(hours => hours.reduce((a,b)=>a+b, 0));
+        let bestDayIdx = 1, worstDayIdx = 1;
+        for (let i = 1; i < 7; i++) {
+            if (dayTotals[i] > dayTotals[bestDayIdx]) bestDayIdx = i;
+            if (dayTotals[i] < dayTotals[worstDayIdx]) worstDayIdx = i;
+        }
+        if (dayTotals[0] > dayTotals[bestDayIdx]) bestDayIdx = 0;
+        if (dayTotals[0] < dayTotals[worstDayIdx]) worstDayIdx = 0;
+        
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        document.getElementById("kpi-best-day").innerText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
+        document.getElementById("kpi-worst-day").innerText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
+
+        // Trades Table rendering
+        const tbody = document.querySelector("#trades-table tbody");
+        if (tbody) {
+            tbody.innerHTML = "";
+            trades.slice(0, 50).forEach(t => {
+                const tr = document.createElement("tr");
+                const sideColor = t.side.startsWith("Buy") ? "var(--success)" : "var(--danger)";
+                const netProfitNum = parseFloat(t.net_profit);
+                const profitColor = netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
+                const closeDate = new Date(t.close_time * 1000).toLocaleString();
+                const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
+                
+                tr.innerHTML = `
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${t.side}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${closeDate}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
+                        <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="Add note or #tag..." style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.querySelectorAll(".trade-note-input").forEach(inp => {
+                inp.addEventListener("blur", async (e) => {
+                    const ticket = e.target.getAttribute("data-ticket");
+                    const note = e.target.value.trim();
+                    const key = localStorage.getItem("tm_license_key");
+                    try {
+                        await fetch(`${API_URL}?action=notes`, {
+                            method: "POST",
+                            headers: { "Authorization": key, "Content-Type": "application/json" },
+                            body: JSON.stringify({ ticket, note })
+                        });
+                        if (window.tradeNotesMap) window.tradeNotesMap[ticket] = note;
+                    } catch(err) {
+                        console.error("Note save err", err);
+                    }
+                });
+            });
+        }
 
         renderChart(labels, equityCurve);
         renderHeatmap(heatmapData, curSym);
@@ -975,4 +1098,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Attach loadSettings to window so it can be called from loadDashboard
     window.loadSettings = loadSettings;
+
+    // --- Journal Save Logic ---
+    const journalSaveBtn = document.getElementById("journal-save-btn");
+    if (journalSaveBtn) {
+        journalSaveBtn.addEventListener("click", async () => {
+            const key = localStorage.getItem("tm_license_key");
+            const text = document.getElementById("journal-text").value;
+            const status = document.getElementById("journal-status");
+            const todayStr = new Date().toISOString().split("T")[0];
+            
+            journalSaveBtn.innerText = "Saving...";
+            try {
+                await fetch(`${API_URL}?action=journal`, {
+                    method: "POST",
+                    headers: { "Authorization": key, "Content-Type": "application/json" },
+                    body: JSON.stringify({ date: todayStr, content: text })
+                });
+                if (status) {
+                    status.innerText = "Saved successfully!";
+                    setTimeout(() => status.innerText = "", 3000);
+                }
+            } catch (err) {
+                console.error("Journal save error", err);
+                if (status) {
+                    status.innerText = "Error saving!";
+                    status.style.color = "var(--danger)";
+                }
+            } finally {
+                journalSaveBtn.innerText = "Save Entry";
+            }
+        });
+    }
+
 });
