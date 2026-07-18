@@ -1596,6 +1596,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
                 }
+                
+                // Update AI Scope Dropdown
+                const scopeDayOpt = document.getElementById("ai-scope-day");
+                const aiScopeSel = document.getElementById("ai-scope");
+                if (scopeDayOpt && aiScopeSel) {
+                    scopeDayOpt.textContent = `Day (${day.dateStr})`;
+                    scopeDayOpt.setAttribute("data-datekey", day.dateKey);
+                    aiScopeSel.value = "day";
+                }
             });
             
             tbody.appendChild(tr);
@@ -1745,6 +1754,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 const now = new Date();
                 const todayStartTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000);
                 
+                let tradesToAnalyze = currentFilteredTrades;
+                const aiScopeVal = document.getElementById("ai-scope")?.value;
+                if (aiScopeVal === "week") {
+                    const weekAgo = Math.floor(Date.now()/1000) - (7 * 24 * 60 * 60);
+                    tradesToAnalyze = currentFilteredTrades.filter(t => t.close_time >= weekAgo);
+                } else if (aiScopeVal === "day") {
+                    const scopeDayOpt = document.getElementById("ai-scope-day");
+                    if (scopeDayOpt && scopeDayOpt.hasAttribute("data-datekey")) {
+                        const dKey = scopeDayOpt.getAttribute("data-datekey");
+                        tradesToAnalyze = currentFilteredTrades.filter(t => {
+                            const d = new Date(t.close_time * 1000);
+                            return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}` === dKey;
+                        });
+                    } else {
+                        // fallback to today
+                        tradesToAnalyze = currentFilteredTrades.filter(t => t.close_time >= todayStartTime);
+                    }
+                }
+
                 const profileData = {
                     style: profStyle ? profStyle.value : "Unknown",
                     session: selectedSessions.length > 0 ? selectedSessions.join(", ") : "Any",
@@ -1752,7 +1780,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     language: globalLang ? globalLang.value : "de",
                     timeframe: currentTimeframe,
                     stats: window.coachStats || {},
-                    trades: currentFilteredTrades.map(t => {
+                    trades: tradesToAnalyze.map(t => {
                         const isToday = t.close_time >= todayStartTime;
                         const note = (isToday && window.tradeNotesMap && window.tradeNotesMap[t.ticket]) ? window.tradeNotesMap[t.ticket] : null;
                         const tradeObj = {

@@ -304,6 +304,15 @@
                             </div>
                         </div>
 
+                        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                            <i class="ph ph-calendar-check" style="color: #a855f7;"></i>
+                            <select id="ai-scope" class="profile-select" style="flex: 1; font-size: 0.8rem; padding: 4px;">
+                                <option value="month" data-i18n="ai_scope_month">Current Month</option>
+                                <option value="week" data-i18n="ai_scope_week">Last 7 Days</option>
+                                <option id="ai-scope-day" value="day" data-i18n="ai_scope_day">Today</option>
+                            </select>
+                        </div>
+
                         <div id="ai-controls" style="margin-bottom: 15px; display: flex; gap: 10px;">
                             <button id="ai-btn" class="secondary-btn" style="flex: 1; background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: #fff;" data-i18n="ai_btn">
                                 Ask Coach for Analysis
