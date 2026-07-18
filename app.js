@@ -1057,7 +1057,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (limitSelect) {
         limitSelect.value = window.tradesPerPage;
         limitSelect.addEventListener("change", (e) => {
-            const limit = parseInt(e.target.value) || 12;
+            const limit = parseInt(e.target.value) || 10;
             window.tradesPerPage = limit;
             localStorage.setItem("tm_trades_limit", limit);
             if (window._lastTradesArray) {
@@ -1463,7 +1463,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.currentTradesPage = 1;
-    window.tradesPerPage = parseInt(localStorage.getItem("tm_trades_limit")) || 12;
+    window.tradesPerPage = parseInt(localStorage.getItem("tm_trades_limit")) || 10;
     window._lastTradesArray = null;
 
     window.renderTradesTable = function(trades, curSym) {
