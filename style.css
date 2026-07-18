@@ -297,6 +297,15 @@ button:active, .filter-btn:active, .primary-btn:active, .secondary-btn:active {
 .positive { color: var(--success); }
 .negative { color: var(--danger); }
 
+.impact-high {
+    color: #ef4444; /* Red */
+    font-weight: bold;
+}
+.impact-medium {
+    color: #f97316; /* Orange */
+    font-weight: bold;
+}
+
 /* Switch (Kill-Switch Toggle) */
 .switch {
     position: relative;
@@ -736,7 +745,7 @@ th {
 .news-ticker-content {
     display: inline-block;
     padding-left: 100%;
-    animation: ticker-scroll 30s linear infinite;
+    animation: ticker-scroll 120s linear infinite;
     font-size: 0.9rem;
     color: var(--text-main);
     white-space: nowrap;

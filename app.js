@@ -2626,24 +2626,44 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ── News Ticker & Focus Mode Logic ───────────────────────────────────────────────────
-const newsItems = [
-    "[EURUSD] 1.0854 <span class='positive'>(+0.12%)</span>",
-    "[GBPUSD] 1.2678 <span class='negative'>(-0.05%)</span>",
-    "[XAUUSD] 2341.20 <span class='positive'>(+0.85%)</span>",
-    "[USOIL] 78.45 <span class='negative'>(-1.20%)</span>",
-    "[BTCUSD] 67450 <span class='positive'>(+2.40%)</span>",
-    "NEWS: Fed Chair signals potential rate cuts later this year.",
-    "NEWS: Gold prices hit record high amid geopolitical tensions.",
-    "NEWS: US Core PCE Inflation rises 0.2% in line with expectations.",
-    "NEWS: European Central Bank holds interest rates steady."
-];
 
-function initNewsTicker() {
+async function initNewsTicker() {
     const ticker = document.getElementById("news-ticker-content");
     if (!ticker) return;
-    // Repeat the news array to create a continuous scroll effect
-    const combinedNews = [...newsItems, ...newsItems].map(item => `<span>${item}</span>`).join("");
-    ticker.innerHTML = combinedNews;
+
+    try {
+        const response = await fetch(workerURL + "?action=news");
+        if (!response.ok) throw new Error("Failed to fetch news");
+        const events = await response.json();
+        
+        const today = new Date();
+        const todayStr = today.toISOString().split("T")[0]; 
+        
+        let newsHtml = "";
+        
+        events.forEach(ev => {
+            if (!ev.date) return;
+            const evDateStr = ev.date.split("T")[0];
+            if (evDateStr === todayStr && (ev.impact === "High" || ev.impact === "Medium")) {
+                const dateObj = new Date(ev.date);
+                const time = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const impactClass = ev.impact === "High" ? "impact-high" : "impact-medium";
+                const icon = ev.impact === "High" ? "🔴" : "🟠";
+                newsHtml += `<span class="${impactClass}">${icon} [${time}] ${ev.country} - ${ev.title}</span>`;
+            }
+        });
+        
+        if (!newsHtml) {
+            newsHtml = "<span style='color: var(--text-muted);'>No high or medium impact news for today.</span>";
+        }
+        
+        // Repeat content to ensure continuous smooth scrolling
+        ticker.innerHTML = newsHtml.repeat(8);
+        
+    } catch (err) {
+        console.error("News fetch error:", err);
+        ticker.innerHTML = "<span>Could not load Market Ticker.</span>";
+    }
 }
 
 window.focusModeActive = localStorage.getItem("tm_focus_mode") === "true";

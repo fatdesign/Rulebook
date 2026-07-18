@@ -109,6 +109,17 @@ export default {
         return new Response(JSON.stringify(results), { headers: corsHeaders });
       }
 
+      // --- FOREX FACTORY NEWS PROXY ---
+      if (request.method === "GET" && action === "news") {
+        try {
+            const ffResponse = await fetch("https://nfs.faireconomy.media/ff_calendar_thisweek.json");
+            const data = await ffResponse.json();
+            return new Response(JSON.stringify(data), { headers: corsHeaders });
+        } catch(e) {
+            return new Response(JSON.stringify({ error: "Failed to fetch news." }), { status: 500, headers: corsHeaders });
+        }
+      }
+
       // --- AI COACH ARCHIVE ROUTES ---
       if (request.method === "POST" && action === "coach_archive") {
         const user_id = await authenticateUser(request, env);
