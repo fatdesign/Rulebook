@@ -739,6 +739,7 @@ th {
     animation: ticker-scroll 30s linear infinite;
     font-size: 0.9rem;
     color: var(--text-main);
+    white-space: nowrap;
 }
 
 .news-ticker-content span {
@@ -776,7 +777,10 @@ th {
 .focus-mode-active .kpi-row:not(.focus-only),
 .focus-mode-active #equity-curve-row,
 .focus-mode-active #calendar-monthly-row,
+.focus-mode-active #analysis-row,
 .focus-mode-active #daily-stats-panel,
+.focus-mode-active #strategy-performance-panel,
+.focus-mode-active #recent-trades-panel,
 .focus-mode-active #strategy-definitions-panel,
 .focus-mode-active #ai-coach-row {
     display: none !important;
