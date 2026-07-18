@@ -102,7 +102,11 @@ const i18n = {
         focus_btn: "Fokus Modus",
         kpi_avg_win: "Ø Gewinn",
         kpi_avg_loss: "Ø Verlust",
-        ticker_title: "Markt Ticker"
+        ticker_title: "Markt Ticker",
+        nav_dashboard: "Dashboard",
+        nav_journal: "Journal",
+        nav_trades: "Trades",
+        nav_coach: "AI Coach"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -203,7 +207,11 @@ const i18n = {
         focus_btn: "Focus Mode",
         kpi_avg_win: "Avg Win",
         kpi_avg_loss: "Avg Loss",
-        ticker_title: "Market Ticker"
+        ticker_title: "Market Ticker",
+        nav_dashboard: "Dashboard",
+        nav_journal: "Journal",
+        nav_trades: "Trades",
+        nav_coach: "AI Coach"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -304,7 +312,11 @@ const i18n = {
         focus_btn: "Modo Enfoque",
         kpi_avg_win: "Ganancia Prom.",
         kpi_avg_loss: "Pérdida Prom.",
-        ticker_title: "Mercado Ticker"
+        ticker_title: "Mercado Ticker",
+        nav_dashboard: "Panel",
+        nav_journal: "Diario",
+        nav_trades: "Operaciones",
+        nav_coach: "Coach IA"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -405,7 +417,11 @@ const i18n = {
         focus_btn: "Odak Modu",
         kpi_avg_win: "Ort. Kazanç",
         kpi_avg_loss: "Ort. Kayıp",
-        ticker_title: "Piyasa Takipçisi"
+        ticker_title: "Piyasa Takipçisi",
+        nav_dashboard: "Panel",
+        nav_journal: "Günlük",
+        nav_trades: "İşlemler",
+        nav_coach: "AI Koçu"
     }
 };
 
@@ -2748,4 +2764,55 @@ document.addEventListener("DOMContentLoaded", () => {
             updateFocusModeUI();
         });
     }
+
+    // --- SIDEBAR COLLAPSE / EXPAND LOGIC ---
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    
+    if (sidebar && sidebarToggle) {
+        // Load initial state
+        const isCollapsed = localStorage.getItem("tm_sidebar_collapsed") === "true";
+        if (isCollapsed) {
+            sidebar.classList.add("collapsed");
+            const toggleIcon = sidebarToggle.querySelector("i");
+            if (toggleIcon) {
+                toggleIcon.className = "ph ph-caret-double-right";
+            }
+        }
+        
+        sidebarToggle.addEventListener("click", () => {
+            const collapsed = sidebar.classList.toggle("collapsed");
+            localStorage.setItem("tm_sidebar_collapsed", collapsed);
+            const toggleIcon = sidebarToggle.querySelector("i");
+            if (toggleIcon) {
+                toggleIcon.className = collapsed 
+                    ? "ph ph-caret-double-right" 
+                    : "ph ph-caret-double-left";
+            }
+        });
+    }
+    
+    // --- TAB SWITCHING LOGIC ---
+    const navItems = document.querySelectorAll(".sidebar-nav-item");
+    const tabContents = document.querySelectorAll(".tab-content");
+    
+    navItems.forEach(item => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            
+            // Remove active class from all items and contents
+            navItems.forEach(nav => nav.classList.remove("active"));
+            tabContents.forEach(content => content.classList.remove("active"));
+            
+            // Add active class to clicked item
+            item.classList.add("active");
+            
+            // Show corresponding tab content
+            const tabId = item.getAttribute("data-tab");
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) {
+                targetTab.classList.add("active");
+            }
+        });
+    });
 });
