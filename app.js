@@ -89,7 +89,13 @@ const i18n = {
         strategy_add_btn: "+ Neue Strategie",
         th_strategy: "Strategie",
         strategy_name_lbl: "Strategie Name",
-        strategy_desc_lbl: "Regeln / Beschreibung"
+        strategy_desc_lbl: "Regeln / Beschreibung",
+        ai_scope_month: "Aktueller Monat",
+        ai_scope_week: "Aktuelle Woche",
+        ai_scope_day: "Heute",
+        archive_analysis_btn: "Analyse Archivieren",
+        archived_analyses_title: "Archivierte Analysen",
+        view_archives_title: "Archive Ansehen"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -265,7 +271,13 @@ const i18n = {
         strategy_add_btn: "+ Nueva Estrategia",
         th_strategy: "Estrategia",
         strategy_name_lbl: "Nombre de Estrategia",
-        strategy_desc_lbl: "Reglas / Descripción"
+        strategy_desc_lbl: "Reglas / Descripción",
+        ai_scope_month: "Mes Actual",
+        ai_scope_week: "Semana Actual",
+        ai_scope_day: "Hoy",
+        archive_analysis_btn: "Archivar Análisis",
+        archived_analyses_title: "Análisis Archivados",
+        view_archives_title: "Ver Archivos"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -353,7 +365,13 @@ const i18n = {
         strategy_add_btn: "+ Yeni Strateji",
         th_strategy: "Strateji",
         strategy_name_lbl: "Strateji Adı",
-        strategy_desc_lbl: "Kurallar / Açıklama"
+        strategy_desc_lbl: "Kurallar / Açıklama",
+        ai_scope_month: "Bu Ay",
+        ai_scope_week: "Bu Hafta",
+        ai_scope_day: "Bugün",
+        archive_analysis_btn: "Analizi Arşivle",
+        archived_analyses_title: "Arşivlenmiş Analizler",
+        view_archives_title: "Arşivleri Görüntüle"
     }
 };
 
@@ -430,6 +448,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
             const key = el.getAttribute("data-i18n-placeholder");
             if (i18n[lang][key]) el.placeholder = i18n[lang][key];
+        });
+        document.querySelectorAll("[data-i18n-title]").forEach(el => {
+            const key = el.getAttribute("data-i18n-title");
+            if (i18n[lang][key]) el.title = i18n[lang][key];
         });
         
         const discSpan = document.getElementById("kpi-discipline");
@@ -1821,8 +1843,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 aiContent.innerHTML = `
                     <div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); margin-bottom: 15px;">${htmlContent}</div>
-                    <button id="save-archive-btn" class="secondary-btn" style="width: 100%; padding: 6px; font-size: 0.85rem;"><i class="ph ph-floppy-disk"></i> Archive Analysis</button>
+                    <button id="save-archive-btn" class="secondary-btn" style="width: 100%; padding: 6px; font-size: 0.85rem;" data-i18n="archive_analysis_btn"><i class="ph ph-floppy-disk"></i> Archive Analysis</button>
                 `;
+                if (globalLang) setLanguage(globalLang.value);
 
                 const saveArchiveBtn = document.getElementById("save-archive-btn");
                 if (saveArchiveBtn) {
