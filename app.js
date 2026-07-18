@@ -81,7 +81,7 @@ const i18n = {
         th_symbol: "Symbol",
         th_side: "Seite",
         th_profit: "Gewinn",
-        th_close: "Schließzeit",
+        th_close: "Haltezeit",
         th_note: "Tag / Notiz",
         note_ph: "Notiz oder #Tag hinzufügen...",
         th_gain: "% Gain"
@@ -164,7 +164,7 @@ const i18n = {
         th_symbol: "Symbol",
         th_side: "Side",
         th_profit: "Profit",
-        th_close: "Close Time",
+        th_close: "Duration",
         th_note: "Tag / Note",
         note_ph: "Add note or #tag...",
         th_gain: "% Gain"
@@ -247,7 +247,7 @@ const i18n = {
         th_symbol: "Símbolo",
         th_side: "Lado",
         th_profit: "Beneficio",
-        th_close: "Hora Cierre",
+        th_close: "Duración",
         th_note: "Etiqueta / Nota",
         note_ph: "Añadir nota o #etiqueta...",
         th_gain: "% Gain"
@@ -330,7 +330,7 @@ const i18n = {
         th_symbol: "Sembol",
         th_side: "Yön",
         th_profit: "Kâr",
-        th_close: "Kapanış Zamanı",
+        th_close: "Süre",
         th_note: "Etiket / Not",
         note_ph: "Not veya #etiket ekle...",
         th_gain: "% Gain"
@@ -1153,15 +1153,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 const sideColor = t.side.startsWith("Buy") ? "var(--success)" : "var(--danger)";
                 const netProfitNum = parseFloat(t.net_profit);
                 const profitColor = netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
-                const dateObj = new Date(t.close_time * 1000);
-                const closeDate = dateObj.toLocaleDateString(undefined, { timeZone: 'UTC' }) + ' ' + dateObj.toLocaleTimeString(undefined, { timeZone: 'UTC', hour12: false });
+                const holdSec = t.close_time - t.open_time;
+                const durationStr = formatHoldTime(holdSec);
                 const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
                 
                 tr.innerHTML = `
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${t.side}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${closeDate}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
                         <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="${(i18n[localStorage.getItem('tm_global_lang') || 'de'] || {}).note_ph || 'Add note or #tag...'}" style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
                     </td>
