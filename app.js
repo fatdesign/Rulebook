@@ -106,7 +106,10 @@ const i18n = {
         nav_dashboard: "Dashboard",
         nav_journal: "Journal",
         nav_trades: "Trades",
-        nav_coach: "AI Coach"
+        nav_tags: "Tags",
+        nav_coach: "AI Coach",
+        tag_analyzer_title: "Tag Analyzer",
+        tag_analyzer_desc: "Analysiere deine Fehler und Setups. Wähle einen Hashtag aus, um die entsprechenden Trades zu filtern und zu überprüfen."
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -211,7 +214,10 @@ const i18n = {
         nav_dashboard: "Dashboard",
         nav_journal: "Journal",
         nav_trades: "Trades",
-        nav_coach: "AI Coach"
+        nav_tags: "Tags",
+        nav_coach: "AI Coach",
+        tag_analyzer_title: "Tag Analyzer",
+        tag_analyzer_desc: "Analyze your mistakes and setups. Select a hashtag to filter and inspect the corresponding trades."
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -1054,6 +1060,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    const limitSelect = document.getElementById("trades-limit-select");
+    if (limitSelect) {
+        limitSelect.value = window.tradesPerPage;
+        limitSelect.addEventListener("change", (e) => {
+            const limit = parseInt(e.target.value) || 12;
+            window.tradesPerPage = limit;
+            localStorage.setItem("tm_trades_limit", limit);
+            if (window._lastTradesArray) {
+                window.renderTradesTable(window._lastTradesArray, window.currentCurSym || "$");
+            }
+        });
+    }
+
     // Auto-refresh every 60 seconds
     setInterval(() => {
         const key = localStorage.getItem("tm_license_key");
@@ -1434,7 +1453,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.currentTradesPage = 1;
-    window.tradesPerPage = 25;
+    window.tradesPerPage = parseInt(localStorage.getItem("tm_trades_limit")) || 12;
     window._lastTradesArray = null;
 
     window.renderTradesTable = function(trades, curSym) {
@@ -1754,6 +1773,9 @@ document.addEventListener("DOMContentLoaded", () => {
         renderHeatmap(heatmapData, curSym);
         renderSymbolChart(symbolProfits, curSym);
         renderDailyStatsTable(trades, curSym);
+        if (typeof window.renderTagAnalyzer === "function") {
+            window.renderTagAnalyzer(window.currentAllTrades || trades, curSym);
+        }
     }
 
     function renderCalendarAndMonthly(trades, curSym) {
@@ -2933,6 +2955,166 @@ async function initNewsTicker() {
     }
 }
 
+window.selectedAnalyzerTag = window.selectedAnalyzerTag || null;
+
+window.renderTagAnalyzer = function(trades, curSym) {
+    const barContainer = document.getElementById("tag-analyzer-bar");
+    const feedContainer = document.getElementById("tag-analyzer-feed");
+    if (!barContainer || !feedContainer) return;
+
+    // 1. Extract notes and parse hashtags
+    const allTaggedTrades = [];
+    const tagCounts = {}; // { "#overtrading": 5, ... }
+
+    (trades || []).forEach(t => {
+        const note = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
+        if (!note) return;
+
+        // Simple regex to find hashtags
+        const tags = note.match(/#[a-zA-Z0-9_\u00C0-\u00FF]+/g);
+        if (tags && tags.length > 0) {
+            // Remove duplicates in the same note
+            const uniqueTags = [...new Set(tags.map(tag => tag.toLowerCase()))];
+            uniqueTags.forEach(tag => {
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            });
+            allTaggedTrades.push({
+                trade: t,
+                tags: uniqueTags,
+                note: note
+            });
+        }
+    });
+
+    // Sort tags by frequency
+    const uniqueTagsSorted = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
+
+    // Render Tag Buttons
+    barContainer.innerHTML = "";
+    
+    if (uniqueTagsSorted.length === 0) {
+        barContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">No tags found. Add hashtags (e.g. #fomo, #overtrading) in the Trades tab to analyze them here.</div>`;
+        feedContainer.innerHTML = "";
+        return;
+    }
+
+    // Add an "ALL" button
+    const allBtn = document.createElement("button");
+    allBtn.className = !window.selectedAnalyzerTag ? "filter-btn active" : "filter-btn";
+    allBtn.style.padding = "5px 12px";
+    allBtn.style.fontSize = "0.85rem";
+    allBtn.innerHTML = `All (${allTaggedTrades.length})`;
+    allBtn.onclick = () => {
+        window.selectedAnalyzerTag = null;
+        window.renderTagAnalyzer(trades, curSym);
+    };
+    barContainer.appendChild(allBtn);
+
+    uniqueTagsSorted.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.className = window.selectedAnalyzerTag === tag ? "filter-btn active" : "filter-btn";
+        btn.style.padding = "5px 12px";
+        btn.style.fontSize = "0.85rem";
+        btn.innerHTML = `${tag} (${tagCounts[tag]})`;
+        btn.onclick = () => {
+            window.selectedAnalyzerTag = tag;
+            window.renderTagAnalyzer(trades, curSym);
+        };
+        barContainer.appendChild(btn);
+    });
+
+    // Filter feed trades
+    const filteredTagged = allTaggedTrades.filter(item => {
+        if (!window.selectedAnalyzerTag) return true;
+        return item.tags.includes(window.selectedAnalyzerTag);
+    });
+
+    // Render Feed cards
+    feedContainer.innerHTML = "";
+
+    if (filteredTagged.length === 0) {
+        feedContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">No trades found for tag ${window.selectedAnalyzerTag}</div>`;
+        return;
+    }
+
+    // Sort by close time descending
+    filteredTagged.sort((a, b) => b.trade.close_time - a.trade.close_time);
+
+    filteredTagged.forEach(item => {
+        const t = item.trade;
+        const note = item.note;
+        const sideStr = t.side || "";
+        const sideColor = sideStr.startsWith("Buy") ? "var(--success)" : "var(--danger)";
+        const profitVal = parseFloat(t.net_profit || 0);
+        const profitColor = profitVal >= 0 ? "var(--success)" : "var(--danger)";
+
+        // Images
+        const imgData = window.tradeImagesMap ? (window.tradeImagesMap[t.ticket] || {}) : {};
+        const beforeUrl = imgData.before || "";
+        const afterUrl = imgData.after || "";
+
+        // Format note to highlight hashtags
+        const highlightedNote = note.replace(/(#[a-zA-Z0-9_\u00C0-\u00FF]+)/g, '<span style="color: #38bdf8; font-weight: 500;">$1</span>');
+
+        const dateObj = new Date(t.close_time * 1000);
+        const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth()+1).padStart(2, '0')}.${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+
+        // Strategy
+        const strategyId = window.tradeStrategyMap ? (window.tradeStrategyMap[t.ticket] || "") : "";
+        const stratDefs = window.strategyDefs || [];
+        const assignedStrat = stratDefs.find(s => s.id === strategyId);
+        const stratHtml = assignedStrat 
+            ? `<span style="font-size: 0.75rem; padding: 2px 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 4px; color: #7dd3fc; margin-left: 8px;">${assignedStrat.name}</span>`
+            : "";
+
+        const card = document.createElement("div");
+        card.className = "glass-panel tag-trade-card";
+        card.style.cssText = "padding: 15px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-dark); border-radius: 8px; background: rgba(0,0,0,0.15);";
+        
+        // Image Preview elements
+        let imagesHtml = "";
+        if (beforeUrl || afterUrl) {
+            imagesHtml = `<div style="display: flex; gap: 10px; margin-top: 5px;">`;
+            if (beforeUrl) {
+                imagesHtml += `
+                    <div class="tag-feed-image-container" style="flex: 1; position: relative; cursor: pointer; aspect-ratio: 16/9; overflow: hidden; border-radius: 4px; border: 1px solid var(--border-dark);" onclick="openImagePreview('${beforeUrl}')">
+                        <img src="${beforeUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Before Chart">
+                        <span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 3px;">Before</span>
+                    </div>
+                `;
+            }
+            if (afterUrl) {
+                imagesHtml += `
+                    <div class="tag-feed-image-container" style="flex: 1; position: relative; cursor: pointer; aspect-ratio: 16/9; overflow: hidden; border-radius: 4px; border: 1px solid var(--border-dark);" onclick="openImagePreview('${afterUrl}')">
+                        <img src="${afterUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="After Chart">
+                        <span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 3px;">After</span>
+                    </div>
+                `;
+            }
+            imagesHtml += `</div>`;
+        } else {
+            imagesHtml = `<div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; text-align: center; padding: 15px; border: 1px dashed var(--border-dark); border-radius: 4px;">No charts attached</div>`;
+        }
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 5px;">
+                <div>
+                    <span style="font-weight: bold; font-size: 1rem; color: var(--text-main);">${t.symbol}</span>
+                    <span style="margin-left: 8px; font-size: 0.8rem; color: ${sideColor}; font-weight: 500;">${sideStr}</span>
+                    ${stratHtml}
+                </div>
+                <span style="font-weight: bold; color: ${profitColor};">${profitVal >= 0 ? '+' : ''}${curSym}${profitVal.toFixed(2)}</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: -8px;">Ticket: ${t.ticket} &nbsp;|&nbsp; Close: ${dateStr}</div>
+            <div style="font-size: 0.85rem; color: var(--text-main); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; line-height: 1.4;">
+                ${highlightedNote}
+            </div>
+            ${imagesHtml}
+        `;
+        feedContainer.appendChild(card);
+    });
+};
+
 window.focusModeActive = localStorage.getItem("tm_focus_mode") === "true";
 
 function updateFocusModeUI() {
@@ -3015,6 +3197,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const targetTab = document.getElementById(tabId);
             if (targetTab) {
                 targetTab.classList.add("active");
+            }
+            if (tabId === "tab-tags" && typeof window.renderTagAnalyzer === "function" && window.currentAllTrades) {
+                window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
             }
         });
     });

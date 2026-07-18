@@ -140,6 +140,10 @@
                             <i class="ph ph-briefcase"></i>
                             <span class="nav-text" data-i18n="nav_trades">Trades</span>
                         </a>
+                        <a href="#" class="sidebar-nav-item" data-tab="tab-tags">
+                            <i class="ph ph-tag"></i>
+                            <span class="nav-text" data-i18n="nav_tags">Tags</span>
+                        </a>
                         <a href="#" class="sidebar-nav-item" data-tab="tab-coach">
                             <i class="ph ph-brain"></i>
                             <span class="nav-text" data-i18n="nav_coach">AI Coach</span>
@@ -174,8 +178,10 @@
                             </select>
                         </div>
 
-                        <button id="logout-btn" class="secondary-btn sidebar-logout"
-                            data-i18n="disconnect_btn">Logout</button>
+                        <button id="logout-btn" class="secondary-btn sidebar-logout" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="ph ph-plugs"></i>
+                            <span class="logout-text" data-i18n="disconnect_btn">Logout</span>
+                        </button>
                     </div>
                 </aside>
 
@@ -522,6 +528,12 @@
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <span id="trades-selected-date-label"
                                                 style="font-size: 0.85rem; color: var(--text-muted); display: none;"></span>
+                                            <select id="trades-limit-select" class="profile-select" style="width: auto; padding: 5px 10px; font-size: 0.85rem; height: 32px;">
+                                                <option value="12">12</option>
+                                                <option value="25" selected>25</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>
                                             <button id="trades-calendar-btn" class="secondary-btn"
                                                 style="padding: 5px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
                                                 <i class="ph ph-calendar-dots"></i> <span
@@ -551,6 +563,33 @@
                                             <!-- Populated by JS -->
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: TAGS -->
+                        <div id="tab-tags" class="tab-content">
+                            <div class="dashboard-grid">
+                                <div class="glass-panel" style="margin-bottom: 20px; padding: 25px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                            <i class="ph ph-tag"></i>
+                                            <span data-i18n="tag_analyzer_title">Tag Analyzer</span>
+                                        </h3>
+                                    </div>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" data-i18n="tag_analyzer_desc">
+                                        Analysiere deine Fehler und Setups. Wähle einen Hashtag aus, um die entsprechenden Trades zu filtern und zu überprüfen.
+                                    </p>
+                                    
+                                    <!-- Unique Tags Filter Bar -->
+                                    <div id="tag-analyzer-bar" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; min-height: 35px; align-items: center;">
+                                        <!-- Populated dynamically by JS -->
+                                    </div>
+
+                                    <!-- Tagged Trades Feed -->
+                                    <div id="tag-analyzer-feed" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+                                        <!-- Populated dynamically by JS -->
+                                    </div>
                                 </div>
                             </div>
                         </div>

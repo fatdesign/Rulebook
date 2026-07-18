@@ -1095,14 +1095,31 @@ th {
     border-radius: var(--panel-radius);
 }
 
+.sidebar-logout i {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-logout {
+    padding: 12px 0;
+    justify-content: center !important;
+}
+
+.sidebar.collapsed .sidebar-logout i {
+    display: inline-block;
+    font-size: 1.3rem;
+}
+
+.sidebar.collapsed .sidebar-logout .logout-text {
+    display: none;
+}
+
 .sidebar.collapsed .sidebar-settings-group {
     flex-direction: column;
     width: 100%;
 }
 
 .sidebar.collapsed .sidebar-settings-group select,
-.sidebar.collapsed .sidebar-settings-group button,
-.sidebar.collapsed .sidebar-logout {
+.sidebar.collapsed .sidebar-settings-group button {
     font-size: 0.72rem;
     padding: 6px 4px;
     text-align: center;
