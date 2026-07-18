@@ -1757,8 +1757,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 let tradesToAnalyze = currentFilteredTrades;
                 const aiScopeVal = document.getElementById("ai-scope")?.value;
                 if (aiScopeVal === "week") {
-                    const weekAgo = Math.floor(Date.now()/1000) - (7 * 24 * 60 * 60);
-                    tradesToAnalyze = currentFilteredTrades.filter(t => t.close_time >= weekAgo);
+                    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
+                    const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+                    const weekStartSec = Math.floor(monday.getTime() / 1000);
+                    tradesToAnalyze = currentFilteredTrades.filter(t => t.close_time >= weekStartSec);
                 } else if (aiScopeVal === "day") {
                     const scopeDayOpt = document.getElementById("ai-scope-day");
                     if (scopeDayOpt && scopeDayOpt.hasAttribute("data-datekey")) {
