@@ -1349,6 +1349,10 @@ th {
     transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
+#trades-cal-grid-container .cal-val {
+    font-size: 0.7rem;
+}
+
 #trades-cal-grid-container .cal-day.clickable-cal-day:hover {
     transform: scale(1.07);
     box-shadow: 0 4px 14px rgba(0,0,0,0.25);
