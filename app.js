@@ -1089,10 +1089,11 @@ document.addEventListener("DOMContentLoaded", () => {
         tbody.innerHTML = "";
         trades.slice(0, 50).forEach(t => {
             const tr = document.createElement("tr");
-            const sideColor = t.side.startsWith("Buy") ? "var(--success)" : "var(--danger)";
-            const netProfitNum = parseFloat(t.net_profit);
+            const sideStr = t.side || "";
+            const sideColor = sideStr.startsWith("Buy") ? "var(--success)" : "var(--danger)";
+            const netProfitNum = parseFloat(t.net_profit || 0);
             const profitColor = netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
-            const holdSec = t.close_time - t.open_time;
+            const holdSec = (t.close_time || 0) - (t.open_time || 0);
             const durationStr = formatHoldTime(holdSec);
             const strategyId = window.tradeStrategyMap ? (window.tradeStrategyMap[t.ticket] || "") : "";
             const stratDefs = window.strategyDefs || [];
@@ -1105,8 +1106,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
 
             tr.innerHTML = `
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${t.side}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
