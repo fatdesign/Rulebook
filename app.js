@@ -436,7 +436,7 @@ let _imgZoomScale = 1;
 
 function openImagePreview(url) {
     const modal = document.getElementById("image-preview-modal");
-    const img   = document.getElementById("image-preview-img");
+    const img = document.getElementById("image-preview-img");
     if (!modal || !img) return;
     _imgZoomScale = 1;
     img.style.transform = "scale(1)";
@@ -448,7 +448,7 @@ function openImagePreview(url) {
 
 function closeImagePreview() {
     const modal = document.getElementById("image-preview-modal");
-    const img   = document.getElementById("image-preview-img");
+    const img = document.getElementById("image-preview-img");
     if (!modal || !img) return;
     modal.classList.add("hidden");
     img.src = "";
@@ -488,8 +488,8 @@ if (imgPreviewWrap) {
 
             // Calculate mouse position as % of image dimensions BEFORE scaling
             const rect = img.getBoundingClientRect();
-            const originX = ((e.clientX - rect.left) / rect.width)  * 100;
-            const originY = ((e.clientY - rect.top)  / rect.height) * 100;
+            const originX = ((e.clientX - rect.left) / rect.width) * 100;
+            const originY = ((e.clientY - rect.top) / rect.height) * 100;
 
             const delta = e.deltaY > 0 ? -0.15 : 0.15;
             _imgZoomScale = Math.min(5, Math.max(0.5, _imgZoomScale + delta));
@@ -511,7 +511,7 @@ if (imgPreviewImg) {
     });
 }
 
-window.saveTradeImage = function(inputEl) {
+window.saveTradeImage = function (inputEl) {
     const ticket = inputEl.getAttribute("data-ticket");
     const type = inputEl.getAttribute("data-type");
     const url = inputEl.value.trim();
@@ -524,7 +524,7 @@ window.saveTradeImage = function(inputEl) {
     updateTradeImagesBackend(ticket);
 };
 
-window.deleteTradeImage = function(ticket, type) {
+window.deleteTradeImage = function (ticket, type) {
     if (!window.tradeImagesMap || !window.tradeImagesMap[ticket]) return;
     window.tradeImagesMap[ticket][type] = "";
     updateTradeImagesBackend(ticket);
@@ -565,12 +565,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const globalLang = document.getElementById("global-lang");
     const loginLang = document.getElementById("login-lang");
-    
+
     // Accordion Logic
     const accordionBtn = document.getElementById("setup-accordion-btn");
     const accordionContent = document.getElementById("setup-accordion-content");
     const setupCaret = document.getElementById("setup-caret");
-    
+
     if (accordionBtn) {
         accordionBtn.addEventListener("click", () => {
             accordionContent.classList.toggle("hidden");
@@ -596,28 +596,28 @@ document.addEventListener("DOMContentLoaded", () => {
             filterBtns.forEach(b => b.classList.remove("active"));
             e.target.classList.add("active");
             currentTimeframe = e.target.getAttribute("data-timeframe");
-            
+
             const tradesDateLabel = document.getElementById("trades-selected-date-label");
             const clearTradesDateBtn = document.getElementById("clear-trades-date-btn");
             if (tradesDateLabel) { tradesDateLabel.textContent = ""; tradesDateLabel.style.display = "none"; }
             if (clearTradesDateBtn) clearTradesDateBtn.style.display = "none";
-            
+
             const key = localStorage.getItem("tm_license_key");
             if (key) loadDashboard(key);
         });
     });
 
     const monthSelector = document.getElementById("month-selector");
-    if(monthSelector) {
+    if (monthSelector) {
         monthSelector.addEventListener("change", (e) => {
             currentTimeframe = e.target.value;
             filterBtns.forEach(b => b.classList.remove("active"));
-            
+
             const tradesDateLabel = document.getElementById("trades-selected-date-label");
             const clearTradesDateBtn = document.getElementById("clear-trades-date-btn");
             if (tradesDateLabel) { tradesDateLabel.textContent = ""; tradesDateLabel.style.display = "none"; }
             if (clearTradesDateBtn) clearTradesDateBtn.style.display = "none";
-            
+
             const key = localStorage.getItem("tm_license_key");
             if (key) loadDashboard(key);
         });
@@ -638,13 +638,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const key = el.getAttribute("data-i18n-title");
             if (i18n[lang][key]) el.title = i18n[lang][key];
         });
-        
+
         const discSpan = document.getElementById("kpi-discipline");
-        if(discSpan) {
+        if (discSpan) {
             const currentText = discSpan.innerText;
             const scoreMatch = currentText.match(/:\s*(\d+)%/);
-            if(scoreMatch) {
-                 discSpan.innerText = `${i18n[lang].discipline_lbl}: ${scoreMatch[1]}%`;
+            if (scoreMatch) {
+                discSpan.innerText = `${i18n[lang].discipline_lbl}: ${scoreMatch[1]}%`;
             }
         }
     }
@@ -660,12 +660,12 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("tm_global_lang", newLang);
             if (loginLang) loginLang.value = newLang;
             setLanguage(newLang);
-            
+
             const key = localStorage.getItem("tm_license_key");
             if (key) loadDashboard(key);
         });
     }
-    
+
     if (loginLang) {
         loginLang.addEventListener("change", (e) => {
             const newLang = e.target.value;
@@ -679,7 +679,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const themeSelects = document.querySelectorAll(".theme-select");
     const savedTheme = localStorage.getItem("tm_theme") || "neo-retro";
     document.documentElement.setAttribute("data-theme", savedTheme);
-    
+
     themeSelects.forEach(sel => {
         sel.value = savedTheme;
         sel.addEventListener("change", (e) => {
@@ -697,13 +697,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const showLoginLink = document.getElementById("show-login-link");
     const masterLoginBtn = document.getElementById("master-login-btn");
     const masterRegisterBtn = document.getElementById("master-register-btn");
-    
+
     function showError(msg) {
         if (!errorMsg) return;
         errorMsg.innerText = msg;
         errorMsg.classList.remove("hidden");
     }
-    
+
     if (showRegisterLink) {
         showRegisterLink.addEventListener("click", (e) => {
             e.preventDefault();
@@ -733,12 +733,12 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch(`${API_URL}?action=${action}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" , "Authorization": localStorage.getItem("tm_master_token") },
+                headers: { "Content-Type": "application/json", "Authorization": localStorage.getItem("tm_master_token") },
                 body: JSON.stringify({ email, password })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Authentication failed");
-            
+
             localStorage.setItem("tm_master_token", data.token);
             await fetchLinkedAccounts();
         } catch (err) {
@@ -785,16 +785,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
             const accounts = await res.json();
-            
+
             if (!accountSwitcher) return;
             accountSwitcher.innerHTML = "";
-            
+
             if (accounts.length === 0) {
                 const opt = document.createElement("option");
                 opt.value = "";
                 opt.innerText = "-- Waiting for EA Data --";
                 accountSwitcher.appendChild(opt);
-                
+
                 loginScreen.classList.remove("active");
                 dashboard.classList.remove("hidden");
                 const llc = document.getElementById("login-lang-container");
@@ -806,19 +806,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     opt.innerText = acc.alias;
                     accountSwitcher.appendChild(opt);
                 });
-                
+
                 let currentKey = localStorage.getItem("tm_license_key");
                 if (!accounts.some(a => a.license_key === currentKey)) {
                     currentKey = accounts[0].license_key;
                     localStorage.setItem("tm_license_key", currentKey);
                 }
                 accountSwitcher.value = currentKey;
-                
+
                 loginScreen.classList.remove("active");
                 dashboard.classList.remove("hidden");
                 const llc = document.getElementById("login-lang-container");
                 if (llc) llc.style.display = "none";
-                
+
                 loadDashboard(currentKey);
             }
         } catch (err) {
@@ -857,12 +857,12 @@ document.addEventListener("DOMContentLoaded", () => {
         resetBtn.addEventListener("click", async () => {
             const key = localStorage.getItem("tm_license_key");
             if (!key) return;
-            
+
             const lang = globalLang ? globalLang.value : "de";
-            const msg = lang === "de" 
+            const msg = lang === "de"
                 ? "Bist du sicher? Alle Trades im Dashboard werden gelöscht (dein MT5 bleibt unangetastet!). Der EA wird in 60s neu synchronisieren."
                 : "Are you sure? All trades in the dashboard will be deleted (your MT5 is untouched!). The EA will resync in 60s.";
-                
+
             if (confirm(msg)) {
                 const span = resetBtn.querySelector('.sidebar-btn-text');
                 if (span) span.innerText = "⏳...";
@@ -871,13 +871,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     const response = await fetch(`${API_URL}?account_id=${encodeURIComponent(key)}`, {
                         method: "DELETE", headers: { "Authorization": localStorage.getItem("tm_master_token") }
                     });
-                    if(response.ok) {
+                    if (response.ok) {
                         alert(lang === "de" ? "Dashboard geleert! Warte 60s auf den nächsten EA Sync." : "Dashboard cleared! Wait 60s for the next EA sync.");
                         window.location.reload();
                     } else {
                         alert("Error resetting dashboard.");
                     }
-                } catch(err) {
+                } catch (err) {
                     alert(err.message);
                 } finally {
                     if (span) span.innerText = i18n[lang] && i18n[lang].reset_btn ? i18n[lang].reset_btn : "Reset";
@@ -891,26 +891,26 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteAccountBtn.addEventListener("click", async () => {
             const key = localStorage.getItem("tm_license_key");
             if (!key) return;
-            
+
             const lang = globalLang ? globalLang.value : "de";
-            const msg = lang === "de" 
+            const msg = lang === "de"
                 ? "Bist du sicher? Dieser Trading Account und ALLE zugehörigen Daten (Trades, Journal, Notizen) werden permanent gelöscht! Der Account verschwindet aus der Liste."
                 : "Are you sure? This trading account and ALL associated data (trades, journal, notes) will be permanently deleted! The account will be removed from the list.";
-                
+
             if (confirm(msg)) {
                 deleteAccountBtn.innerText = "⏳";
                 try {
                     const response = await fetch(`${API_URL}?action=account&account_id=${encodeURIComponent(key)}`, {
                         method: "DELETE", headers: { "Authorization": localStorage.getItem("tm_master_token") }
                     });
-                    if(response.ok) {
+                    if (response.ok) {
                         alert(lang === "de" ? "Account erfolgreich gelöscht." : "Account successfully deleted.");
                         localStorage.removeItem("tm_license_key"); // Clear current key so it picks the next one
                         window.location.reload();
                     } else {
                         alert("Error deleting account.");
                     }
-                } catch(err) {
+                } catch (err) {
                     alert(err.message);
                 } finally {
                     deleteAccountBtn.innerText = "🗑️";
@@ -920,19 +920,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ── Trades Tab Calendar Popup ──────────────────────────────────
-    const tradesCalBtn      = document.getElementById("trades-calendar-btn");
-    const clearTradesDateBtn= document.getElementById("clear-trades-date-btn");
-    const tradesCalOverlay  = document.getElementById("trades-cal-overlay");
-    const tradesCalClose    = document.getElementById("trades-cal-close");
-    const tradesCalPrev     = document.getElementById("trades-cal-prev");
-    const tradesCalNext     = document.getElementById("trades-cal-next");
-    const tradesCalTitle    = document.getElementById("trades-cal-month-title");
-    const tradesCalGrid     = document.getElementById("trades-cal-grid-container");
-    const tradesDateLabel   = document.getElementById("trades-selected-date-label");
+    const tradesCalBtn = document.getElementById("trades-calendar-btn");
+    const clearTradesDateBtn = document.getElementById("clear-trades-date-btn");
+    const tradesCalOverlay = document.getElementById("trades-cal-overlay");
+    const tradesCalClose = document.getElementById("trades-cal-close");
+    const tradesCalPrev = document.getElementById("trades-cal-prev");
+    const tradesCalNext = document.getElementById("trades-cal-next");
+    const tradesCalTitle = document.getElementById("trades-cal-month-title");
+    const tradesCalGrid = document.getElementById("trades-cal-grid-container");
+    const tradesDateLabel = document.getElementById("trades-selected-date-label");
 
-    const FULL_MONTHS = ["JANUAR","FEBRUAR","MÄRZ","APRIL","MAI","JUNI","JULI","AUGUST","SEPTEMBER","OKTOBER","NOVEMBER","DEZEMBER"];
+    const FULL_MONTHS = ["JANUAR", "FEBRUAR", "MÄRZ", "APRIL", "MAI", "JUNI", "JULI", "AUGUST", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DEZEMBER"];
 
-    let calPopupYear  = new Date().getFullYear();
+    let calPopupYear = new Date().getFullYear();
     let calPopupMonth = new Date().getMonth(); // 0-based
 
     function renderTradesCalPopup() {
@@ -942,7 +942,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const dailyProfit = {};
         currentAllTrades.forEach(t => {
             const d = new Date(t.close_time * 1000);
-            const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+            const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
             if (!dailyProfit[key]) dailyProfit[key] = 0;
             dailyProfit[key] += parseFloat(t.net_profit);
         });
@@ -955,11 +955,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const curSym = window.currentCurSym || "$";
 
         let html = `<div class="cal-grid">`;
-        ["M","D","M","D","F","S","S"].forEach(h => { html += `<div class="cal-header">${h}</div>`; });
+        ["M", "D", "M", "D", "F", "S", "S"].forEach(h => { html += `<div class="cal-header">${h}</div>`; });
         for (let i = 0; i < startOffset; i++) html += `<div class="cal-day empty"></div>`;
 
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateKey = `${calPopupYear}-${String(calPopupMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const dateKey = `${calPopupYear}-${String(calPopupMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             const val = dailyProfit[dateKey];
             let cls = "clickable-cal-day";
             let valHtml = "";
@@ -982,7 +982,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const dayTrades = currentAllTrades.filter(t => {
                     const tDate = new Date(t.close_time * 1000);
-                    const tKey = `${tDate.getUTCFullYear()}-${String(tDate.getUTCMonth()+1).padStart(2,'0')}-${String(tDate.getUTCDate()).padStart(2,'0')}`;
+                    const tKey = `${tDate.getUTCFullYear()}-${String(tDate.getUTCMonth() + 1).padStart(2, '0')}-${String(tDate.getUTCDate()).padStart(2, '0')}`;
                     return tKey === dKey;
                 });
 
@@ -1008,7 +1008,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function openTradesCalPopup() {
         // Start on the month of the currently filtered timeframe
         const now = new Date();
-        calPopupYear  = now.getFullYear();
+        calPopupYear = now.getFullYear();
         calPopupMonth = now.getMonth();
         renderTradesCalPopup();
         if (tradesCalOverlay) {
@@ -1016,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    if (tradesCalBtn)   tradesCalBtn.addEventListener("click", openTradesCalPopup);
+    if (tradesCalBtn) tradesCalBtn.addEventListener("click", openTradesCalPopup);
     if (tradesCalClose) tradesCalClose.addEventListener("click", () => { tradesCalOverlay.style.display = "none"; });
     if (tradesCalOverlay) {
         tradesCalOverlay.addEventListener("click", (e) => {
@@ -1083,7 +1083,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json"
-                , "Authorization": localStorage.getItem("tm_master_token") }
+                    , "Authorization": localStorage.getItem("tm_master_token")
+                }
             });
 
             if (!response.ok) {
@@ -1093,27 +1094,27 @@ document.addEventListener("DOMContentLoaded", () => {
             const payload = await response.json();
             const trades = payload.trades || payload;
             let currentBalance = payload.current_balance || 0;
-            
 
-            
+
+
             let runningBalance = parseFloat(currentBalance);
             window.accCurrency = "USD";
             trades.forEach(t => {
                 // Parse side
                 if (t.side.includes('_')) {
                     const sideParts = t.side.split('_');
-                    t.side = sideParts[0]; 
-                    
+                    t.side = sideParts[0];
+
                     if (sideParts.length > 1) {
                         window.accCurrency = sideParts[1];
                     }
-                    
+
                     let grossProfit = parseFloat(t.net_profit); // fallback
                     if (sideParts.length > 2) {
                         grossProfit = parseFloat(sideParts[2]);
                     }
                     t.gross_profit = grossProfit;
-                    
+
                     let balanceAfter = null;
                     if (sideParts.length > 3) {
                         balanceAfter = parseFloat(sideParts[3]);
@@ -1122,7 +1123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else if (t.gross_profit === undefined) {
                     t.gross_profit = parseFloat(t.net_profit);
                 }
-                
+
                 // Calculate balances
                 const netP = parseFloat(t.net_profit);
                 if (t.balance_after !== undefined && t.balance_after !== null && !isNaN(t.balance_after)) {
@@ -1134,21 +1135,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     t.balance_before = runningBalance;
                 }
             });
-            
+
             // Empty array is valid for accounts with no trades. Process it normally to clear the dashboard.
 
 
             // Success! Save key and show dashboard
             localStorage.setItem("tm_license_key", key);
-            
+
             loginScreen.classList.remove("active");
             dashboard.classList.remove("hidden");
             const llc = document.getElementById("login-lang-container");
             if (llc) llc.style.display = "none";
-            
+
             // Load Settings once
             loadSettings(key);
-            
+
             // Note: Journal is now loaded dynamically when opening the modal for a specific day.
 
             // Load Trade Notes
@@ -1215,7 +1216,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
                     }
                 }).catch(e => console.error(e));
-            
+
             // Filter trades based on timeframe
             const now = new Date();
             let startTime = 0;
@@ -1235,7 +1236,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const sundayDate = mondayDate + 6;
                 // Date.UTC handles overflow automatically (e.g. day=0 → last day of prev month)
                 startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), mondayDate) / 1000);
-                endTime   = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), sundayDate + 1) / 1000) - 1;
+                endTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), sundayDate + 1) / 1000) - 1;
             } else if (currentTimeframe === "current_month") {
                 const y = now.getFullYear();
                 const m = now.getMonth();
@@ -1266,26 +1267,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     const d = new Date(t.close_time * 1000);
                     uniqueMonths.add(`${d.getUTCFullYear()}-${d.getUTCMonth()}`);
                 });
-                
+
                 uniqueMonths.add(`${now.getFullYear()}-${now.getMonth()}`);
-                
-                const sortedMonths = Array.from(uniqueMonths).sort((a,b) => {
+
+                const sortedMonths = Array.from(uniqueMonths).sort((a, b) => {
                     const [yA, mA] = a.split('-').map(Number);
                     const [yB, mB] = b.split('-').map(Number);
-                    if(yA !== yB) return yB - yA;
+                    if (yA !== yB) return yB - yA;
                     return mB - mA;
                 });
-                
+
                 const monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
                 let optionsHtml = `<option value="all" data-i18n="filter_all">All Time</option>`;
-                
+
                 sortedMonths.forEach(mStr => {
                     const [y, m] = mStr.split('-').map(Number);
                     optionsHtml += `<option value="${mStr}">${monthNames[m]} ${y}</option>`;
                 });
-                
+
                 monthSel.innerHTML = optionsHtml;
-                
+
                 if (currentTimeframe === "current_month") {
                     monthSel.value = `${now.getFullYear()}-${now.getMonth()}`;
                     currentTimeframe = monthSel.value;
@@ -1316,23 +1317,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Profile Settings Auto-Save ---
     function loadProfileSettings() {
-        if(profStyle && localStorage.getItem("tm_prof_style")) profStyle.value = localStorage.getItem("tm_prof_style");
-        if(profRisk && localStorage.getItem("tm_prof_risk")) profRisk.value = localStorage.getItem("tm_prof_risk");
-        
+        if (profStyle && localStorage.getItem("tm_prof_style")) profStyle.value = localStorage.getItem("tm_prof_style");
+        if (profRisk && localStorage.getItem("tm_prof_risk")) profRisk.value = localStorage.getItem("tm_prof_risk");
+
         const savedSessions = localStorage.getItem("tm_prof_session");
-        if(savedSessions) {
+        if (savedSessions) {
             const sessions = savedSessions.split(",");
             profSessionCheckboxes.forEach(cb => {
                 cb.checked = sessions.includes(cb.value);
             });
         }
     }
-    
+
     loadProfileSettings();
 
     const profileSelects = [profStyle, profRisk];
     profileSelects.forEach(select => {
-        if(select) {
+        if (select) {
             select.addEventListener("change", (e) => {
                 localStorage.setItem("tm_" + e.target.id.replace("-", "_"), e.target.value);
             });
@@ -1355,20 +1356,20 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderSymbolChart(symbolProfits, curSym) {
         const ctx = document.getElementById('symbolChart').getContext('2d');
         if (symbolChartInstance) symbolChartInstance.destroy();
-        
+
         // Sort symbols by absolute profit (descending) so biggest movers are at the top
         const sortedSymbols = Object.keys(symbolProfits).sort((a, b) => Math.abs(symbolProfits[b]) - Math.abs(symbolProfits[a]));
-        
+
         const labels = [];
         const data = [];
         const backgroundColors = [];
         const borderColors = [];
-        
+
         sortedSymbols.slice(0, 8).forEach(sym => { // Top 8 symbols
             labels.push(sym);
             const val = symbolProfits[sym];
             data.push(val);
-            if(val >= 0) {
+            if (val >= 0) {
                 backgroundColors.push('rgba(16, 185, 129, 0.5)'); // Green
                 borderColors.push('#10b981');
             } else {
@@ -1400,7 +1401,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         mode: 'index',
                         intersect: false,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return ` ${curSym}${context.parsed.x.toFixed(2)}`;
                             }
                         }
@@ -1434,10 +1435,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const note = inputEl.value.trim();
         const key = localStorage.getItem("tm_license_key");
         if (!key) return;
-        
+
         const origBorder = inputEl.style.borderColor;
         inputEl.style.borderColor = "#f59e0b"; // Yellow = saving
-        
+
         fetch(`${API_URL}?action=notes`, {
             method: "POST",
             headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
@@ -1466,28 +1467,28 @@ document.addEventListener("DOMContentLoaded", () => {
     window.tradesPerPage = parseInt(localStorage.getItem("tm_trades_limit")) || 10;
     window._lastTradesArray = null;
 
-    window.renderTradesTable = function(trades, curSym) {
+    window.renderTradesTable = function (trades, curSym) {
         const tbody = document.querySelector("#trades-table tbody");
         const paginationContainer = document.getElementById("trades-pagination");
         if (!tbody) return;
-        
+
         if (window._lastTradesArray !== trades) {
             window.currentTradesPage = 1;
             window._lastTradesArray = trades;
         }
-        
+
         tbody.innerHTML = "";
-        
+
         const totalTrades = trades.length;
         const totalPages = Math.ceil(totalTrades / window.tradesPerPage) || 1;
-        
+
         if (window.currentTradesPage > totalPages) window.currentTradesPage = totalPages;
         if (window.currentTradesPage < 1) window.currentTradesPage = 1;
-        
+
         const startIndex = (window.currentTradesPage - 1) * window.tradesPerPage;
         const endIndex = startIndex + window.tradesPerPage;
         const pageTrades = trades.slice(startIndex, endIndex);
-        
+
         if (paginationContainer) {
             paginationContainer.innerHTML = "";
             if (totalPages > 1) {
@@ -1499,7 +1500,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 prevBtn.disabled = window.currentTradesPage === 1;
                 if (window.currentTradesPage === 1) prevBtn.style.opacity = "0.5";
                 prevBtn.onclick = () => { window.currentTradesPage--; window.renderTradesTable(trades, curSym); };
-                
+
                 const nextBtn = document.createElement("button");
                 nextBtn.className = "secondary-btn";
                 nextBtn.style.padding = "2px 8px";
@@ -1508,18 +1509,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 nextBtn.disabled = window.currentTradesPage === totalPages;
                 if (window.currentTradesPage === totalPages) nextBtn.style.opacity = "0.5";
                 nextBtn.onclick = () => { window.currentTradesPage++; window.renderTradesTable(trades, curSym); };
-                
+
                 const pageInfo = document.createElement("span");
                 pageInfo.style.fontSize = "0.8rem";
                 pageInfo.style.color = "var(--text-muted)";
                 pageInfo.innerText = `Seite ${window.currentTradesPage} / ${totalPages}`;
-                
+
                 paginationContainer.appendChild(prevBtn);
                 paginationContainer.appendChild(pageInfo);
                 paginationContainer.appendChild(nextBtn);
             }
         }
-        
+
         pageTrades.forEach(t => {
             const tr = document.createElement("tr");
             const sideStr = t.side || "";
@@ -1537,7 +1538,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? `<span class="strategy-badge" style="--s-color:${stratColor};--s-rgb:${stratRgb};" data-ticket="${t.ticket}" onclick="openStrategyPicker(this, '${t.ticket}')">${assignedStrat.name}</span>`
                 : `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${t.ticket}')">+ Assign</button>`;
             const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
-            
+
             const imgData = window.tradeImagesMap ? (window.tradeImagesMap[t.ticket] || {}) : {};
             const beforeUrl = imgData.before || "";
             const afterUrl = imgData.after || "";
@@ -1616,12 +1617,12 @@ document.addEventListener("DOMContentLoaded", () => {
         let losses = 0;
         let grossProfit = 0;
         let grossLoss = 0;
-        
+
         let totalHoldWins = 0;
         let totalHoldLosses = 0;
         let peakBalance = 0;
         let maxDrawdown = 0;
-        
+
         let balance = 0;
         const equityCurve = [0];
         const labels = ["Start"];
@@ -1629,7 +1630,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const ascendingTrades = [...trades].reverse();
         let revengeTrades = 0;
         const heatmapData = new Array(7).fill(0).map(() => new Array(24).fill(0));
-        
+
         let longWins = 0, longLosses = 0;
         let shortWins = 0, shortLosses = 0;
         const symbolProfits = {};
@@ -1638,7 +1639,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const netP = parseFloat(trade.net_profit);
             const grossP = trade.gross_profit !== undefined ? trade.gross_profit : netP;
             const holdSec = trade.close_time - trade.open_time;
-            
+
             // Revenge trade check
             if (index > 0) {
                 const prevTrade = ascendingTrades[index - 1];
@@ -1647,19 +1648,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     revengeTrades++;
                 }
             }
-            
+
             // Heatmap aggregation
             const date = new Date(trade.close_time * 1000);
             heatmapData[date.getUTCDay()][date.getUTCHours()] += grossP;
-            
+
             totalProfit += netP;
-            
+
             const isBuy = trade.side.startsWith("Buy");
             const isSell = trade.side.startsWith("Sell");
-            
+
             if (!symbolProfits[trade.symbol]) symbolProfits[trade.symbol] = 0;
             symbolProfits[trade.symbol] += netP;
-            
+
             // Win Rate and Profit Factor based on Gross Profit (Market Movement) to match MT5
             if (grossP > 0) {
                 wins++;
@@ -1687,18 +1688,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const totalWinLoss = wins + losses;
         const winrate = totalWinLoss > 0 ? (wins / totalWinLoss) * 100 : 0;
         const profitFactor = grossLoss === 0 ? grossProfit : (grossProfit / grossLoss);
-        
+
         const avgWin = wins > 0 ? (grossProfit / wins) : 0;
         const avgLoss = losses > 0 ? (grossLoss / losses) : 0;
-        
+
         const longWinrate = (longWins + longLosses) > 0 ? (longWins / (longWins + longLosses)) * 100 : 0;
         const shortWinrate = (shortWins + shortLosses) > 0 ? (shortWins / (shortWins + shortLosses)) * 100 : 0;
-        
+
         let edgeText = "-";
         if (longWinrate > shortWinrate + 5) edgeText = `Long (+${(longWinrate - shortWinrate).toFixed(0)}%)`;
         else if (shortWinrate > longWinrate + 5) edgeText = `Short (+${(shortWinrate - longWinrate).toFixed(0)}%)`;
         else if (totalWinLoss > 0) edgeText = `Balanced`;
-        
+
         const avgHoldWin = wins > 0 ? (totalHoldWins / wins) : 0;
         const avgHoldLoss = losses > 0 ? (totalHoldLosses / losses) : 0;
 
@@ -1707,7 +1708,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
         document.getElementById("kpi-trades").innerText = trades.length;
         updateKPI("kpi-pf", profitFactor.toFixed(2), profitFactor >= 1.5);
-        
+
         // Advanced UI
         updateKPI("kpi-edge", edgeText, true);
         updateKPI("kpi-hold-win", formatHoldTime(avgHoldWin), true);
@@ -1723,7 +1724,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("kpi-discipline").style.color = discScore > 80 ? "#10b981" : (discScore > 50 ? "#f59e0b" : "#ef4444");
 
         // Best / Worst Trading Day KPI
-        const dayTotals = heatmapData.map(hours => hours.reduce((a,b)=>a+b, 0));
+        const dayTotals = heatmapData.map(hours => hours.reduce((a, b) => a + b, 0));
         let bestDayIdx = 1, worstDayIdx = 1;
         for (let i = 1; i < 7; i++) {
             if (dayTotals[i] > dayTotals[bestDayIdx]) bestDayIdx = i;
@@ -1731,13 +1732,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (dayTotals[0] > dayTotals[bestDayIdx]) bestDayIdx = 0;
         if (dayTotals[0] < dayTotals[worstDayIdx]) worstDayIdx = 0;
-        
+
         const curLang = localStorage.getItem("tm_global_lang") || "de";
         const dayNames = (i18n[curLang] && i18n[curLang].days) ? i18n[curLang].days : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        
+
         const bestDayText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
         const worstDayText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
-        
+
         document.getElementById("kpi-best-day").innerText = bestDayText;
         document.getElementById("kpi-worst-day").innerText = worstDayText;
 
@@ -1791,48 +1792,48 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderCalendarAndMonthly(trades, curSym) {
         const dailyProfit = {};
         const monthlyProfit = {};
-        
+
         trades.forEach(t => {
             const date = new Date(t.close_time * 1000);
             const y = date.getUTCFullYear();
             const m = date.getUTCMonth(); // 0-11
             const d = date.getUTCDate();
-            
+
             const dayKey = `${y}-${m}-${d}`;
             const monthKey = `${y}-${m}`;
-            
-            if(!dailyProfit[dayKey]) dailyProfit[dayKey] = 0;
+
+            if (!dailyProfit[dayKey]) dailyProfit[dayKey] = 0;
             dailyProfit[dayKey] += parseFloat(t.net_profit);
-            
-            if(!monthlyProfit[monthKey]) monthlyProfit[monthKey] = 0;
+
+            if (!monthlyProfit[monthKey]) monthlyProfit[monthKey] = 0;
             monthlyProfit[monthKey] += parseFloat(t.net_profit);
         });
-        
+
         // --- Monthly Overview ---
         const monthlyContainer = document.getElementById("monthly-overview-container");
-        if(monthlyContainer) {
+        if (monthlyContainer) {
             const cacheKey = trades.length + "_" + curSym;
-            
+
             if (monthlyContainer.dataset.cacheKey !== cacheKey) {
                 monthlyContainer.innerHTML = '<div id="monthly-overview-content" style="transform-origin: top center; width: 100%;"></div>';
                 const innerContainer = document.getElementById("monthly-overview-content");
-                const years = [...new Set(Object.keys(monthlyProfit).map(k => parseInt(k.split('-')[0])))].sort((a,b) => b - a);
-                
+                const years = [...new Set(Object.keys(monthlyProfit).map(k => parseInt(k.split('-')[0])))].sort((a, b) => b - a);
+
                 const monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
-                
+
                 const now = new Date();
                 const currY = now.getFullYear();
                 const currM = now.getMonth();
-                
+
                 years.forEach(year => {
                     const yearDiv = document.createElement("div");
                     yearDiv.className = "monthly-year-group";
                     yearDiv.innerHTML = `<div class="monthly-year-title">${year}</div><div class="monthly-grid"></div>`;
                     const grid = yearDiv.querySelector(".monthly-grid");
-                    
-                    for(let m = 0; m < 12; m++) {
+
+                    for (let m = 0; m < 12; m++) {
                         const mKey = `${year}-${m}`;
-                        if(monthlyProfit[mKey] !== undefined) {
+                        if (monthlyProfit[mKey] !== undefined) {
                             const val = monthlyProfit[mKey];
                             const isCurrent = (year === currY && m === currM);
                             const cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
@@ -1845,27 +1846,27 @@ document.addEventListener("DOMContentLoaded", () => {
                             `;
                         }
                     }
-                    if(grid.innerHTML !== "") {
+                    if (grid.innerHTML !== "") {
                         innerContainer.appendChild(yearDiv);
                     }
                 });
-                
+
                 // Add click listeners to month cards
                 innerContainer.querySelectorAll(".clickable-month").forEach(card => {
                     card.addEventListener("click", () => {
                         const mKey = card.getAttribute("data-month");
                         currentTimeframe = mKey;
-                        
+
                         document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-                        
+
                         const monthSel = document.getElementById("month-selector");
                         if (monthSel) monthSel.value = mKey;
-                        
+
                         const key = localStorage.getItem("tm_license_key");
                         if (key) loadDashboard(key);
                     });
                 });
-                
+
                 // Auto-scale content to fit container height
                 setTimeout(() => {
                     const cHeight = monthlyContainer.clientHeight || 460;
@@ -1881,10 +1882,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         innerContainer.style.transformOrigin = `top left`;
                     }
                 }, 50);
-                
+
                 monthlyContainer.dataset.cacheKey = cacheKey;
             }
-            
+
             // ALWAYS UPDATE ACTIVE CLASS
             const innerContainer = document.getElementById("monthly-overview-content");
             if (innerContainer) {
@@ -1897,63 +1898,63 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
         }
-        
+
         // --- Daily Calendar ---
         const calContainer = document.getElementById("daily-calendar-container");
         const monthTitle = document.getElementById("cal-month-title");
-        if(calContainer && monthTitle) {
+        if (calContainer && monthTitle) {
             calContainer.innerHTML = "";
             let y, m;
             const nowD = new Date();
-            
+
             if (currentTimeframe && currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
                 [y, m] = currentTimeframe.split('-').map(Number);
             } else {
                 y = nowD.getFullYear();
                 m = nowD.getMonth();
             }
-            
+
             const fullMonthNames = ["JANUAR", "FEBRUAR", "MÄRZ", "APRIL", "MAI", "JUNI", "JULI", "AUGUST", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DEZEMBER"];
             monthTitle.innerText = `${fullMonthNames[m]} ${y}`;
-            
+
             let gridHtml = `<div class="cal-grid">`;
             const daysHeader = ["M", "D", "M", "D", "F", "S", "S"];
             daysHeader.forEach(dh => {
                 gridHtml += `<div class="cal-header">${dh}</div>`;
             });
-            
+
             const firstDay = new Date(y, m, 1).getDay(); // 0 (Sun) - 6 (Sat)
             let startOffset = firstDay === 0 ? 6 : firstDay - 1; // Make Monday 0
             const daysInMonth = new Date(y, m + 1, 0).getDate();
-            
-            for(let i = 0; i < startOffset; i++) {
+
+            for (let i = 0; i < startOffset; i++) {
                 gridHtml += `<div class="cal-day empty"></div>`;
             }
-            
-            for(let d = 1; d <= daysInMonth; d++) {
+
+            for (let d = 1; d <= daysInMonth; d++) {
                 const dayKey = `${y}-${m}-${d}`;
-                const filterKey = `${y}-${String(m+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const filterKey = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const val = dailyProfit[dayKey];
                 let content = `<span class="cal-date">${d}</span>`;
                 let cls = "clickable-cal-day";
-                if(val !== undefined) {
+                if (val !== undefined) {
                     cls += val > 0 ? " positive" : (val < 0 ? " negative" : "");
                     const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
                     content += `<span class="cal-val">${displayVal}</span>`;
                 }
                 gridHtml += `<div class="cal-day ${cls}" data-datekey="${filterKey}" style="cursor: pointer;">${content}</div>`;
             }
-            
+
             gridHtml += `</div>`;
             calContainer.innerHTML = gridHtml;
-            
+
             // Add click listeners to calendar days
             calContainer.querySelectorAll(".clickable-cal-day").forEach(dayEl => {
                 dayEl.addEventListener("click", () => {
                     // Remove active styling from all days
                     calContainer.querySelectorAll(".clickable-cal-day").forEach(el => el.style.border = "");
                     dayEl.style.border = "2px solid var(--primary-color)";
-                    
+
                     const dKey = dayEl.getAttribute("data-datekey");
                     const dayTrades = trades.filter(t => {
                         const tDate = new Date(t.close_time * 1000);
@@ -1963,7 +1964,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const tKey = `${ty}-${String(tm).padStart(2, '0')}-${String(td).padStart(2, '0')}`;
                         return tKey === dKey;
                     });
-                    
+
                     if (typeof window.renderTradesTable === "function") {
                         window.renderTradesTable(dayTrades, curSym);
                         const tradesTable = document.querySelector("#trades-table");
@@ -1980,7 +1981,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                         }
                     }
-                    
+
                     // Update AI Scope Dropdown
                     const scopeDayOpt = document.getElementById("ai-scope-day");
                     const aiScopeSel = document.getElementById("ai-scope");
@@ -2002,20 +2003,20 @@ document.addEventListener("DOMContentLoaded", () => {
         tbody.innerHTML = "";
 
         const daysMap = {};
-        
+
         trades.forEach(t => {
             const dateObj = new Date(t.close_time * 1000);
             const y = dateObj.getUTCFullYear();
             const m = dateObj.getUTCMonth() + 1;
             const d = dateObj.getUTCDate();
-            
+
             const dateKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            
+
             if (!daysMap[dateKey]) {
                 daysMap[dateKey] = {
                     dateKey: dateKey,
                     dateStr: `${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}.${y}`,
-                    timestamp: Date.UTC(y, m-1, d),
+                    timestamp: Date.UTC(y, m - 1, d),
                     netProfit: 0,
                     grossProfit: 0,
                     grossLoss: 0,
@@ -2032,17 +2033,17 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 daysMap[dateKey].startingBalance = t.balance_before;
             }
-            
+
             const day = daysMap[dateKey];
             const netP = parseFloat(t.net_profit);
             const grossP = t.gross_profit !== undefined ? parseFloat(t.gross_profit) : netP;
-            
+
             day.netProfit += netP;
             day.tradesCount++;
-            
+
             if (t.side && t.side.startsWith("Buy")) day.longs++;
             if (t.side && t.side.startsWith("Sell")) day.shorts++;
-            
+
             if (grossP > 0) {
                 day.grossProfit += grossP;
                 day.wins++;
@@ -2060,27 +2061,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (netP < day.maxLoss) day.maxLoss = netP;
                 }
             }
-            
+
             if (t.commission) {
                 day.commission += parseFloat(t.commission);
             }
         });
-        
+
         const sortedDays = Object.values(daysMap).sort((a, b) => b.timestamp - a.timestamp);
-        
+
         if (sortedDays.length === 0) {
             tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding: 20px; color: var(--text-muted);" data-i18n="no_trades_found">No trades found for this period.</td></tr>`;
             return;
         }
-        
+
         sortedDays.forEach(day => {
             const tr = document.createElement("tr");
-            
+
             const pf = day.grossLoss === 0 ? (day.grossProfit > 0 ? day.grossProfit : 0) : (day.grossProfit / day.grossLoss);
             const winRate = day.tradesCount > 0 ? ((day.wins / day.tradesCount) * 100) : 0;
             const avgWin = day.wins > 0 ? (day.grossProfit / day.wins) : 0;
             const avgLoss = day.losses > 0 ? (day.grossLoss / day.losses) : 0;
-            
+
             let percentGainDisplay = "-";
             let percentGainColor = "";
             if (day.startingBalance > 0) {
@@ -2088,9 +2089,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 percentGainDisplay = `${pGain > 0 ? '+' : ''}${pGain.toFixed(2)}%`;
                 percentGainColor = pGain > 0 ? "text-success" : (pGain < 0 ? "text-danger" : "");
             }
-            
+
             const pClass = day.netProfit > 0 ? "text-success" : (day.netProfit < 0 ? "text-danger" : "");
-            
+
             tr.innerHTML = `
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.dateStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${pClass}">${day.netProfit > 0 ? '+' : ''}${curSym}${day.netProfit.toFixed(2)}</td>
@@ -2108,15 +2109,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="secondary-btn open-journal-btn" data-datekey="${day.dateKey}" data-datestr="${day.dateStr}" style="padding: 4px 8px; font-size: 0.8rem;" title="Mental Journal"><i class="ph ph-book-open"></i></button>
                 </td>
             `;
-            
+
             tr.style.cursor = "pointer";
             tr.addEventListener("click", (e) => {
                 if (e.target.closest('.open-journal-btn')) return;
-                
+
                 // Remove active styling from all rows
                 tbody.querySelectorAll("tr").forEach(r => r.style.backgroundColor = "");
                 tr.style.backgroundColor = "rgba(255,255,255,0.05)";
-                
+
                 const dayTrades = trades.filter(t => {
                     const tDate = new Date(t.close_time * 1000);
                     const y = tDate.getUTCFullYear();
@@ -2125,7 +2126,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const tKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     return tKey === day.dateKey;
                 });
-                
+
                 if (typeof window.renderTradesTable === "function") {
                     window.renderTradesTable(dayTrades, curSym);
                     const tradesTable = document.querySelector("#trades-table");
@@ -2140,7 +2141,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
                 }
-                
+
                 // Update AI Scope Dropdown
                 const scopeDayOpt = document.getElementById("ai-scope-day");
                 const aiScopeSel = document.getElementById("ai-scope");
@@ -2150,7 +2151,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     aiScopeSel.value = "day";
                 }
             });
-            
+
             tbody.appendChild(tr);
         });
 
@@ -2167,11 +2168,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const grid = document.getElementById("heatmap-grid");
         if (!grid) return;
         grid.innerHTML = "";
-        
+
         const hmLang = localStorage.getItem("tm_global_lang") || "de";
         const fullDays = (i18n[hmLang] && i18n[hmLang].days) ? i18n[hmLang].days : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const days = fullDays.map(d => d.substring(0, 3));
-        
+
         // Add Header Row
         grid.appendChild(document.createElement("div")); // Empty top-left
         for (let h = 0; h < 24; h++) {
@@ -2180,13 +2181,13 @@ document.addEventListener("DOMContentLoaded", () => {
             hDiv.style.textAlign = "center";
             grid.appendChild(hDiv);
         }
-        
+
         for (let d = 0; d < 7; d++) {
             const rowLabel = document.createElement("div");
             rowLabel.className = "heatmap-label";
             rowLabel.innerText = days[d];
             grid.appendChild(rowLabel);
-            
+
             for (let h = 0; h < 24; h++) {
                 const val = data[d][h];
                 const cell = document.createElement("div");
@@ -2216,7 +2217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderChart(labels, data) {
         const ctx = document.getElementById('equityChart').getContext('2d');
-        
+
         if (equityChartInstance) {
             equityChartInstance.destroy();
         }
@@ -2297,7 +2298,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const selectedSessions = Array.from(profSessionCheckboxes).filter(c => c.checked).map(c => c.value);
                 const now = new Date();
                 const todayStartTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000);
-                
+
                 let tradesToAnalyze = currentFilteredTrades;
                 const aiScopeVal = document.getElementById("ai-scope")?.value;
                 if (aiScopeVal === "week") {
@@ -2312,7 +2313,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const dKey = scopeDayOpt.getAttribute("data-datekey");
                         tradesToAnalyze = currentFilteredTrades.filter(t => {
                             const d = new Date(t.close_time * 1000);
-                            return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}` === dKey;
+                            return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}` === dKey;
                         });
                     } else {
                         // fallback to today
@@ -2399,7 +2400,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     });
                 }
-                
+
                 if (data.limitLeft !== undefined) {
                     document.getElementById("ai-limit").innerText = `${data.limitLeft} analyzes left today`;
                 }
@@ -2426,8 +2427,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const settings = await response.json();
                 const ksToggle = document.getElementById("kill-switch-toggle");
                 const ksLimit = document.getElementById("kill-switch-limit");
-                if(ksToggle) ksToggle.checked = settings.kill_switch_active === 1;
-                if(ksLimit) ksLimit.value = settings.max_daily_loss;
+                if (ksToggle) ksToggle.checked = settings.kill_switch_active === 1;
+                if (ksLimit) ksLimit.value = settings.max_daily_loss;
             }
         } catch (e) {
             console.error("Failed to load settings", e);
@@ -2440,8 +2441,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
                 body: JSON.stringify({
-                        account_id: key,
-                        kill_switch_active: document.getElementById("kill-switch-toggle").checked,
+                    account_id: key,
+                    kill_switch_active: document.getElementById("kill-switch-toggle").checked,
                     max_daily_loss: parseFloat(document.getElementById("kill-switch-limit").value) || 0
                 })
             });
@@ -2487,15 +2488,15 @@ document.addEventListener("DOMContentLoaded", () => {
     window.loadSettings = loadSettings;
 
     // --- Journal Modal Logic ---
-    window.openJournalModal = async function(dateKey, dateStr) {
+    window.openJournalModal = async function (dateKey, dateStr) {
         const modal = document.getElementById("journal-modal");
         const title = document.getElementById("journal-modal-title");
         const textObj = document.getElementById("journal-modal-text");
         const status = document.getElementById("journal-modal-status");
         const saveBtn = document.getElementById("journal-modal-save");
-        
+
         if (!modal || !title || !textObj || !saveBtn) return;
-        
+
         const key = localStorage.getItem("tm_license_key");
         if (!key) return;
 
@@ -2504,7 +2505,7 @@ document.addEventListener("DOMContentLoaded", () => {
         textObj.disabled = true;
         status.innerText = "";
         modal.classList.remove("hidden");
-        
+
         // Fetch journal for this specific day
         try {
             const res = await fetch(`${API_URL}?action=journal&account_id=${encodeURIComponent(key)}&date=${dateKey}`, {
@@ -2524,7 +2525,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Remove old event listeners to prevent duplicate saves
         const newSaveBtn = saveBtn.cloneNode(true);
         saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-        
+
         newSaveBtn.addEventListener("click", async () => {
             newSaveBtn.innerText = "Saving...";
             status.style.color = "var(--success)";
@@ -2553,19 +2554,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     // --- New Features Logic ---
-    window.runCompoundCalc = function() {
+    window.runCompoundCalc = function () {
         const start = parseFloat(document.getElementById("calc-start")?.value) || 0;
         const rate = parseFloat(document.getElementById("calc-rate")?.value) || 0;
         const days = parseInt(document.getElementById("calc-days")?.value) || 0;
-        
+
         let endCapital = start;
         for (let i = 0; i < days; i++) {
             endCapital += (endCapital * (rate / 100));
         }
-        
+
         const netProfit = endCapital - start;
         const curSym = (localStorage.getItem("tm_license_key") || "").toLowerCase().includes("usd") ? "$" : "€";
-        
+
         const resEl = document.getElementById("calc-result-val");
         if (resEl) resEl.innerText = `${curSym}${endCapital.toFixed(2)}`;
         const profEl = document.getElementById("calc-profit-val");
@@ -2576,9 +2577,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("calc-start")?.addEventListener("input", window.runCompoundCalc);
     document.getElementById("calc-rate")?.addEventListener("input", window.runCompoundCalc);
     document.getElementById("calc-days")?.addEventListener("input", window.runCompoundCalc);
-    
+
     document.getElementById("watchdog-daily-cost")?.addEventListener("input", () => {
-        if(typeof calculateKPIs === "function" && currentFilteredTrades) {
+        if (typeof calculateKPIs === "function" && currentFilteredTrades) {
             calculateKPIs(currentFilteredTrades);
         }
     });
@@ -2607,9 +2608,9 @@ function getStrategyColor(id) {
 }
 
 function hexToRgb(hex) {
-    const r = parseInt(hex.slice(1,3),16);
-    const g = parseInt(hex.slice(3,5),16);
-    const b = parseInt(hex.slice(5,7),16);
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
     return `${r},${g},${b}`;
 }
 
@@ -2692,7 +2693,8 @@ function renderStrategyPerformance(trades) {
             window.coachStats.strategyPerformance[s.name] = { profit, trades: stratTrades.length, winrate: wr };
         }
 
-        allCards.push({ profit, html: `
+        allCards.push({
+            profit, html: `
             <div class="strategy-perf-card" style="--s-color:${color};--s-rgb:${rgb}; border-color: rgba(${rgb},0.3);">
                 <div class="strategy-perf-card-name">${s.name}</div>
                 <div class="strategy-perf-card-profit" style="color:${pColor};">${profit >= 0 ? '+' : ''}${curSym}${profit.toFixed(2)}</div>
@@ -2777,7 +2779,7 @@ async function saveStrategy() {
         document.getElementById("strategy-modal").classList.add("hidden");
         renderStrategyCards();
         renderStrategyPerformance(currentFilteredTrades);
-    } catch(e) {
+    } catch (e) {
         console.error("Strategy save error", e);
     }
 }
@@ -2880,24 +2882,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const modal = document.getElementById("coach-archive-modal");
         const list = document.getElementById("coach-archive-list");
         if (!modal || !list) return;
-        
+
         modal.classList.remove("hidden");
         list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">Loading archives...</div>';
-        
+
         try {
             const key = localStorage.getItem("tm_license_key");
             const res = await fetch(`${API_URL}?action=coach_archive&account_id=${encodeURIComponent(key)}`, {
                 headers: { "Authorization": localStorage.getItem("tm_master_token") }
             });
             const archives = await res.json();
-            
+
             if (archives.length === 0) {
                 list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">No archived analyses found.</div>';
             } else {
                 list.innerHTML = "";
                 archives.forEach(arch => {
                     const dateObj = new Date(arch.created_at * 1000);
-                    const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth()+1).padStart(2, '0')}.${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                    const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
                     list.insertAdjacentHTML("beforeend", `
                         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-dark); padding: 15px; border-radius: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -2934,31 +2936,31 @@ async function initNewsTicker() {
         const response = await fetch(workerURL + "?action=news");
         if (!response.ok) throw new Error("Failed to fetch news");
         const events = await response.json();
-        
+
         const today = new Date();
-        const todayStr = today.toISOString().split("T")[0]; 
-        
+        const todayStr = today.toISOString().split("T")[0];
+
         let newsHtml = "";
-        
+
         events.forEach(ev => {
             if (!ev.date) return;
             const evDateStr = ev.date.split("T")[0];
             if (evDateStr === todayStr && (ev.impact === "High" || ev.impact === "Medium")) {
                 const dateObj = new Date(ev.date);
-                const time = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 const impactClass = ev.impact === "High" ? "impact-high" : "impact-medium";
                 const icon = ev.impact === "High" ? "🔴" : "🟠";
                 newsHtml += `<span class="${impactClass}">${icon} [${time}] ${ev.country} - ${ev.title}</span>`;
             }
         });
-        
+
         if (!newsHtml) {
             newsHtml = "<span style='color: var(--text-muted);'>No high or medium impact news for today.</span>";
         }
-        
+
         // Repeat content to ensure continuous smooth scrolling
         ticker.innerHTML = newsHtml.repeat(8);
-        
+
     } catch (err) {
         console.error("News fetch error:", err);
         ticker.innerHTML = "<span>Could not load Market Ticker.</span>";
@@ -2967,7 +2969,7 @@ async function initNewsTicker() {
 
 window.selectedAnalyzerTag = window.selectedAnalyzerTag || null;
 
-window.renderTagAnalyzer = function(trades, curSym) {
+window.renderTagAnalyzer = function (trades, curSym) {
     const barContainer = document.getElementById("tag-analyzer-bar");
     const feedContainer = document.getElementById("tag-analyzer-feed");
     if (!barContainer || !feedContainer) return;
@@ -3001,7 +3003,7 @@ window.renderTagAnalyzer = function(trades, curSym) {
 
     // Render Tag Buttons
     barContainer.innerHTML = "";
-    
+
     if (uniqueTagsSorted.length === 0) {
         barContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">No tags found. Add hashtags (e.g. #fomo, #overtrading) in the Trades tab to analyze them here.</div>`;
         feedContainer.innerHTML = "";
@@ -3067,20 +3069,20 @@ window.renderTagAnalyzer = function(trades, curSym) {
         const highlightedNote = note.replace(/(#[a-zA-Z0-9_\u00C0-\u00FF]+)/g, '<span style="color: #38bdf8; font-weight: 500;">$1</span>');
 
         const dateObj = new Date(t.close_time * 1000);
-        const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth()+1).padStart(2, '0')}.${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+        const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
 
         // Strategy
         const strategyId = window.tradeStrategyMap ? (window.tradeStrategyMap[t.ticket] || "") : "";
         const stratDefs = window.strategyDefs || [];
         const assignedStrat = stratDefs.find(s => s.id === strategyId);
-        const stratHtml = assignedStrat 
+        const stratHtml = assignedStrat
             ? `<span style="font-size: 0.75rem; padding: 2px 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 4px; color: #7dd3fc; margin-left: 8px;">${assignedStrat.name}</span>`
             : "";
 
         const card = document.createElement("div");
         card.className = "glass-panel tag-trade-card";
         card.style.cssText = "padding: 15px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-dark); border-radius: 8px; background: rgba(0,0,0,0.15);";
-        
+
         // Image Preview elements
         let imagesHtml = "";
         if (beforeUrl || afterUrl) {
@@ -3132,7 +3134,7 @@ function updateFocusModeUI() {
     const focusBtn = document.getElementById("focus-btn");
     const focusBtnExit = document.getElementById("focus-btn-exit");
     if (!dashboard) return;
-    
+
     if (window.focusModeActive) {
         dashboard.classList.add("focus-mode-active");
         if (focusBtn) {
@@ -3159,7 +3161,7 @@ function updateFocusModeUI() {
 document.addEventListener("DOMContentLoaded", () => {
     initNewsTicker();
     updateFocusModeUI();
-    
+
     const focusBtn = document.getElementById("focus-btn");
     const focusBtnExit = document.getElementById("focus-btn-exit");
     const toggleFocus = () => {
@@ -3173,7 +3175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- SIDEBAR COLLAPSE / EXPAND LOGIC ---
     const sidebar = document.getElementById("sidebar");
     const sidebarToggle = document.getElementById("sidebar-toggle");
-    
+
     if (sidebar && sidebarToggle) {
         // Load initial state
         const isCollapsed = localStorage.getItem("tm_sidebar_collapsed") === "true";
@@ -3184,41 +3186,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 toggleIcon.className = "ph ph-caret-double-right";
             }
         }
-        
+
         sidebarToggle.addEventListener("click", () => {
             const collapsed = sidebar.classList.toggle("collapsed");
             localStorage.setItem("tm_sidebar_collapsed", collapsed);
             const toggleIcon = sidebarToggle.querySelector("i");
             if (toggleIcon) {
-                toggleIcon.className = collapsed 
-                    ? "ph ph-caret-double-right" 
+                toggleIcon.className = collapsed
+                    ? "ph ph-caret-double-right"
                     : "ph ph-caret-double-left";
             }
         });
     }
-    
+
     // --- TAB SWITCHING LOGIC ---
     const navItems = document.querySelectorAll(".sidebar-nav-item");
     const tabContents = document.querySelectorAll(".tab-content");
-    
+
     navItems.forEach(item => {
         item.addEventListener("click", (e) => {
             e.preventDefault();
-            
+
             // Remove active class from all items and contents
             navItems.forEach(nav => nav.classList.remove("active"));
             tabContents.forEach(content => content.classList.remove("active"));
-            
+
             // Add active class to clicked item
             item.classList.add("active");
-            
+
             // Show corresponding tab content
             const tabId = item.getAttribute("data-tab");
             const targetTab = document.getElementById(tabId);
             if (targetTab) {
                 targetTab.classList.add("active");
             }
-            
+
             // Toggle timeframe filters visibility: only shown on DASHBOARD page
             const timeframeFilters = document.getElementById("timeframe-filters");
             if (timeframeFilters) {
@@ -3228,7 +3230,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     timeframeFilters.style.display = "none";
                 }
             }
-            
+
             if (tabId === "tab-tags" && typeof window.renderTagAnalyzer === "function" && window.currentAllTrades) {
                 window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
             }
