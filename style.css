@@ -770,6 +770,17 @@ th {
 /* When focus mode is active */
 .focus-mode-active #focus-kpi-row {
     display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 15px;
+}
+.focus-mode-active #focus-kpi-row .kpi-card {
+    padding: 15px 10px;
+}
+.focus-mode-active #focus-kpi-row h3 {
+    font-size: 1rem !important;
+}
+.focus-mode-active #focus-kpi-row p.kpi-value {
+    font-size: 1.4rem !important;
 }
 .focus-mode-active #news-ticker-panel {
     display: flex !important;
