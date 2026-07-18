@@ -503,8 +503,8 @@ function updateTradeImagesBackend(ticket) {
         headers: { "Content-Type": "application/json", "Authorization": token },
         body: JSON.stringify({ ticket: ticket, img_before: imgData.before, img_after: imgData.after })
     }).then(r => r.json()).then(d => {
-        if (d.success && typeof renderTradesTable === "function" && window.currentFilteredTrades) {
-            renderTradesTable(window.currentFilteredTrades, window.currentCurSym);
+        if (d.success && typeof renderTradesTable === "function" && currentFilteredTrades) {
+            renderTradesTable(currentFilteredTrades, window.currentCurSym);
         }
     }).catch(e => console.error(e));
 }
