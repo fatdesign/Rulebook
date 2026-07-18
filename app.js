@@ -1043,6 +1043,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function formatHoldTime(sec) {
+        if (sec < 60) return `${Math.round(sec)}s`;
+        const m = Math.floor(sec / 60);
+        if (m < 60) return `${m}m`;
+        const h = Math.floor(m / 60);
+        const rm = m % 60;
+        return `${h}h ${rm}m`;
+    }
+
     function saveTradeNote(inputEl) {
         const ticket = inputEl.getAttribute("data-ticket");
         const note = inputEl.value.trim();
@@ -1211,15 +1220,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const avgHoldWin = wins > 0 ? (totalHoldWins / wins) : 0;
         const avgHoldLoss = losses > 0 ? (totalHoldLosses / losses) : 0;
 
-        function formatHoldTime(sec) {
-            if (sec < 60) return `${Math.round(sec)}s`;
-            const m = Math.floor(sec / 60);
-            if (m < 60) return `${m}m`;
-            const h = Math.floor(m / 60);
-            const rm = m % 60;
-            return `${h}h ${rm}m`;
-        }
-
         // Update UI
         updateKPI("kpi-profit", `${curSym}${totalProfit.toFixed(2)}`, totalProfit >= 0);
         updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
@@ -1256,10 +1256,15 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("kpi-worst-day").innerText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
 
         // Reset trades table title
-        const tableContainer = document.querySelector("#trades-table").parentElement;
-        const titleSpan = tableContainer.querySelector("h3 span");
-        if (titleSpan) {
-            titleSpan.innerHTML = i18n[curLang] && i18n[curLang].trades_title ? i18n[curLang].trades_title : "Recent Trades &amp; Tags";
+        const tradesTable = document.querySelector("#trades-table");
+        if (tradesTable) {
+            const glassPanel = tradesTable.closest(".glass-panel");
+            if (glassPanel) {
+                const titleSpan = glassPanel.querySelector("h3 span");
+                if (titleSpan) {
+                    titleSpan.innerHTML = i18n[curLang] && i18n[curLang].trades_title ? i18n[curLang].trades_title : "Recent Trades &amp; Tags";
+                }
+            }
         }
 
         // Trades Table rendering
@@ -1562,13 +1567,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 if (typeof window.renderTradesTable === "function") {
                     window.renderTradesTable(dayTrades, curSym);
-                    const tableContainer = document.querySelector("#trades-table").parentElement;
-                    tableContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Update table title to show the filter
-                    const titleSpan = tableContainer.querySelector("h3 span");
-                    if (titleSpan) {
-                        titleSpan.innerHTML = `Recent Trades &amp; Tags <span style="color:var(--text-muted);font-size:0.85rem;margin-left:10px;">(Filtered: ${day.dateStr})</span>`;
+                    const tradesTable = document.querySelector("#trades-table");
+                    if (tradesTable) {
+                        const glassPanel = tradesTable.closest(".glass-panel");
+                        if (glassPanel) {
+                            const titleSpan = glassPanel.querySelector("h3 span");
+                            if (titleSpan) {
+                                titleSpan.innerHTML = `Recent Trades &amp; Tags <span style="color:var(--text-muted);font-size:0.85rem;margin-left:10px;">(Filtered: ${day.dateStr})</span>`;
+                            }
+                            glassPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
                     }
                 }
             });
