@@ -1561,7 +1561,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 const dayTrades = trades.filter(t => {
                     const tDate = new Date(t.close_time * 1000);
-                    const tKey = `${tDate.getUTCFullYear()}-${tDate.getUTCMonth()}-${tDate.getUTCDate()}`;
+                    const y = tDate.getUTCFullYear();
+                    const m = tDate.getUTCMonth() + 1;
+                    const d = tDate.getUTCDate();
+                    const tKey = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     return tKey === day.dateKey;
                 });
                 
