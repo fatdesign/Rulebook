@@ -109,6 +109,57 @@ export default {
         return new Response(JSON.stringify(results), { headers: corsHeaders });
       }
 
+      // --- AI COACH ARCHIVE ROUTES ---
+      if (request.method === "POST" && action === "coach_archive") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+        
+        let body;
+        try { body = await request.json(); } catch(e) { return new Response("Invalid JSON", { status: 400, headers: corsHeaders }); }
+        
+        const account_id = body.account_id || "default";
+        const db_key = `${user_id}:${account_id}`;
+        
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS coach_archives (
+            id TEXT PRIMARY KEY,
+            license_key TEXT,
+            date TEXT,
+            analysis_text TEXT,
+            created_at INTEGER
+          )
+        `).run();
+
+        const id = crypto.randomUUID();
+        const created_at = Math.floor(Date.now() / 1000);
+        
+        await env.DB.prepare("INSERT INTO coach_archives (id, license_key, date, analysis_text, created_at) VALUES (?, ?, ?, ?, ?)")
+            .bind(id, db_key, body.date, body.analysis_text, created_at).run();
+            
+        return new Response(JSON.stringify({ success: true, id }), { headers: corsHeaders });
+      }
+
+      if (request.method === "GET" && action === "coach_archive") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+        
+        const account_id = url.searchParams.get("account_id") || "default";
+        const db_key = `${user_id}:${account_id}`;
+        
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS coach_archives (
+            id TEXT PRIMARY KEY,
+            license_key TEXT,
+            date TEXT,
+            analysis_text TEXT,
+            created_at INTEGER
+          )
+        `).run();
+
+        const results = await env.DB.prepare("SELECT * FROM coach_archives WHERE license_key = ? ORDER BY created_at DESC").bind(db_key).all();
+        return new Response(JSON.stringify(results.results || []), { headers: corsHeaders });
+      }
+
       // --- KI COACH ROUTE ---
       if (request.method === "POST" && action === "ai_coach") {
         const user_id = await authenticateUser(request, env);
@@ -140,29 +191,31 @@ export default {
 
         let trades = [];
         if (body.trades && Array.isArray(body.trades) && body.trades.length > 0) {
-            trades = body.trades;
+            trades = body.trades.slice(0, 100); // Limit to 100 to avoid LLM context overflow
         } else {
             const tradesRes = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC LIMIT 50")
               .bind(db_key).all();
             trades = tradesRes.results;
         }
         
+        const statsStr = body.stats ? JSON.stringify(body.stats) : "{}";
         const langMap = { "de": "Deutsch", "en": "English", "es": "Español", "tr": "Türkçe" };
         const promptLang = langMap[body.language] || "English";
 
         const prompt = `Du bist ein erfahrener, direkter und emotional intelligenter Trading-Mentor. 
-Analysiere die folgenden Trades.
+Analysiere die folgenden Trades und aggregierten Statistiken.
 Profil des Traders: ${JSON.stringify({style: body.style, session: body.session, risk: body.risk})}
+Aggregierte Statistiken: ${statsStr}
 WICHTIGE REGELN:
 1. Sprich den Trader IMMER direkt mit "Du" an.
-2. Nenne NIEMALS die Anzahl der Trades, Daten oder exakte Uhrzeiten! Diese Infos sind irrelevant.
-3. Gib Feedback wie ein echter Mentor: Lobe, wenn es gut läuft, und verteile ehrliche, harte Kritik, wenn Fehler gemacht wurden.
-4. KONTROLLIERE DAS PROFIL: Vergleiche das angegebene Profil (Style, Session, Risk) strikt mit dem tatsächlichen Verhalten!
-5. Konzentriere dich auf Verhaltensmuster, Profitabilität und Risikomanagement.
-6. ACHTE AUF TAGS/NOTIZEN: Einige Trades haben eine Eigenschaft 'tag'. Dies sind persönliche Notizen des Traders zu diesem Trade. Beziehe diese Erkenntnisse zwingend in deine Analyse ein!
-7. Gib am Ende EINEN starken, motivierenden Ratschlag zur Verbesserung.
-8. SPRACHE EXTREM WICHTIG: Du darfst NUR auf ${promptLang} antworten! Übersetze deine gesamte finale Antwort in ${promptLang}.
-Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
+2. Nenne KEINE genauen Zeitstempel oder rohen Daten aus dem JSON, sondern leite wertvolle Schlüsse ab.
+3. Beziehe dich explizit auf die Statistiken: Welche Strategie ist am profitabelsten/schlechtesten? Welche Wochentage oder Uhrzeiten (Heatmap) sind Stärken/Schwächen? Sind kurze oder lange Haltedauern besser?
+4. Berechne und empfehle EINEN konkreten "Kill Switch" (Daily Loss Limit) basierend auf dem durchschnittlichen Verlust (z.B. 2-3x Avg Loss oder max Drawdown). Erkläre kurz, warum dieser Wert sinnvoll ist.
+5. KONTROLLIERE DAS PROFIL: Passt das angegebene Profil (Style, Session, Risk) zum tatsächlichen Verhalten?
+6. Gib hartes, ehrliches Feedback. Lobe bei Disziplin, kritisiere bei Fehlern. Achte auch auf Tags/Notizen der Trades.
+7. Gib am Ende EINEN starken Ratschlag zur Verbesserung.
+8. SPRACHE EXTREM WICHTIG: Antworte NUR auf ${promptLang}! Übersetze deine gesamte finale Antwort in ${promptLang}.
+Fasse dich prägnant, aber tiefgründig (ca. 6-8 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
         
         if (!env.AI) return new Response(JSON.stringify({ error: "Cloudflare AI Binding fehlt." }), { status: 500, headers: corsHeaders });
 

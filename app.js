@@ -1256,6 +1256,19 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("kpi-best-day").innerText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
         document.getElementById("kpi-worst-day").innerText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
 
+        // Capture stats for AI Coach
+        window.coachStats = {
+            totalTrades: trades.length,
+            winrate: winrate,
+            profitFactor: profitFactor,
+            maxDrawdown: maxDrawdown,
+            avgHoldWinSec: avgHoldWin,
+            avgHoldLossSec: avgHoldLoss,
+            bestDay: dayNames[bestDayIdx],
+            worstDay: dayNames[worstDayIdx],
+            strategyPerformance: {}
+        };
+
         // Reset trades table title
         const tradesTable = document.querySelector("#trades-table");
         if (tradesTable) {
@@ -1738,6 +1751,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     risk: profRisk ? profRisk.value : "Unknown",
                     language: globalLang ? globalLang.value : "de",
                     timeframe: currentTimeframe,
+                    stats: window.coachStats || {},
                     trades: currentFilteredTrades.map(t => {
                         const isToday = t.close_time >= todayStartTime;
                         const note = (isToday && window.tradeNotesMap && window.tradeNotesMap[t.ticket]) ? window.tradeNotesMap[t.ticket] : null;
@@ -1774,7 +1788,41 @@ document.addEventListener("DOMContentLoaded", () => {
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n/g, '<br>');
 
-                aiContent.innerHTML = `<div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main);">${htmlContent}</div>`;
+                aiContent.innerHTML = `
+                    <div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); margin-bottom: 15px;">${htmlContent}</div>
+                    <button id="save-archive-btn" class="secondary-btn" style="width: 100%; padding: 6px; font-size: 0.85rem;"><i class="ph ph-floppy-disk"></i> Archive Analysis</button>
+                `;
+
+                const saveArchiveBtn = document.getElementById("save-archive-btn");
+                if (saveArchiveBtn) {
+                    saveArchiveBtn.addEventListener("click", async () => {
+                        saveArchiveBtn.disabled = true;
+                        saveArchiveBtn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:var(--text-main);border-right-color:transparent;border-radius:50%;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-right:5px;"></div> Saving...';
+                        try {
+                            const now = new Date();
+                            const dateStr = (currentTimeframe === "current_month" || currentTimeframe === "all") ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}` : currentTimeframe;
+                            const res = await fetch(`${API_URL}?action=coach_archive`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": localStorage.getItem("tm_master_token")
+                                },
+                                body: JSON.stringify({ account_id: key, date: dateStr, analysis_text: htmlContent })
+                            });
+                            if (res.ok) {
+                                saveArchiveBtn.innerHTML = '<i class="ph ph-check"></i> Archived successfully';
+                                saveArchiveBtn.style.color = 'var(--success)';
+                                saveArchiveBtn.style.borderColor = 'var(--success)';
+                            } else {
+                                throw new Error("Failed to save archive");
+                            }
+                        } catch (err) {
+                            saveArchiveBtn.innerHTML = '<i class="ph ph-warning"></i> Save failed';
+                            saveArchiveBtn.style.color = 'var(--danger)';
+                            saveArchiveBtn.disabled = false;
+                        }
+                    });
+                }
                 
                 if (data.limitLeft !== undefined) {
                     document.getElementById("ai-limit").innerText = `${data.limitLeft} analyzes left today`;
@@ -2064,6 +2112,10 @@ function renderStrategyPerformance(trades) {
         const wr = stratTrades.length > 0 ? ((wins / stratTrades.length) * 100).toFixed(0) : 0;
         const pColor = profit > 0 ? "var(--success)" : (profit < 0 ? "var(--danger)" : "inherit");
 
+        if (window.coachStats && window.coachStats.strategyPerformance) {
+            window.coachStats.strategyPerformance[s.name] = { profit, trades: stratTrades.length, winrate: wr };
+        }
+
         allCards.push({ profit, html: `
             <div class="strategy-perf-card" style="--s-color:${color};--s-rgb:${rgb}; border-color: rgba(${rgb},0.3);">
                 <div class="strategy-perf-card-name">${s.name}</div>
@@ -2245,6 +2297,54 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("strategy-modal-save")?.addEventListener("click", saveStrategy);
     document.getElementById("strategy-modal")?.addEventListener("click", (e) => {
         if (e.target.id === "strategy-modal") document.getElementById("strategy-modal").classList.add("hidden");
+    });
+
+    // View Archives logic
+    document.getElementById("view-archives-btn")?.addEventListener("click", async () => {
+        const modal = document.getElementById("coach-archive-modal");
+        const list = document.getElementById("coach-archive-list");
+        if (!modal || !list) return;
+        
+        modal.classList.remove("hidden");
+        list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">Loading archives...</div>';
+        
+        try {
+            const key = localStorage.getItem("tm_license_key");
+            const res = await fetch(`${API_URL}?action=coach_archive&account_id=${encodeURIComponent(key)}`, {
+                headers: { "Authorization": localStorage.getItem("tm_master_token") }
+            });
+            const archives = await res.json();
+            
+            if (archives.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">No archived analyses found.</div>';
+            } else {
+                list.innerHTML = "";
+                archives.forEach(arch => {
+                    const dateObj = new Date(arch.created_at * 1000);
+                    const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth()+1).padStart(2, '0')}.${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                    list.insertAdjacentHTML("beforeend", `
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-dark); padding: 15px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="ph ph-calendar"></i> ${arch.date}</span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">${dateStr}</span>
+                            </div>
+                            <div style="font-size: 0.9rem; line-height: 1.5; color: var(--text-main);">
+                                ${arch.analysis_text}
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+        } catch (e) {
+            list.innerHTML = `<div style="color: var(--danger); text-align: center; padding: 20px;">Failed to load archives.</div>`;
+        }
+    });
+
+    document.getElementById("coach-archive-close")?.addEventListener("click", () => {
+        document.getElementById("coach-archive-modal")?.classList.add("hidden");
+    });
+    document.getElementById("coach-archive-modal")?.addEventListener("click", (e) => {
+        if (e.target.id === "coach-archive-modal") document.getElementById("coach-archive-modal").classList.add("hidden");
     });
 });
 

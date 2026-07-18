@@ -276,6 +276,7 @@
                         <div class="ai-header">
                             <i class="ph ph-sparkle" style="color: #a855f7; font-size: 1.2rem;"></i>
                             <h3 data-i18n="ai_title">AI Trading Coach</h3>
+                            <button id="view-archives-btn" class="secondary-btn" style="padding: 4px 8px; font-size: 0.8rem; margin-left: 10px;" title="View Archives"><i class="ph ph-archive"></i></button>
                             <span id="ai-limit" class="ai-limit" style="margin-left:auto; font-size: 0.8rem; color: #a855f7;"></span>
                         </div>
                         
@@ -435,6 +436,22 @@
             <textarea id="journal-modal-text" style="width: 100%; min-height: 200px; background: var(--input-bg); color: var(--input-text); border: 2px solid var(--border-darker); padding: 15px; resize: vertical; font-family: inherit; font-size: 0.95rem; border-radius: 8px;" placeholder="How are you feeling about your trades today? Did you follow your plan?"></textarea>
             <div style="display: flex; justify-content: flex-end; margin-top: 15px; gap: 10px;">
                 <button id="journal-modal-save" class="primary-btn" style="padding: 8px 20px;">Save Entry</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Coach Archive Modal -->
+    <div id="coach-archive-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="width: 100%; max-width: 600px; display: flex; flex-direction: column; max-height: 80vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph ph-archive"></i> 
+                    <span>Archived Coach Analyses</span>
+                </h3>
+                <button id="coach-archive-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="coach-archive-list" style="overflow-y: auto; flex: 1; padding-right: 10px; display: flex; flex-direction: column; gap: 15px;">
+                <!-- Populated by JS -->
             </div>
         </div>
     </div>
