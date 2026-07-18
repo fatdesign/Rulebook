@@ -1681,19 +1681,67 @@ document.addEventListener("DOMContentLoaded", () => {
             
             for(let d = 1; d <= daysInMonth; d++) {
                 const dayKey = `${y}-${m}-${d}`;
+                const filterKey = `${y}-${String(m+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const val = dailyProfit[dayKey];
                 let content = `<span class="cal-date">${d}</span>`;
-                let cls = "";
+                let cls = "clickable-cal-day";
                 if(val !== undefined) {
-                    cls = val > 0 ? "positive" : (val < 0 ? "negative" : "");
+                    cls += val > 0 ? " positive" : (val < 0 ? " negative" : "");
                     const displayVal = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
                     content += `<span class="cal-val">${displayVal}</span>`;
                 }
-                gridHtml += `<div class="cal-day ${cls}">${content}</div>`;
+                gridHtml += `<div class="cal-day ${cls}" data-datekey="${filterKey}" style="cursor: pointer;">${content}</div>`;
             }
             
             gridHtml += `</div>`;
             calContainer.innerHTML = gridHtml;
+            
+            // Add click listeners to calendar days
+            calContainer.querySelectorAll(".clickable-cal-day").forEach(dayEl => {
+                dayEl.addEventListener("click", () => {
+                    // Remove active styling from all days
+                    calContainer.querySelectorAll(".clickable-cal-day").forEach(el => el.style.border = "");
+                    dayEl.style.border = "2px solid var(--primary-color)";
+                    
+                    const dKey = dayEl.getAttribute("data-datekey");
+                    const dayTrades = trades.filter(t => {
+                        const tDate = new Date(t.close_time * 1000);
+                        const ty = tDate.getUTCFullYear();
+                        const tm = tDate.getUTCMonth() + 1;
+                        const td = tDate.getUTCDate();
+                        const tKey = `${ty}-${String(tm).padStart(2, '0')}-${String(td).padStart(2, '0')}`;
+                        return tKey === dKey;
+                    });
+                    
+                    if (typeof window.renderTradesTable === "function") {
+                        window.renderTradesTable(dayTrades, curSym);
+                        const tradesTable = document.querySelector("#trades-table");
+                        if (tradesTable) {
+                            const glassPanel = tradesTable.closest(".glass-panel");
+                            if (glassPanel) {
+                                const titleSpan = glassPanel.querySelector("h3 span");
+                                if (titleSpan) {
+                                    const [yy, mm, dd] = dKey.split('-');
+                                    const dateStr = `${dd}.${mm}.${yy}`;
+                                    titleSpan.innerHTML = `Recent Trades &amp; Tags <span style="color:var(--text-muted);font-size:0.85rem;margin-left:10px;">(Filtered: ${dateStr})</span>`;
+                                }
+                                glassPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }
+                    }
+                    
+                    // Update AI Scope Dropdown
+                    const scopeDayOpt = document.getElementById("ai-scope-day");
+                    const aiScopeSel = document.getElementById("ai-scope");
+                    if (scopeDayOpt && aiScopeSel) {
+                        const [yy, mm, dd] = dKey.split('-');
+                        const dateStr = `${dd}.${mm}.${yy}`;
+                        scopeDayOpt.textContent = `Day (${dateStr})`;
+                        scopeDayOpt.setAttribute("data-datekey", dKey);
+                        aiScopeSel.value = "day";
+                    }
+                });
+            });
         }
     }
 
