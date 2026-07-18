@@ -313,6 +313,68 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
       }
 
+      // --- STRATEGY DEFINITIONS ROUTE (POST) ---
+      if (request.method === "POST" && action === "strategies") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+        
+        let body;
+        try { body = await request.json(); } catch(e) { return new Response("Invalid JSON", { status: 400, headers: corsHeaders }); }
+        
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS strategy_definitions (
+            id TEXT, user_id TEXT, name TEXT, description TEXT,
+            PRIMARY KEY (id, user_id)
+          )
+        `).run();
+
+        if (body.delete_id) {
+          await env.DB.prepare("DELETE FROM strategy_definitions WHERE id = ? AND user_id = ?")
+            .bind(body.delete_id, user_id).run();
+          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        }
+        
+        const id = body.id || crypto.randomUUID();
+        await env.DB.prepare(`
+          INSERT INTO strategy_definitions (id, user_id, name, description)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT(id, user_id) DO UPDATE SET name=excluded.name, description=excluded.description
+        `).bind(id, user_id, body.name || "Unnamed", body.description || "").run();
+        
+        return new Response(JSON.stringify({ success: true, id }), { headers: corsHeaders });
+      }
+
+      // --- TRADE STRATEGY ASSIGNMENT ROUTE (POST) ---
+      if (request.method === "POST" && action === "trade_strategy") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+        
+        let body;
+        try { body = await request.json(); } catch(e) { return new Response("Invalid JSON", { status: 400, headers: corsHeaders }); }
+        
+        const account_id = body.account_id || url.searchParams.get("account_id") || "default";
+        const db_key = `${user_id}:${account_id}`;
+        
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS trade_strategies (
+            license_key TEXT, ticket TEXT, strategy_id TEXT, PRIMARY KEY (license_key, ticket)
+          )
+        `).run();
+        
+        if (!body.strategy_id) {
+          await env.DB.prepare("DELETE FROM trade_strategies WHERE license_key = ? AND ticket = ?")
+            .bind(db_key, String(body.ticket)).run();
+        } else {
+          await env.DB.prepare(`
+            INSERT INTO trade_strategies (license_key, ticket, strategy_id)
+            VALUES (?, ?, ?)
+            ON CONFLICT(license_key, ticket) DO UPDATE SET strategy_id=excluded.strategy_id
+          `).bind(db_key, String(body.ticket), body.strategy_id).run();
+        }
+        
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
       // --- FETCH DATA ROUTES (GET) ---
       if (request.method === "GET") {
         const user_id = await authenticateUser(request, env);
@@ -351,6 +413,26 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
             const { results } = await env.DB.prepare("SELECT ticket, note FROM trade_notes WHERE license_key = ?").bind(db_key).all();
             return new Response(JSON.stringify(results), { headers: corsHeaders });
         }
+
+        if (action === "strategies") {
+            await env.DB.prepare(`
+              CREATE TABLE IF NOT EXISTS strategy_definitions (
+                id TEXT, user_id TEXT, name TEXT, description TEXT, PRIMARY KEY (id, user_id)
+              )
+            `).run();
+            const { results } = await env.DB.prepare("SELECT id, name, description FROM strategy_definitions WHERE user_id = ?").bind(user_id).all();
+            return new Response(JSON.stringify(results), { headers: corsHeaders });
+        }
+
+        if (action === "trade_strategy") {
+            await env.DB.prepare(`
+              CREATE TABLE IF NOT EXISTS trade_strategies (
+                license_key TEXT, ticket TEXT, strategy_id TEXT, PRIMARY KEY (license_key, ticket)
+              )
+            `).run();
+            const { results } = await env.DB.prepare("SELECT ticket, strategy_id FROM trade_strategies WHERE license_key = ?").bind(db_key).all();
+            return new Response(JSON.stringify(results), { headers: corsHeaders });
+        }
         
         if (!action) {
             const { results } = await env.DB.prepare("SELECT * FROM trades WHERE license_key = ? ORDER BY close_time DESC").bind(db_key).all();
@@ -376,6 +458,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 4-6 Sätze). Kein unnötiges Blabla
         await env.DB.prepare("DELETE FROM trades WHERE license_key = ?").bind(db_key).run();
         await env.DB.prepare("DELETE FROM journal WHERE license_key = ?").bind(db_key).run();
         await env.DB.prepare("DELETE FROM trade_notes WHERE license_key = ?").bind(db_key).run();
+        await env.DB.prepare("DELETE FROM trade_strategies WHERE license_key = ?").bind(db_key).run();
         await env.DB.prepare("DELETE FROM user_settings WHERE license_key = ?").bind(db_key).run();
         await env.DB.prepare("DELETE FROM user_accounts WHERE user_id = ? AND license_key = ?").bind(user_id, account_id).run();
         

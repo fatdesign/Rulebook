@@ -84,7 +84,12 @@ const i18n = {
         th_close: "Haltezeit",
         th_note: "Tag / Notiz",
         note_ph: "Notiz oder #Tag hinzufügen...",
-        th_gain: "% Gain"
+        th_gain: "% Gain",
+        strategy_title: "STRATEGIE DEFINITIONEN // SYSTEME",
+        strategy_add_btn: "+ Neue Strategie",
+        th_strategy: "Strategie",
+        strategy_name_lbl: "Strategie Name",
+        strategy_desc_lbl: "Regeln / Beschreibung"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -167,7 +172,12 @@ const i18n = {
         th_close: "Duration",
         th_note: "Tag / Note",
         note_ph: "Add note or #tag...",
-        th_gain: "% Gain"
+        th_gain: "% Gain",
+        strategy_title: "STRATEGY DEFINITIONS // SYSTEMS",
+        strategy_add_btn: "+ New Strategy",
+        th_strategy: "Strategy",
+        strategy_name_lbl: "Strategy Name",
+        strategy_desc_lbl: "Rules / Description"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -250,7 +260,12 @@ const i18n = {
         th_close: "Duración",
         th_note: "Etiqueta / Nota",
         note_ph: "Añadir nota o #etiqueta...",
-        th_gain: "% Gain"
+        th_gain: "% Gain",
+        strategy_title: "DEFINICIONES DE ESTRATEGIA // SISTEMAS",
+        strategy_add_btn: "+ Nueva Estrategia",
+        th_strategy: "Estrategia",
+        strategy_name_lbl: "Nombre de Estrategia",
+        strategy_desc_lbl: "Reglas / Descripción"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -333,7 +348,12 @@ const i18n = {
         th_close: "Süre",
         th_note: "Etiket / Not",
         note_ph: "Not veya #etiket ekle...",
-        th_gain: "% Gain"
+        th_gain: "% Gain",
+        strategy_title: "STRATEJİ TANIMLARI // SİSTEMLER",
+        strategy_add_btn: "+ Yeni Strateji",
+        th_strategy: "Strateji",
+        strategy_name_lbl: "Strateji Adı",
+        strategy_desc_lbl: "Kurallar / Açıklama"
     }
 };
 
@@ -809,6 +829,26 @@ document.addEventListener("DOMContentLoaded", () => {
                         processData(currentFilteredTrades, window.currentCurSym);
                     }
                 }).catch(e => console.error(e));
+
+            // Load Trade Strategy Assignments
+            fetch(`${API_URL}?action=trade_strategy&account_id=${encodeURIComponent(key)}`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
+                .then(r => r.json())
+                .then(d => {
+                    window.tradeStrategyMap = {};
+                    d.forEach(n => { window.tradeStrategyMap[n.ticket] = n.strategy_id; });
+                    if (currentFilteredTrades && currentFilteredTrades.length > 0) {
+                        renderStrategyPerformance(currentFilteredTrades);
+                    }
+                }).catch(e => console.error(e));
+
+            // Load Strategy Definitions
+            fetch(`${API_URL}?action=strategies`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
+                .then(r => r.json())
+                .then(d => {
+                    window.strategyDefs = d || [];
+                    renderStrategyCards();
+                    renderStrategyPerformance(currentFilteredTrades);
+                }).catch(e => console.error(e));
             
             // Filter trades based on timeframe
             const now = new Date();
@@ -1155,13 +1195,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 const profitColor = netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
                 const holdSec = t.close_time - t.open_time;
                 const durationStr = formatHoldTime(holdSec);
+                const strategyId = window.tradeStrategyMap ? (window.tradeStrategyMap[t.ticket] || "") : "";
+                const stratDefs = window.strategyDefs || [];
+                const assignedStrat = stratDefs.find(s => s.id === strategyId);
+                const stratColor = assignedStrat ? getStrategyColor(assignedStrat.id) : null;
+                const stratRgb = stratColor ? hexToRgb(stratColor) : null;
+                const stratBadgeHtml = assignedStrat
+                    ? `<span class="strategy-badge" style="--s-color:${stratColor};--s-rgb:${stratRgb};" data-ticket="${t.ticket}" onclick="openStrategyPicker(this, '${t.ticket}')">${assignedStrat.name}</span>`
+                    : `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${t.ticket}')">+ Assign</button>`;
                 const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
-                
+
                 tr.innerHTML = `
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${t.side}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
                         <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="${(i18n[localStorage.getItem('tm_global_lang') || 'de'] || {}).note_ph || 'Add note or #tag...'}" style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
                     </td>
@@ -1868,3 +1917,288 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(window.runCompoundCalc, 500);
 
 });
+
+// ══════════════════════════════════════════════════
+// STRATEGY MANAGEMENT SYSTEM
+// ══════════════════════════════════════════════════
+
+// Color palette — each strategy gets a unique, vibrant color based on its ID hash
+const STRATEGY_COLORS = [
+    "#39ff14", "#00d4ff", "#ff6b35", "#ff2d78", "#a855f7",
+    "#f59e0b", "#10b981", "#06b6d4", "#ec4899", "#8b5cf6",
+    "#84cc16", "#f97316", "#14b8a6", "#e879f9", "#fb923c"
+];
+
+function getStrategyColor(id) {
+    if (!id) return "#888";
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    return STRATEGY_COLORS[Math.abs(hash) % STRATEGY_COLORS.length];
+}
+
+function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `${r},${g},${b}`;
+}
+
+// ── Render Strategy Definition Cards ─────────────
+function renderStrategyCards() {
+    const container = document.getElementById("strategy-cards-container");
+    if (!container) return;
+    const defs = window.strategyDefs || [];
+    container.innerHTML = "";
+
+    defs.forEach(s => {
+        const color = getStrategyColor(s.id);
+        const rgb = hexToRgb(color);
+        // Gather performance stats for inline display
+        const trades = currentFilteredTrades || [];
+        const stratMap = window.tradeStrategyMap || {};
+        const stratTrades = trades.filter(t => stratMap[t.ticket] === s.id);
+        const profit = stratTrades.reduce((sum, t) => sum + parseFloat(t.net_profit), 0);
+        const wins = stratTrades.filter(t => parseFloat(t.net_profit) > 0).length;
+        const wr = stratTrades.length > 0 ? ((wins / stratTrades.length) * 100).toFixed(0) : 0;
+        const profitColor = profit > 0 ? "var(--success)" : (profit < 0 ? "var(--danger)" : "inherit");
+        const curSym = window.currentCurSym || "€";
+
+        const card = document.createElement("div");
+        card.className = "strategy-card";
+        card.style.cssText = `--s-color:${color};--s-rgb:${rgb};`;
+        card.innerHTML = `
+            <div class="strategy-card-name">
+                <span>${s.name}</span>
+                <span style="color:${profitColor}; font-size:0.95rem;">${profit >= 0 ? '+' : ''}${curSym}${profit.toFixed(0)}</span>
+            </div>
+            <div class="strategy-card-stats">${stratTrades.length} Trades &nbsp;|&nbsp; ${wr}% WR</div>
+            ${s.description ? `<div class="strategy-card-desc">${s.description}</div>` : ''}
+            <div class="strategy-card-actions">
+                <button onclick="openStrategyModal('${s.id}')">✏ Edit</button>
+                <button onclick="deleteStrategy('${s.id}')" style="color:#ef4444;">🗑 Delete</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    // Add "+" button if there are any strategies already
+    if (defs.length === 0) {
+        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">No strategies defined yet. Click "+ NEW STRATEGY" to create your first system.</div>`;
+    }
+}
+
+// ── Render Strategy Performance Panel ────────────
+function renderStrategyPerformance(trades) {
+    const container = document.getElementById("strategy-perf-container");
+    const panel = document.getElementById("strategy-performance-panel");
+    if (!container) return;
+    const defs = window.strategyDefs || [];
+    const stratMap = window.tradeStrategyMap || {};
+    const curSym = window.currentCurSym || "€";
+
+    if (defs.length === 0) {
+        if (panel) panel.style.display = "none";
+        return;
+    }
+    if (panel) panel.style.display = "";
+
+    container.innerHTML = "";
+
+    // Unassigned trades card
+    const unassigned = (trades || []).filter(t => !stratMap[t.ticket]);
+    const allCards = [];
+
+    defs.forEach(s => {
+        const color = getStrategyColor(s.id);
+        const rgb = hexToRgb(color);
+        const stratTrades = (trades || []).filter(t => stratMap[t.ticket] === s.id);
+        const profit = stratTrades.reduce((sum, t) => sum + parseFloat(t.net_profit), 0);
+        const wins = stratTrades.filter(t => parseFloat(t.net_profit) > 0).length;
+        const losses = stratTrades.filter(t => parseFloat(t.net_profit) < 0).length;
+        const wr = stratTrades.length > 0 ? ((wins / stratTrades.length) * 100).toFixed(0) : 0;
+        const pColor = profit > 0 ? "var(--success)" : (profit < 0 ? "var(--danger)" : "inherit");
+
+        allCards.push({ profit, html: `
+            <div class="strategy-perf-card" style="--s-color:${color};--s-rgb:${rgb}; border-color: rgba(${rgb},0.3);">
+                <div class="strategy-perf-card-name">${s.name}</div>
+                <div class="strategy-perf-card-profit" style="color:${pColor};">${profit >= 0 ? '+' : ''}${curSym}${profit.toFixed(2)}</div>
+                <div class="strategy-perf-card-meta">
+                    <span>${stratTrades.length} Trades</span>
+                    <span>${wr}% WR</span>
+                    <span>${wins}W / ${losses}L</span>
+                </div>
+            </div>
+        `});
+    });
+
+    // Sort by profit descending
+    allCards.sort((a, b) => b.profit - a.profit);
+    allCards.forEach(c => container.insertAdjacentHTML("beforeend", c.html));
+
+    // Unassigned card
+    if (unassigned.length > 0) {
+        const uProfit = unassigned.reduce((sum, t) => sum + parseFloat(t.net_profit), 0);
+        container.insertAdjacentHTML("beforeend", `
+            <div class="strategy-perf-card" style="opacity:0.5;">
+                <div class="strategy-perf-card-name" style="color:var(--text-muted);">— Unassigned</div>
+                <div class="strategy-perf-card-profit" style="color:${uProfit >= 0 ? 'var(--success)' : 'var(--danger)'}">${uProfit >= 0 ? '+' : ''}${curSym}${uProfit.toFixed(2)}</div>
+                <div class="strategy-perf-card-meta"><span>${unassigned.length} Trades</span></div>
+            </div>
+        `);
+    }
+}
+
+// ── Strategy Modal ────────────────────────────────
+function openStrategyModal(editId) {
+    const modal = document.getElementById("strategy-modal");
+    const titleEl = document.getElementById("strategy-modal-title");
+    const idInput = document.getElementById("strategy-modal-id");
+    const nameInput = document.getElementById("strategy-modal-name");
+    const descInput = document.getElementById("strategy-modal-desc");
+    if (!modal) return;
+
+    if (editId) {
+        const s = (window.strategyDefs || []).find(d => d.id === editId);
+        titleEl.textContent = "Edit Strategy";
+        idInput.value = s ? s.id : "";
+        nameInput.value = s ? s.name : "";
+        descInput.value = s ? (s.description || "") : "";
+    } else {
+        titleEl.textContent = "New Strategy";
+        idInput.value = "";
+        nameInput.value = "";
+        descInput.value = "";
+    }
+    modal.classList.remove("hidden");
+    setTimeout(() => nameInput.focus(), 50);
+}
+
+async function saveStrategy() {
+    const name = document.getElementById("strategy-modal-name")?.value.trim();
+    if (!name) { alert("Please enter a strategy name."); return; }
+    const id = document.getElementById("strategy-modal-id")?.value.trim() || null;
+    const desc = document.getElementById("strategy-modal-desc")?.value.trim() || "";
+    const token = localStorage.getItem("tm_master_token");
+
+    const body = { name, description: desc };
+    if (id) body.id = id;
+
+    try {
+        const res = await fetch(`${API_URL}?action=strategies`, {
+            method: "POST",
+            headers: { "Authorization": token, "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.id) {
+            // Upsert locally
+            if (!window.strategyDefs) window.strategyDefs = [];
+            const idx = window.strategyDefs.findIndex(s => s.id === (id || data.id));
+            if (idx >= 0) {
+                window.strategyDefs[idx] = { id: id || data.id, name, description: desc };
+            } else {
+                window.strategyDefs.push({ id: data.id, name, description: desc });
+            }
+        }
+        document.getElementById("strategy-modal").classList.add("hidden");
+        renderStrategyCards();
+        renderStrategyPerformance(currentFilteredTrades);
+    } catch(e) {
+        console.error("Strategy save error", e);
+    }
+}
+
+async function deleteStrategy(id) {
+    if (!confirm("Delete this strategy? Assigned trades will become unassigned.")) return;
+    const token = localStorage.getItem("tm_master_token");
+    await fetch(`${API_URL}?action=strategies`, {
+        method: "POST",
+        headers: { "Authorization": token, "Content-Type": "application/json" },
+        body: JSON.stringify({ delete_id: id })
+    });
+    window.strategyDefs = (window.strategyDefs || []).filter(s => s.id !== id);
+    renderStrategyCards();
+    renderStrategyPerformance(currentFilteredTrades);
+}
+
+// ── Inline Strategy Picker (popover dropdown) ─────
+function openStrategyPicker(el, ticket) {
+    // Remove any existing picker
+    const existing = document.getElementById("_strat_picker");
+    if (existing) existing.remove();
+
+    const defs = window.strategyDefs || [];
+    const current = window.tradeStrategyMap ? (window.tradeStrategyMap[ticket] || "") : "";
+
+    const picker = document.createElement("select");
+    picker.id = "_strat_picker";
+    picker.className = "strategy-select-dropdown";
+    picker.style.cssText = "position: absolute; z-index: 9999; min-width: 140px;";
+
+    picker.innerHTML = `<option value="">— None —</option>` +
+        defs.map(s => `<option value="${s.id}" ${s.id === current ? 'selected' : ''}>${s.name}</option>`).join("");
+
+    // Position near the element
+    const rect = el.getBoundingClientRect();
+    picker.style.top = (rect.bottom + window.scrollY + 4) + "px";
+    picker.style.left = (rect.left + window.scrollX) + "px";
+    document.body.appendChild(picker);
+    picker.focus();
+
+    async function applyPick() {
+        const sid = picker.value || null;
+        picker.remove();
+        const key = localStorage.getItem("tm_license_key");
+        const token = localStorage.getItem("tm_master_token");
+        if (!key) return;
+
+        if (!window.tradeStrategyMap) window.tradeStrategyMap = {};
+        if (sid) {
+            window.tradeStrategyMap[ticket] = sid;
+        } else {
+            delete window.tradeStrategyMap[ticket];
+        }
+
+        // Update badge inline
+        const strat = (window.strategyDefs || []).find(s => s.id === sid);
+        const color = strat ? getStrategyColor(strat.id) : null;
+        const rgb = color ? hexToRgb(color) : null;
+        if (el.tagName === "SPAN") {
+            if (strat) {
+                el.style.cssText = `--s-color:${color};--s-rgb:${rgb};`;
+                el.textContent = strat.name;
+            } else {
+                el.outerHTML = `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${ticket}')">+ Assign</button>`;
+            }
+        } else {
+            if (strat) {
+                el.outerHTML = `<span class="strategy-badge" style="--s-color:${color};--s-rgb:${rgb};" data-ticket="${ticket}" onclick="openStrategyPicker(this, '${ticket}')">${strat.name}</span>`;
+            }
+        }
+        renderStrategyCards();
+        renderStrategyPerformance(currentFilteredTrades);
+
+        // Persist
+        fetch(`${API_URL}?action=trade_strategy`, {
+            method: "POST",
+            headers: { "Authorization": token, "Content-Type": "application/json" },
+            body: JSON.stringify({ account_id: key, ticket: String(ticket), strategy_id: sid || "" })
+        }).catch(e => console.error("Strategy assign error", e));
+    }
+
+    picker.addEventListener("change", applyPick);
+    picker.addEventListener("blur", () => setTimeout(() => picker.remove(), 200));
+}
+
+// ── Wire up modal buttons ─────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("add-strategy-btn")?.addEventListener("click", () => openStrategyModal(null));
+    document.getElementById("strategy-modal-close")?.addEventListener("click", () => {
+        document.getElementById("strategy-modal")?.classList.add("hidden");
+    });
+    document.getElementById("strategy-modal-save")?.addEventListener("click", saveStrategy);
+    document.getElementById("strategy-modal")?.addEventListener("click", (e) => {
+        if (e.target.id === "strategy-modal") document.getElementById("strategy-modal").classList.add("hidden");
+    });
+});
+

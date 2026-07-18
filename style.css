@@ -560,3 +560,146 @@ th {
     20% { background-position: -50% 0; }
     100% { background-position: -50% 0; }
 }
+
+/* ── Strategy Cards ─────────────────────────────── */
+.strategy-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-light);
+    border-radius: var(--panel-radius);
+    padding: 14px 16px;
+    min-width: 200px;
+    max-width: 280px;
+    flex: 1 1 200px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.strategy-card:hover {
+    border-color: var(--s-color, #39ff14);
+    box-shadow: 0 0 12px rgba(var(--s-rgb, 57,255,20), 0.15);
+}
+.strategy-card-name {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--s-color, var(--text-main));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.strategy-card-stats {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+.strategy-card-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.strategy-card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+.strategy-card-actions button {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-light);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+.strategy-card-actions button:hover {
+    color: var(--text-main);
+    border-color: var(--text-main);
+}
+.strategy-card-add {
+    background: transparent;
+    border: 1px dashed var(--border-light);
+    border-radius: var(--panel-radius);
+    min-width: 150px;
+    padding: 14px 16px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: border-color 0.2s, color 0.2s;
+}
+.strategy-card-add:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+}
+
+/* ── Strategy Badge in Trade Table ──────────────── */
+.strategy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    background: rgba(var(--s-rgb, 57,255,20), 0.12);
+    border: 1px solid rgba(var(--s-rgb, 57,255,20), 0.4);
+    color: var(--s-color, var(--text-main));
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+.strategy-badge:hover {
+    background: rgba(var(--s-rgb, 57,255,20), 0.22);
+}
+.strategy-select-dropdown {
+    background: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 0.78rem;
+    font-family: inherit;
+    cursor: pointer;
+    max-width: 140px;
+}
+
+/* ── Strategy Performance Cards ─────────────────── */
+.strategy-perf-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-light);
+    border-radius: var(--panel-radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.strategy-perf-card-name {
+    font-size: 0.78rem;
+    font-weight: bold;
+    color: var(--s-color, var(--text-main));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.strategy-perf-card-profit {
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+.strategy-perf-card-meta {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+

@@ -344,9 +344,25 @@
                     </div>
                 </div>
 
+                <!-- Strategy Definitions Panel -->
+                <div class="glass-panel" style="margin-bottom: 20px;" id="strategy-definitions-panel">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-compass"></i>
+                            <span data-i18n="strategy_title">STRATEGY DEFINITIONS // SYSTEMS</span>
+                        </h3>
+                        <button id="add-strategy-btn" class="secondary-btn" style="padding: 6px 14px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                            <i class="ph ph-plus"></i> <span data-i18n="strategy_add_btn">+ NEW STRATEGY</span>
+                        </button>
+                    </div>
+                    <div id="strategy-cards-container" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start; min-height: 60px;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
                 <!-- Recent Trades Table -->
                 <div class="glass-panel table-container" style="margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="ph ph-list-dashes"></i> <span data-i18n="trades_title">Recent Trades & Tags</span></h3>
+                    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="ph ph-list-dashes"></i> <span data-i18n="trades_title">Recent Trades &amp; Tags</span></h3>
                     <table id="trades-table" style="width: 100%; text-align: left;">
                         <thead>
                             <tr>
@@ -354,6 +370,7 @@
                                 <th data-i18n="th_side">Side</th>
                                 <th data-i18n="th_profit">Profit</th>
                                 <th data-i18n="th_close">Close Time</th>
+                                <th data-i18n="th_strategy">Strategy</th>
                                 <th data-i18n="th_note">Tag / Note</th>
                             </tr>
                         </thead>
@@ -363,10 +380,47 @@
                     </table>
                 </div>
 
+                <!-- Strategy Performance Panel -->
+                <div class="glass-panel" style="margin-bottom: 20px;" id="strategy-performance-panel">
+                    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-chart-bar"></i>
+                        <span data-i18n="strategy_perf_title">STRATEGY PERFORMANCE</span>
+                    </h3>
+                    <div id="strategy-perf-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
             </main>
         </div>
     </div>
     
+    <!-- Strategy Create/Edit Modal -->
+    <div id="strategy-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="width: 100%; max-width: 480px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph ph-compass"></i>
+                    <span id="strategy-modal-title">New Strategy</span>
+                </h3>
+                <button id="strategy-modal-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            </div>
+            <input type="hidden" id="strategy-modal-id" value="">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;" data-i18n="strategy_name_lbl">Strategy Name</label>
+                    <input type="text" id="strategy-modal-name" class="profile-select" style="width: 100%; padding: 8px; font-size: 0.95rem;" placeholder="e.g. M30 Pullback, Break of Structure...">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;" data-i18n="strategy_desc_lbl">Rules / Description</label>
+                    <textarea id="strategy-modal-desc" class="profile-select" style="width: 100%; min-height: 120px; padding: 8px; font-size: 0.85rem; resize: vertical; font-family: inherit;" placeholder="List your entry rules, conditions and notes here..."></textarea>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 15px; gap: 10px;">
+                <button id="strategy-modal-save" class="primary-btn" style="padding: 8px 20px;" data-i18n="save_btn">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Journal Modal -->
     <div id="journal-modal" class="modal-overlay hidden">
         <div class="modal-content glass-panel" style="width: 100%; max-width: 600px; display: flex; flex-direction: column;">
