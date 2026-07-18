@@ -439,7 +439,7 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// Ctrl + Scroll = Zoom
+// Ctrl + Scroll = Zoom (cursor-relative)
 const imgPreviewWrap = document.getElementById("image-preview-modal");
 if (imgPreviewWrap) {
     imgPreviewWrap.addEventListener("wheel", (e) => {
@@ -447,10 +447,17 @@ if (imgPreviewWrap) {
         if (!img) return;
         if (e.ctrlKey) {
             e.preventDefault();
+
+            // Calculate mouse position as % of image dimensions BEFORE scaling
+            const rect = img.getBoundingClientRect();
+            const originX = ((e.clientX - rect.left) / rect.width)  * 100;
+            const originY = ((e.clientY - rect.top)  / rect.height) * 100;
+
             const delta = e.deltaY > 0 ? -0.15 : 0.15;
             _imgZoomScale = Math.min(5, Math.max(0.5, _imgZoomScale + delta));
+
+            img.style.transformOrigin = `${originX}% ${originY}%`;
             img.style.transform = `scale(${_imgZoomScale})`;
-            img.style.transformOrigin = "center center";
             img.style.cursor = _imgZoomScale > 1 ? "zoom-out" : "zoom-in";
         }
     }, { passive: false });
