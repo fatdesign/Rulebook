@@ -10,7 +10,7 @@ const i18n = {
         login_btn: "Einloggen & Analysieren",
         disconnect_btn: "Trennen",
         refresh_btn: "↻ Aktualisieren",
-        reset_btn: "⚠ Reset",
+        reset_btn: "Reset",
         filter_today: "Heute",
         filter_yesterday: "Gestern",
         filter_week: "Diese Woche",
@@ -118,7 +118,7 @@ const i18n = {
         login_btn: "Login & Analyze",
         disconnect_btn: "Disconnect",
         refresh_btn: "↻ Refresh",
-        reset_btn: "⚠ Reset",
+        reset_btn: "Reset",
         filter_today: "Today",
         filter_yesterday: "Yesterday",
         filter_week: "This Week",
@@ -226,7 +226,7 @@ const i18n = {
         login_btn: "Iniciar sesión",
         disconnect_btn: "Desconectar",
         refresh_btn: "↻ Actualizar",
-        reset_btn: "⚠ Reset",
+        reset_btn: "Reset",
         filter_today: "Hoy",
         filter_yesterday: "Ayer",
         filter_week: "Esta Semana",
@@ -331,7 +331,7 @@ const i18n = {
         login_btn: "Giriş Yap",
         disconnect_btn: "Çıkış Yap",
         refresh_btn: "↻ Yenile",
-        reset_btn: "⚠ Sıfırla",
+        reset_btn: "Sıfırla",
         filter_today: "Bugün",
         filter_yesterday: "Dün",
         filter_week: "Bu Hafta",
@@ -864,7 +864,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "Are you sure? All trades in the dashboard will be deleted (your MT5 is untouched!). The EA will resync in 60s.";
                 
             if (confirm(msg)) {
-                resetBtn.innerText = "⏳...";
+                const span = resetBtn.querySelector('.sidebar-btn-text');
+                if (span) span.innerText = "⏳...";
+                else resetBtn.innerText = "⏳...";
                 try {
                     const response = await fetch(`${API_URL}?account_id=${encodeURIComponent(key)}`, {
                         method: "DELETE", headers: { "Authorization": localStorage.getItem("tm_master_token") }
@@ -878,7 +880,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch(err) {
                     alert(err.message);
                 } finally {
-                    resetBtn.innerText = i18n[lang] && i18n[lang].reset_btn ? i18n[lang].reset_btn : "⚠ Reset";
+                    if (span) span.innerText = i18n[lang] && i18n[lang].reset_btn ? i18n[lang].reset_btn : "Reset";
+                    else resetBtn.innerText = i18n[lang] && i18n[lang].reset_btn ? i18n[lang].reset_btn : "Reset";
                 }
             }
         });
@@ -1295,7 +1298,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
             currentFilteredTrades = filteredTrades;
+            window.currentFilteredTrades = filteredTrades;
             currentAllTrades = trades;
+            window.currentAllTrades = trades;
 
             processData(filteredTrades, curSym);
         } catch (err) {
