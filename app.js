@@ -393,12 +393,76 @@ const i18n = {
     }
 };
 
-// Modal Close Helper
+// ── Image Preview Modal ─────────────────────────────────────────────────
+let _imgZoomScale = 1;
+
+function openImagePreview(url) {
+    const modal = document.getElementById("image-preview-modal");
+    const img   = document.getElementById("image-preview-img");
+    if (!modal || !img) return;
+    _imgZoomScale = 1;
+    img.style.transform = "scale(1)";
+    img.style.cursor = "zoom-in";
+    img.src = url;
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+}
+
+function closeImagePreview() {
+    const modal = document.getElementById("image-preview-modal");
+    const img   = document.getElementById("image-preview-img");
+    if (!modal || !img) return;
+    modal.classList.add("hidden");
+    img.src = "";
+    _imgZoomScale = 1;
+    img.style.transform = "scale(1)";
+    document.body.style.overflow = "";
+}
+
+// Close button
 const imgModalClose = document.getElementById("image-preview-close");
-if (imgModalClose) {
-    imgModalClose.addEventListener("click", () => {
-        document.getElementById("image-preview-modal").classList.add("hidden");
-        document.getElementById("image-preview-img").src = "";
+if (imgModalClose) imgModalClose.addEventListener("click", closeImagePreview);
+
+// Click on backdrop closes modal
+const imgModalEl = document.getElementById("image-preview-modal");
+if (imgModalEl) {
+    imgModalEl.addEventListener("click", (e) => {
+        if (e.target === imgModalEl) closeImagePreview();
+    });
+}
+
+// Escape key closes modal
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        const modal = document.getElementById("image-preview-modal");
+        if (modal && !modal.classList.contains("hidden")) closeImagePreview();
+    }
+});
+
+// Ctrl + Scroll = Zoom
+const imgPreviewWrap = document.getElementById("image-preview-modal");
+if (imgPreviewWrap) {
+    imgPreviewWrap.addEventListener("wheel", (e) => {
+        const img = document.getElementById("image-preview-img");
+        if (!img) return;
+        if (e.ctrlKey) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.15 : 0.15;
+            _imgZoomScale = Math.min(5, Math.max(0.5, _imgZoomScale + delta));
+            img.style.transform = `scale(${_imgZoomScale})`;
+            img.style.transformOrigin = "center center";
+            img.style.cursor = _imgZoomScale > 1 ? "zoom-out" : "zoom-in";
+        }
+    }, { passive: false });
+}
+
+// Double-click resets zoom
+const imgPreviewImg = document.getElementById("image-preview-img");
+if (imgPreviewImg) {
+    imgPreviewImg.addEventListener("dblclick", () => {
+        _imgZoomScale = 1;
+        imgPreviewImg.style.transform = "scale(1)";
+        imgPreviewImg.style.cursor = "zoom-in";
     });
 }
 
@@ -1262,8 +1326,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".image-preview-btn").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 const url = e.currentTarget.getAttribute("data-url");
-                document.getElementById("image-preview-img").src = url;
-                document.getElementById("image-preview-modal").classList.remove("hidden");
+                openImagePreview(url);
             });
         });
 

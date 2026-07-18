@@ -482,16 +482,19 @@
 
     <!-- Image Preview Modal -->
     <div id="image-preview-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-panel" style="width: 100%; max-width: 900px; display: flex; flex-direction: column; padding: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="modal-content glass-panel" style="width: 95vw; max-width: 1400px; max-height: 95vh; display: flex; flex-direction: column; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;">
                 <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="ph ph-image"></i>
                     <span id="image-preview-title">Chart Preview</span>
                 </h3>
-                <button id="image-preview-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.2rem; cursor: pointer;">&times;</button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="ph ph-info"></i> Strg + Scroll = Zoom &nbsp;&nbsp; Doppelklick = Reset</span>
+                    <button id="image-preview-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.4rem; cursor: pointer;">&times;</button>
+                </div>
             </div>
-            <div style="width: 100%; height: auto; text-align: center;">
-                <img id="image-preview-img" src="" alt="Chart Screenshot" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px;">
+            <div style="flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; min-height: 0;">
+                <img id="image-preview-img" src="" alt="Chart Screenshot" style="max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; transition: transform 0.1s ease; cursor: zoom-in;">
             </div>
         </div>
     </div>
