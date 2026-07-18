@@ -1125,6 +1125,10 @@ th {
     text-align: center;
 }
 
+.sidebar.collapsed .sidebar-btn-text {
+    display: none;
+}
+
 .main-content {
     flex: 1;
     min-width: 0;
@@ -1264,7 +1268,7 @@ th {
 }
 
 .focus-mode-active .top-bar-left,
-.focus-mode-active .top-bar-right button:not(#focus-btn) {
+.focus-mode-active .top-bar-right button:not(#focus-btn-exit) {
     display: none !important;
 }
 

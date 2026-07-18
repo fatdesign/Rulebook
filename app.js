@@ -555,7 +555,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const dashboard = document.getElementById("dashboard");
     const connectBtn = document.getElementById("connect-btn");
     const logoutBtn = document.getElementById("logout-btn");
-    const refreshBtn = document.getElementById("refresh-btn");
     const resetBtn = document.getElementById("reset-btn");
     const deleteAccountBtn = document.getElementById("delete-account-btn");
     const accountSwitcher = document.getElementById("account-switcher");
@@ -853,18 +852,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (llc) llc.style.display = "flex";
     });
 
-    if (refreshBtn) {
-        refreshBtn.addEventListener("click", () => {
-            const key = localStorage.getItem("tm_license_key");
-            if (key) {
-                refreshBtn.innerText = "↻ ...";
-                loadDashboard(key).then(() => {
-                    const lang = globalLang ? globalLang.value : "en";
-                    refreshBtn.innerText = i18n[lang] && i18n[lang].refresh_btn ? i18n[lang].refresh_btn : "↻ Refresh";
-                });
-            }
-        });
-    }
 
     if (resetBtn) {
         resetBtn.addEventListener("click", async () => {
@@ -3138,6 +3125,7 @@ window.focusModeActive = localStorage.getItem("tm_focus_mode") === "true";
 function updateFocusModeUI() {
     const dashboard = document.getElementById("dashboard");
     const focusBtn = document.getElementById("focus-btn");
+    const focusBtnExit = document.getElementById("focus-btn-exit");
     if (!dashboard) return;
     
     if (window.focusModeActive) {
@@ -3146,11 +3134,19 @@ function updateFocusModeUI() {
             focusBtn.style.background = "var(--border-light)";
             focusBtn.style.color = "var(--border-darker)";
         }
+        if (focusBtnExit) {
+            focusBtnExit.style.display = "inline-flex";
+            focusBtnExit.style.background = "var(--border-light)";
+            focusBtnExit.style.color = "var(--border-darker)";
+        }
     } else {
         dashboard.classList.remove("focus-mode-active");
         if (focusBtn) {
             focusBtn.style.background = "var(--panel-bg)";
             focusBtn.style.color = "#a855f7";
+        }
+        if (focusBtnExit) {
+            focusBtnExit.style.display = "none";
         }
     }
 }
@@ -3160,13 +3156,14 @@ document.addEventListener("DOMContentLoaded", () => {
     updateFocusModeUI();
     
     const focusBtn = document.getElementById("focus-btn");
-    if (focusBtn) {
-        focusBtn.addEventListener("click", () => {
-            window.focusModeActive = !window.focusModeActive;
-            localStorage.setItem("tm_focus_mode", window.focusModeActive);
-            updateFocusModeUI();
-        });
-    }
+    const focusBtnExit = document.getElementById("focus-btn-exit");
+    const toggleFocus = () => {
+        window.focusModeActive = !window.focusModeActive;
+        localStorage.setItem("tm_focus_mode", window.focusModeActive);
+        updateFocusModeUI();
+    };
+    if (focusBtn) focusBtn.addEventListener("click", toggleFocus);
+    if (focusBtnExit) focusBtnExit.addEventListener("click", toggleFocus);
 
     // --- SIDEBAR COLLAPSE / EXPAND LOGIC ---
     const sidebar = document.getElementById("sidebar");
@@ -3216,6 +3213,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (targetTab) {
                 targetTab.classList.add("active");
             }
+            
+            // Toggle timeframe filters visibility: only shown on DASHBOARD page
+            const timeframeFilters = document.getElementById("timeframe-filters");
+            if (timeframeFilters) {
+                if (tabId === "tab-dashboard") {
+                    timeframeFilters.style.display = "";
+                } else {
+                    timeframeFilters.style.display = "none";
+                }
+            }
+            
             if (tabId === "tab-tags" && typeof window.renderTagAnalyzer === "function" && window.currentAllTrades) {
                 window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
             }

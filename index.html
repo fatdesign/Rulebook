@@ -178,6 +178,18 @@
                             </select>
                         </div>
 
+                        <!-- Focus & Reset -->
+                        <div class="sidebar-settings-group">
+                            <button id="focus-btn" class="secondary-btn" style="flex: 1; padding: 6px 10px; border-color: #a855f7; color: #a855f7; display: flex; align-items: center; justify-content: center; gap: 6px;" title="Focus Mode">
+                                <i class="ph ph-sparkle"></i>
+                                <span class="sidebar-btn-text" data-i18n="focus_btn">Focus Mode</span>
+                            </button>
+                            <button id="reset-btn" class="secondary-btn" style="flex: 1; padding: 6px 10px; border-color: #ef4444; color: #ef4444; display: flex; align-items: center; justify-content: center; gap: 6px;" title="Reset Dashboard">
+                                <i class="ph ph-warning"></i>
+                                <span class="sidebar-btn-text" data-i18n="reset_btn">Reset</span>
+                            </button>
+                        </div>
+
                         <button id="logout-btn" class="secondary-btn sidebar-logout" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                             <i class="ph ph-plugs"></i>
                             <span class="logout-text" data-i18n="disconnect_btn">Logout</span>
@@ -197,8 +209,6 @@
                                     data-i18n="filter_yesterday">Gestern</button>
                                 <button class="filter-btn" data-timeframe="week" data-i18n="filter_week">Diese
                                     Woche</button>
-                                <button class="filter-btn" data-timeframe="all" data-i18n="filter_all">Alle
-                                    Trades</button>
                             </div>
 
                             <select id="month-selector" class="profile-select" style="width: auto; padding: 6px 10px;">
@@ -207,15 +217,10 @@
                         </div>
 
                         <div class="top-bar-right">
-                            <button id="focus-btn" class="secondary-btn"
-                                style="padding: 6px 12px; border-color: #a855f7; color: #a855f7;">
+                            <button id="focus-btn-exit" class="secondary-btn"
+                                style="display: none; padding: 6px 12px; border-color: #a855f7; color: #a855f7;">
                                 <i class="ph ph-sparkle"></i> <span data-i18n="focus_btn">Focus Mode</span>
                             </button>
-                            <button id="refresh-btn" class="secondary-btn" style="padding: 6px 10px;"
-                                data-i18n="refresh_btn">↻ Refresh</button>
-                            <button id="reset-btn" class="secondary-btn"
-                                style="padding: 6px 10px; border-color: #ef4444; color: #ef4444;"
-                                data-i18n="reset_btn">⚠ Reset</button>
                         </div>
                     </header>
 
