@@ -730,11 +730,42 @@ document.addEventListener("DOMContentLoaded", () => {
             const currentBalance = payload.current_balance || 0;
             
             let runningBalance = parseFloat(currentBalance);
+            window.accCurrency = "USD";
             trades.forEach(t => {
+                // Parse side
+                if (t.side.includes('_')) {
+                    const sideParts = t.side.split('_');
+                    t.side = sideParts[0]; 
+                    
+                    if (sideParts.length > 1) {
+                        window.accCurrency = sideParts[1];
+                    }
+                    
+                    let grossProfit = parseFloat(t.net_profit); // fallback
+                    if (sideParts.length > 2) {
+                        grossProfit = parseFloat(sideParts[2]);
+                    }
+                    t.gross_profit = grossProfit;
+                    
+                    let balanceAfter = null;
+                    if (sideParts.length > 3) {
+                        balanceAfter = parseFloat(sideParts[3]);
+                    }
+                    t.balance_after = balanceAfter;
+                } else if (t.gross_profit === undefined) {
+                    t.gross_profit = parseFloat(t.net_profit);
+                }
+                
+                // Calculate balances
                 const netP = parseFloat(t.net_profit);
-                t.balance_after = runningBalance;
-                runningBalance -= netP;
-                t.balance_before = runningBalance;
+                if (t.balance_after !== undefined && t.balance_after !== null) {
+                    t.balance_before = t.balance_after - netP;
+                    runningBalance = t.balance_before;
+                } else {
+                    t.balance_after = runningBalance;
+                    runningBalance -= netP;
+                    t.balance_before = runningBalance;
+                }
             });
             
             // Empty array is valid for accounts with no trades. Process it normally to clear the dashboard.
@@ -796,26 +827,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Extract currency and gross profit from all trades
-            let accCurrency = "USD";
-            trades.forEach(t => {
-                // Check if we haven't already split it (e.g. if run multiple times)
-                if (t.side.includes('_')) {
-                    const sideParts = t.side.split('_');
-                    t.side = sideParts[0]; 
-                    
-                    if (sideParts.length > 1) {
-                        accCurrency = sideParts[1];
-                    }
-                    
-                    let grossProfit = parseFloat(t.net_profit); // fallback
-                    if (sideParts.length > 2) {
-                        grossProfit = parseFloat(sideParts[2]);
-                    }
-                    t.gross_profit = grossProfit;
-                } else if (t.gross_profit === undefined) {
-                    t.gross_profit = parseFloat(t.net_profit);
-                }
-            });
+            let accCurrency = window.accCurrency || "USD";
 
             const currencyMap = {
                 "EUR": "€", "USD": "$", "GBP": "£", "JPY": "¥", "CHF": "CHF", "AUD": "A$", "CAD": "C$", "NZD": "NZ$"
