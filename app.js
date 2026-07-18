@@ -83,7 +83,8 @@ const i18n = {
         th_profit: "Gewinn",
         th_close: "Schließzeit",
         th_note: "Tag / Notiz",
-        note_ph: "Notiz oder #Tag hinzufügen..."
+        note_ph: "Notiz oder #Tag hinzufügen...",
+        th_gain: "% Gain"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -165,7 +166,8 @@ const i18n = {
         th_profit: "Profit",
         th_close: "Close Time",
         th_note: "Tag / Note",
-        note_ph: "Add note or #tag..."
+        note_ph: "Add note or #tag...",
+        th_gain: "% Gain"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -247,7 +249,8 @@ const i18n = {
         th_profit: "Beneficio",
         th_close: "Hora Cierre",
         th_note: "Etiqueta / Nota",
-        note_ph: "Añadir nota o #etiqueta..."
+        note_ph: "Añadir nota o #etiqueta...",
+        th_gain: "% Gain"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -329,7 +332,8 @@ const i18n = {
         th_profit: "Kâr",
         th_close: "Kapanış Zamanı",
         th_note: "Etiket / Not",
-        note_ph: "Not veya #etiket ekle..."
+        note_ph: "Not veya #etiket ekle...",
+        th_gain: "% Gain"
     }
 };
 
@@ -723,6 +727,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const payload = await response.json();
             const trades = payload.trades || payload;
+            const currentBalance = payload.current_balance || 0;
+            
+            let runningBalance = parseFloat(currentBalance);
+            trades.forEach(t => {
+                const netP = parseFloat(t.net_profit);
+                t.balance_after = runningBalance;
+                runningBalance -= netP;
+                t.balance_before = runningBalance;
+            });
             
             // Empty array is valid for accounts with no trades. Process it normally to clear the dashboard.
 
@@ -1369,8 +1382,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     maxLoss: 0,
                     commission: 0,
                     longs: 0,
-                    shorts: 0
+                    shorts: 0,
+                    startingBalance: t.balance_before
                 };
+            } else {
+                daysMap[dateKey].startingBalance = t.balance_before;
             }
             
             const day = daysMap[dateKey];
@@ -1409,7 +1425,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const sortedDays = Object.values(daysMap).sort((a, b) => b.timestamp - a.timestamp);
         
         if (sortedDays.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px; color: var(--text-muted);" data-i18n="no_trades_found">No trades found for this period.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding: 20px; color: var(--text-muted);" data-i18n="no_trades_found">No trades found for this period.</td></tr>`;
             return;
         }
         
@@ -1421,11 +1437,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const avgWin = day.wins > 0 ? (day.grossProfit / day.wins) : 0;
             const avgLoss = day.losses > 0 ? (day.grossLoss / day.losses) : 0;
             
+            let percentGainDisplay = "-";
+            let percentGainColor = "";
+            if (day.startingBalance > 0) {
+                const pGain = (day.netProfit / day.startingBalance) * 100;
+                percentGainDisplay = `${pGain > 0 ? '+' : ''}${pGain.toFixed(2)}%`;
+                percentGainColor = pGain > 0 ? "text-success" : (pGain < 0 ? "text-danger" : "");
+            }
+            
             const pClass = day.netProfit > 0 ? "text-success" : (day.netProfit < 0 ? "text-danger" : "");
             
             tr.innerHTML = `
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.dateStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${pClass}">${day.netProfit > 0 ? '+' : ''}${curSym}${day.netProfit.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${percentGainColor}">${percentGainDisplay}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${pf.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${day.tradesCount}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${winRate.toFixed(0)}%</td>
