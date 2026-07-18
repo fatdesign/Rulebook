@@ -1321,3 +1321,42 @@ th {
     }
 }
 
+/* ── TRADES CALENDAR POPUP ────────────────────────────────────── */
+#trades-cal-overlay {
+    animation: fadeIn 0.18s ease;
+}
+
+#trades-cal-popup {
+    animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.88) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+#trades-cal-grid-container .cal-grid {
+    gap: 5px;
+}
+
+#trades-cal-grid-container .cal-day {
+    border-radius: 8px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#trades-cal-grid-container .cal-day.clickable-cal-day:hover {
+    transform: scale(1.07);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    z-index: 2;
+}
+
+#trades-cal-prev:hover,
+#trades-cal-next:hover {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+}

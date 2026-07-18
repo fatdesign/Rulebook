@@ -916,53 +916,137 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Trades Tab specific Date Filter
-    const tradesDateFilter = document.getElementById("trades-date-filter");
-    const clearTradesDateBtn = document.getElementById("clear-trades-date-btn");
+    // ── Trades Tab Calendar Popup ──────────────────────────────────
+    const tradesCalBtn      = document.getElementById("trades-calendar-btn");
+    const clearTradesDateBtn= document.getElementById("clear-trades-date-btn");
+    const tradesCalOverlay  = document.getElementById("trades-cal-overlay");
+    const tradesCalClose    = document.getElementById("trades-cal-close");
+    const tradesCalPrev     = document.getElementById("trades-cal-prev");
+    const tradesCalNext     = document.getElementById("trades-cal-next");
+    const tradesCalTitle    = document.getElementById("trades-cal-month-title");
+    const tradesCalGrid     = document.getElementById("trades-cal-grid-container");
+    const tradesDateLabel   = document.getElementById("trades-selected-date-label");
 
-    if (tradesDateFilter) {
-        tradesDateFilter.addEventListener("change", () => {
-            const selectedDate = tradesDateFilter.value; // "YYYY-MM-DD"
-            if (!selectedDate) {
+    const FULL_MONTHS = ["JANUAR","FEBRUAR","MÄRZ","APRIL","MAI","JUNI","JULI","AUGUST","SEPTEMBER","OKTOBER","NOVEMBER","DEZEMBER"];
+
+    let calPopupYear  = new Date().getFullYear();
+    let calPopupMonth = new Date().getMonth(); // 0-based
+
+    function renderTradesCalPopup() {
+        if (!tradesCalGrid || !tradesCalTitle) return;
+
+        // Build daily profit map from ALL trades (across all time)
+        const dailyProfit = {};
+        currentAllTrades.forEach(t => {
+            const d = new Date(t.close_time * 1000);
+            const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+            if (!dailyProfit[key]) dailyProfit[key] = 0;
+            dailyProfit[key] += parseFloat(t.net_profit);
+        });
+
+        tradesCalTitle.textContent = `${FULL_MONTHS[calPopupMonth]} ${calPopupYear}`;
+
+        const firstDay = new Date(calPopupYear, calPopupMonth, 1).getDay();
+        const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+        const daysInMonth = new Date(calPopupYear, calPopupMonth + 1, 0).getDate();
+        const curSym = window.currentCurSym || "$";
+
+        let html = `<div class="cal-grid">`;
+        ["M","D","M","D","F","S","S"].forEach(h => { html += `<div class="cal-header">${h}</div>`; });
+        for (let i = 0; i < startOffset; i++) html += `<div class="cal-day empty"></div>`;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateKey = `${calPopupYear}-${String(calPopupMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const val = dailyProfit[dateKey];
+            let cls = "clickable-cal-day";
+            let valHtml = "";
+            if (val !== undefined) {
+                cls += val > 0 ? " positive" : (val < 0 ? " negative" : "");
+                const disp = val >= 0 ? `+${curSym}${val.toFixed(0)}` : `-${curSym}${Math.abs(val).toFixed(0)}`;
+                valHtml = `<span class="cal-val">${disp}</span>`;
+            }
+            html += `<div class="cal-day ${cls}" data-datekey="${dateKey}" style="cursor:pointer"><span class="cal-date">${d}</span>${valHtml}</div>`;
+        }
+        html += `</div>`;
+        tradesCalGrid.innerHTML = html;
+
+        // Day click → filter trades table and close popup
+        tradesCalGrid.querySelectorAll(".clickable-cal-day").forEach(el => {
+            el.addEventListener("click", () => {
+                const dKey = el.getAttribute("data-datekey");
+                const [yy, mm, dd] = dKey.split('-');
+                const dateStr = `${dd}.${mm}.${yy}`;
+
+                const dayTrades = currentAllTrades.filter(t => {
+                    const tDate = new Date(t.close_time * 1000);
+                    const tKey = `${tDate.getUTCFullYear()}-${String(tDate.getUTCMonth()+1).padStart(2,'0')}-${String(tDate.getUTCDate()).padStart(2,'0')}`;
+                    return tKey === dKey;
+                });
+
                 if (typeof window.renderTradesTable === "function") {
-                    window.renderTradesTable(currentFilteredTrades, window.currentCurSym || "$");
+                    window.renderTradesTable(dayTrades, window.currentCurSym || "$");
                 }
                 const titleSpan = document.querySelector("#recent-trades-panel h3 span");
                 if (titleSpan) {
-                    const lang = globalLang ? globalLang.value : "en";
-                    titleSpan.innerHTML = i18n[lang] && i18n[lang].trades_title ? i18n[lang].trades_title : "Recent Trades &amp; Tags";
+                    titleSpan.innerHTML = `Recent Trades &amp; Tags <span style="color:var(--text-muted);font-size:0.85rem;margin-left:10px;">(${dateStr})</span>`;
                 }
-                return;
-            }
+                if (tradesDateLabel) {
+                    tradesDateLabel.textContent = dateStr;
+                    tradesDateLabel.style.display = "inline";
+                }
+                if (clearTradesDateBtn) clearTradesDateBtn.style.display = "inline-flex";
 
-            const dayTrades = currentAllTrades.filter(t => {
-                const tDate = new Date(t.close_time * 1000);
-                const ty = tDate.getUTCFullYear();
-                const tm = tDate.getUTCMonth() + 1;
-                const td = tDate.getUTCDate();
-                const tKey = `${ty}-${String(tm).padStart(2, '0')}-${String(td).padStart(2, '0')}`;
-                return tKey === selectedDate;
+                // close popup
+                tradesCalOverlay.style.display = "none";
             });
+        });
+    }
 
-            if (typeof window.renderTradesTable === "function") {
-                window.renderTradesTable(dayTrades, window.currentCurSym || "$");
-            }
+    function openTradesCalPopup() {
+        // Start on the month of the currently filtered timeframe
+        const now = new Date();
+        calPopupYear  = now.getFullYear();
+        calPopupMonth = now.getMonth();
+        renderTradesCalPopup();
+        if (tradesCalOverlay) {
+            tradesCalOverlay.style.display = "flex";
+        }
+    }
 
-            const titleSpan = document.querySelector("#recent-trades-panel h3 span");
-            if (titleSpan) {
-                const [yy, mm, dd] = selectedDate.split('-');
-                const dateStr = `${dd}.${mm}.${yy}`;
-                titleSpan.innerHTML = `Recent Trades &amp; Tags <span style="color:var(--text-muted);font-size:0.85rem;margin-left:10px;">(Filtered: ${dateStr})</span>`;
-            }
+    if (tradesCalBtn)   tradesCalBtn.addEventListener("click", openTradesCalPopup);
+    if (tradesCalClose) tradesCalClose.addEventListener("click", () => { tradesCalOverlay.style.display = "none"; });
+    if (tradesCalOverlay) {
+        tradesCalOverlay.addEventListener("click", (e) => {
+            if (e.target === tradesCalOverlay) tradesCalOverlay.style.display = "none";
+        });
+    }
+    if (tradesCalPrev) {
+        tradesCalPrev.addEventListener("click", () => {
+            calPopupMonth--;
+            if (calPopupMonth < 0) { calPopupMonth = 11; calPopupYear--; }
+            renderTradesCalPopup();
+        });
+    }
+    if (tradesCalNext) {
+        tradesCalNext.addEventListener("click", () => {
+            calPopupMonth++;
+            if (calPopupMonth > 11) { calPopupMonth = 0; calPopupYear++; }
+            renderTradesCalPopup();
         });
     }
 
     if (clearTradesDateBtn) {
         clearTradesDateBtn.addEventListener("click", () => {
-            if (tradesDateFilter) {
-                tradesDateFilter.value = "";
-                tradesDateFilter.dispatchEvent(new Event("change"));
+            if (typeof window.renderTradesTable === "function") {
+                window.renderTradesTable(currentFilteredTrades, window.currentCurSym || "$");
             }
+            const titleSpan = document.querySelector("#recent-trades-panel h3 span");
+            if (titleSpan) {
+                const lang = globalLang ? globalLang.value : "en";
+                titleSpan.innerHTML = i18n[lang] && i18n[lang].trades_title ? i18n[lang].trades_title : "Recent Trades &amp; Tags";
+            }
+            if (tradesDateLabel) { tradesDateLabel.textContent = ""; tradesDateLabel.style.display = "none"; }
+            clearTradesDateBtn.style.display = "none";
         });
     }
 
@@ -1117,9 +1201,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() - 1) / 1000);
                 endTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000) - 1;
             } else if (currentTimeframe === "week") {
-                const day = now.getDay();
-                const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
-                startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), diff) / 1000);
+                const day = now.getDay(); // 0=Sun .. 6=Sat
+                const daysToMonday = day === 0 ? -6 : 1 - day;
+                const mondayDate = now.getDate() + daysToMonday;
+                const sundayDate = mondayDate + 6;
+                // Date.UTC handles overflow automatically (e.g. day=0 → last day of prev month)
+                startTime = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), mondayDate) / 1000);
+                endTime   = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), sundayDate + 1) / 1000) - 1;
             } else if (currentTimeframe === "current_month") {
                 const y = now.getFullYear();
                 const m = now.getMonth();
