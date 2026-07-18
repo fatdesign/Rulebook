@@ -772,7 +772,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 // Calculate balances
                 const netP = parseFloat(t.net_profit);
-                if (t.balance_after !== undefined && t.balance_after !== null) {
+                if (t.balance_after !== undefined && t.balance_after !== null && !isNaN(t.balance_after)) {
                     t.balance_before = t.balance_after - netP;
                     runningBalance = t.balance_before;
                 } else {
