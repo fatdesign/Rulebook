@@ -1255,6 +1255,12 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("kpi-best-day").innerText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
         document.getElementById("kpi-worst-day").innerText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
 
+        // Reset trades table title
+        const tableContainer = document.querySelector("#trades-table").parentElement;
+        const titleSpan = tableContainer.querySelector("h3 span");
+        if (titleSpan) {
+            titleSpan.innerHTML = i18n[curLang] && i18n[curLang].trades_title ? i18n[curLang].trades_title : "Recent Trades &amp; Tags";
+        }
 
         // Trades Table rendering
         if (typeof window.renderTradesTable === "function") {
@@ -1539,6 +1545,34 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="secondary-btn open-journal-btn" data-datekey="${day.dateKey}" data-datestr="${day.dateStr}" style="padding: 4px 8px; font-size: 0.8rem;" title="Mental Journal"><i class="ph ph-book-open"></i></button>
                 </td>
             `;
+            
+            tr.style.cursor = "pointer";
+            tr.addEventListener("click", (e) => {
+                if (e.target.closest('.open-journal-btn')) return;
+                
+                // Remove active styling from all rows
+                tbody.querySelectorAll("tr").forEach(r => r.style.backgroundColor = "");
+                tr.style.backgroundColor = "rgba(255,255,255,0.05)";
+                
+                const dayTrades = trades.filter(t => {
+                    const tDate = new Date(t.close_time * 1000);
+                    const tKey = `${tDate.getUTCFullYear()}-${tDate.getUTCMonth()}-${tDate.getUTCDate()}`;
+                    return tKey === day.dateKey;
+                });
+                
+                if (typeof window.renderTradesTable === "function") {
+                    window.renderTradesTable(dayTrades, curSym);
+                    const tableContainer = document.querySelector("#trades-table").parentElement;
+                    tableContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Update table title to show the filter
+                    const titleSpan = tableContainer.querySelector("h3 span");
+                    if (titleSpan) {
+                        titleSpan.innerHTML = `Recent Trades &amp; Tags <span style="color:var(--text-muted);font-size:0.85rem;margin-left:10px;">(Filtered: ${day.dateStr})</span>`;
+                    }
+                }
+            });
+            
             tbody.appendChild(tr);
         });
 
