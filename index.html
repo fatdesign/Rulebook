@@ -164,7 +164,7 @@
                                 <option value="win95">Win95 Classic</option>
                                 <option value="modern-dark">Modern Dark</option>
                                 <option value="modern-light">Modern Light</option>
-                                <option value="quantum">⚡ Quantum</option>
+                                <option value="quantum">Quantum</option>
                             </select>
                             <select id="global-lang" class="profile-select" style="padding: 6px;">
                                 <option value="de">DE</option>
@@ -484,9 +484,18 @@
                             <div class="dashboard-grid">
                                 <!-- Recent Trades Table -->
                 <div id="recent-trades-panel" class="glass-panel table-container" style="margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i
-                            class="ph ph-list-dashes"></i> <span data-i18n="trades_title">Recent Trades &amp;
-                            Tags</span></h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;"><i
+                                class="ph ph-list-dashes"></i> <span data-i18n="trades_title">Recent Trades &amp;
+                                Tags</span></h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label for="trades-date-filter" style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="filter_date_lbl">Filter Tag:</label>
+                                <input type="date" id="trades-date-filter" class="profile-select" style="padding: 4px 8px; font-size: 0.85rem; width: auto; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark); border-radius: 4px;">
+                            </div>
+                            <button id="clear-trades-date-btn" class="secondary-btn" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 4px;" data-i18n="clear_btn">Reset</button>
+                        </div>
+                    </div>
                     <table id="trades-table" style="width: 100%; text-align: left;">
                         <thead>
                             <tr>

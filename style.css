@@ -246,7 +246,7 @@ body {
 
 .app-container {
     width: 100%;
-    max-width: 1600px;
+    max-width: 100%;
     padding: 20px;
 }
 
@@ -1252,6 +1252,20 @@ th {
 }
 
 .focus-mode-active .tab-container {
+    display: block !important;
+}
+
+.focus-mode-active #tab-journal,
+.focus-mode-active #tab-trades,
+.focus-mode-active #tab-coach {
+    display: none !important;
+}
+
+.focus-mode-active #tab-dashboard {
+    display: block !important;
+}
+
+.focus-mode-active #tab-dashboard .kpi-row {
     display: none !important;
 }
 

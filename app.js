@@ -581,12 +581,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Timeframe state
     let currentTimeframe = "current_month";
+    let currentAllTrades = [];
     const filterBtns = document.querySelectorAll(".filter-btn");
     filterBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
             filterBtns.forEach(b => b.classList.remove("active"));
             e.target.classList.add("active");
             currentTimeframe = e.target.getAttribute("data-timeframe");
+            
+            const dateFilterInput = document.getElementById("trades-date-filter");
+            if (dateFilterInput) dateFilterInput.value = "";
             
             const key = localStorage.getItem("tm_license_key");
             if (key) loadDashboard(key);
@@ -598,6 +602,9 @@ document.addEventListener("DOMContentLoaded", () => {
         monthSelector.addEventListener("change", (e) => {
             currentTimeframe = e.target.value;
             filterBtns.forEach(b => b.classList.remove("active"));
+            
+            const dateFilterInput = document.getElementById("trades-date-filter");
+            if (dateFilterInput) dateFilterInput.value = "";
             
             const key = localStorage.getItem("tm_license_key");
             if (key) loadDashboard(key);
@@ -909,6 +916,56 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Trades Tab specific Date Filter
+    const tradesDateFilter = document.getElementById("trades-date-filter");
+    const clearTradesDateBtn = document.getElementById("clear-trades-date-btn");
+
+    if (tradesDateFilter) {
+        tradesDateFilter.addEventListener("change", () => {
+            const selectedDate = tradesDateFilter.value; // "YYYY-MM-DD"
+            if (!selectedDate) {
+                if (typeof window.renderTradesTable === "function") {
+                    window.renderTradesTable(currentFilteredTrades, window.currentCurSym || "$");
+                }
+                const titleSpan = document.querySelector("#recent-trades-panel h3 span");
+                if (titleSpan) {
+                    const lang = globalLang ? globalLang.value : "en";
+                    titleSpan.innerHTML = i18n[lang] && i18n[lang].trades_title ? i18n[lang].trades_title : "Recent Trades &amp; Tags";
+                }
+                return;
+            }
+
+            const dayTrades = currentAllTrades.filter(t => {
+                const tDate = new Date(t.close_time * 1000);
+                const ty = tDate.getUTCFullYear();
+                const tm = tDate.getUTCMonth() + 1;
+                const td = tDate.getUTCDate();
+                const tKey = `${ty}-${String(tm).padStart(2, '0')}-${String(td).padStart(2, '0')}`;
+                return tKey === selectedDate;
+            });
+
+            if (typeof window.renderTradesTable === "function") {
+                window.renderTradesTable(dayTrades, window.currentCurSym || "$");
+            }
+
+            const titleSpan = document.querySelector("#recent-trades-panel h3 span");
+            if (titleSpan) {
+                const [yy, mm, dd] = selectedDate.split('-');
+                const dateStr = `${dd}.${mm}.${yy}`;
+                titleSpan.innerHTML = `Recent Trades &amp; Tags <span style="color:var(--text-muted);font-size:0.85rem;margin-left:10px;">(Filtered: ${dateStr})</span>`;
+            }
+        });
+    }
+
+    if (clearTradesDateBtn) {
+        clearTradesDateBtn.addEventListener("click", () => {
+            if (tradesDateFilter) {
+                tradesDateFilter.value = "";
+                tradesDateFilter.dispatchEvent(new Event("change"));
+            }
+        });
+    }
+
     // Auto-refresh every 60 seconds
     setInterval(() => {
         const key = localStorage.getItem("tm_license_key");
@@ -1125,6 +1182,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const filteredTrades = trades.filter(t => t.close_time >= startTime && t.close_time <= endTime);
             currentFilteredTrades = filteredTrades;
+            currentAllTrades = trades;
 
             processData(filteredTrades, curSym);
         } catch (err) {
