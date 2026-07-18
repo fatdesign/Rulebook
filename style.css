@@ -780,7 +780,8 @@ th {
     font-size: 1rem !important;
 }
 .focus-mode-active #focus-kpi-row p.kpi-value {
-    font-size: 1.4rem !important;
+    font-size: 1.6rem !important;
+    font-weight: bold;
 }
 .focus-mode-active #news-ticker-panel {
     display: flex !important;
@@ -788,7 +789,6 @@ th {
 .focus-mode-active .kpi-row:not(.focus-only),
 .focus-mode-active #equity-curve-row,
 .focus-mode-active #calendar-monthly-row,
-.focus-mode-active #analysis-row,
 .focus-mode-active #daily-stats-panel,
 .focus-mode-active #strategy-performance-panel,
 .focus-mode-active #recent-trades-panel,
