@@ -95,7 +95,10 @@ const i18n = {
         ai_scope_day: "Heute",
         archive_analysis_btn: "Analyse Archivieren",
         archived_analyses_title: "Archivierte Analysen",
-        view_archives_title: "Archive Ansehen"
+        view_archives_title: "Archive Ansehen",
+        th_charts: "Charts",
+        chart_before: "Vorher",
+        chart_after: "Nachher"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -183,7 +186,16 @@ const i18n = {
         strategy_add_btn: "+ New Strategy",
         th_strategy: "Strategy",
         strategy_name_lbl: "Strategy Name",
-        strategy_desc_lbl: "Rules / Description"
+        strategy_desc_lbl: "Rules / Description",
+        ai_scope_month: "Current Month",
+        ai_scope_week: "Current Week",
+        ai_scope_day: "Today",
+        archive_analysis_btn: "Archive Analysis",
+        archived_analyses_title: "Archived Coach Analyses",
+        view_archives_title: "View Archives",
+        th_charts: "Charts",
+        chart_before: "Before",
+        chart_after: "After"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -277,7 +289,10 @@ const i18n = {
         ai_scope_day: "Hoy",
         archive_analysis_btn: "Archivar Análisis",
         archived_analyses_title: "Análisis Archivados",
-        view_archives_title: "Ver Archivos"
+        view_archives_title: "Ver Archivos",
+        th_charts: "Gráficos",
+        chart_before: "Antes",
+        chart_after: "Después"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -371,9 +386,57 @@ const i18n = {
         ai_scope_day: "Bugün",
         archive_analysis_btn: "Analizi Arşivle",
         archived_analyses_title: "Arşivlenmiş Analizler",
-        view_archives_title: "Arşivleri Görüntüle"
+        view_archives_title: "Arşivleri Görüntüle",
+        th_charts: "Grafikler",
+        chart_before: "Öncesi",
+        chart_after: "Sonrası"
     }
 };
+
+// Modal Close Helper
+const imgModalClose = document.getElementById("image-preview-close");
+if (imgModalClose) {
+    imgModalClose.addEventListener("click", () => {
+        document.getElementById("image-preview-modal").classList.add("hidden");
+        document.getElementById("image-preview-img").src = "";
+    });
+}
+
+window.saveTradeImage = function(inputEl) {
+    const ticket = inputEl.getAttribute("data-ticket");
+    const type = inputEl.getAttribute("data-type");
+    const url = inputEl.value.trim();
+    if (!url) return;
+
+    if (!window.tradeImagesMap) window.tradeImagesMap = {};
+    if (!window.tradeImagesMap[ticket]) window.tradeImagesMap[ticket] = { before: "", after: "" };
+    window.tradeImagesMap[ticket][type] = url;
+
+    updateTradeImagesBackend(ticket);
+};
+
+window.deleteTradeImage = function(ticket, type) {
+    if (!window.tradeImagesMap || !window.tradeImagesMap[ticket]) return;
+    window.tradeImagesMap[ticket][type] = "";
+    updateTradeImagesBackend(ticket);
+};
+
+function updateTradeImagesBackend(ticket) {
+    const token = localStorage.getItem("tm_master_token");
+    const accountId = localStorage.getItem("tm_license_key");
+    if (!token || !accountId) return;
+
+    const imgData = window.tradeImagesMap[ticket];
+    fetch(`${API_URL}?action=images&account_id=${encodeURIComponent(accountId)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": token },
+        body: JSON.stringify({ ticket: ticket, img_before: imgData.before, img_after: imgData.after })
+    }).then(r => r.json()).then(d => {
+        if (d.success && typeof renderTradesTable === "function" && window.currentFilteredTrades) {
+            renderTradesTable(window.currentFilteredTrades, window.currentCurSym);
+        }
+    }).catch(e => console.error(e));
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const loginScreen = document.getElementById("login-screen");
@@ -844,6 +907,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }).catch(e => console.error(e));
 
+            // Load Trade Images
+            fetch(`${API_URL}?action=images&account_id=${encodeURIComponent(key)}`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
+                .then(r => r.json())
+                .then(d => {
+                    window.tradeImagesMap = {};
+                    d.forEach(img => { window.tradeImagesMap[img.ticket] = { before: img.img_before, after: img.img_after }; });
+                    if (currentFilteredTrades && currentFilteredTrades.length > 0) {
+                        if (typeof renderTradesTable === "function") {
+                            renderTradesTable(currentFilteredTrades, window.currentCurSym);
+                        }
+                    }
+                }).catch(e => console.error(e));
+
             // Load Trade Strategy Assignments
             fetch(`${API_URL}?action=trade_strategy&account_id=${encodeURIComponent(key)}`, { headers: { 'Authorization': localStorage.getItem('tm_master_token') } })
                 .then(r => r.json())
@@ -1126,6 +1202,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? `<span class="strategy-badge" style="--s-color:${stratColor};--s-rgb:${stratRgb};" data-ticket="${t.ticket}" onclick="openStrategyPicker(this, '${t.ticket}')">${assignedStrat.name}</span>`
                 : `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${t.ticket}')">+ Assign</button>`;
             const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
+            
+            const imgData = window.tradeImagesMap ? (window.tradeImagesMap[t.ticket] || {}) : {};
+            const beforeUrl = imgData.before || "";
+            const afterUrl = imgData.after || "";
+
+            const renderImageInput = (type, url) => {
+                if (url) {
+                    return `<div style="display: flex; gap: 4px; align-items: center; margin-bottom: 2px;">
+                                <button class="secondary-btn image-preview-btn" data-url="${url}" style="padding: 2px 6px; font-size: 0.8rem; flex: 1;"><i class="ph ph-image"></i> ${type}</button>
+                                <button class="secondary-btn image-delete-btn" data-ticket="${t.ticket}" data-type="${type.toLowerCase()}" style="padding: 2px 6px; color: var(--danger);"><i class="ph ph-trash"></i></button>
+                            </div>`;
+                } else {
+                    return `<input type="text" class="trade-img-input profile-select" data-ticket="${t.ticket}" data-type="${type.toLowerCase()}" placeholder="${type} URL" style="width: 100%; max-width: 120px; padding: 2px 4px; font-size: 0.75rem; margin-bottom: 2px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">`;
+                }
+            };
+
+            const chartHtml = `
+                <div style="display: flex; flex-direction: column;">
+                    ${renderImageInput("Before", beforeUrl)}
+                    ${renderImageInput("After", afterUrl)}
+                </div>
+            `;
 
             tr.innerHTML = `
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}</td>
@@ -1133,6 +1231,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${chartHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
                     <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="${(i18n[localStorage.getItem('tm_global_lang') || 'de'] || {}).note_ph || 'Add note or #tag...'}" style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
                 </td>
@@ -1147,6 +1246,32 @@ document.addEventListener("DOMContentLoaded", () => {
                     e.preventDefault();
                     e.target.blur(); // triggers blur → saveTradeNote
                 }
+            });
+        });
+
+        document.querySelectorAll(".trade-img-input").forEach(inp => {
+            inp.addEventListener("blur", (e) => saveTradeImage(e.target));
+            inp.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.target.blur();
+                }
+            });
+        });
+
+        document.querySelectorAll(".image-preview-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const url = e.currentTarget.getAttribute("data-url");
+                document.getElementById("image-preview-img").src = url;
+                document.getElementById("image-preview-modal").classList.remove("hidden");
+            });
+        });
+
+        document.querySelectorAll(".image-delete-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const ticket = e.currentTarget.getAttribute("data-ticket");
+                const type = e.currentTarget.getAttribute("data-type");
+                deleteTradeImage(ticket, type);
             });
         });
     }

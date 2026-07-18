@@ -394,6 +394,202 @@
                                 <th data-i18n="th_profit">Profit</th>
                                 <th data-i18n="th_close">Close Time</th>
                                 <th data-i18n="th_strategy">Strategy</th>
+                                <th data-i18n="th_charts">Charts</th>
+                                <th data-i18n="th_note">Tag / Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Strategy Create/Edit Modal -->
+    <div id="strategy-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="width: 100%; max-width: 480px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph ph-compass"></i>
+                    <span id="strategy-modal-title">New Strategy</span>
+                </h3>
+                <button id="strategy-modal-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            </div>
+            <input type="hidden" id="strategy-modal-id" value="">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;" data-i18n="strategy_name_lbl">Strategy Name</label>
+                    <input type="text" id="strategy-modal-name" class="profile-select" style="width: 100%; padding: 8px; font-size: 0.95rem;" placeholder="e.g. M30 Pullback, Break of Structure...">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;" data-i18n="strategy_desc_lbl">Rules / Description</label>
+                    <textarea id="strategy-modal-desc" class="profile-select" style="width: 100%; min-height: 120px; padding: 8px; font-size: 0.85rem; resize: vertical; font-family: inherit;" placeholder="List your entry rules, conditions and notes here..."></textarea>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 15px; gap: 10px;">
+                <button id="strategy-modal-save" class="primary-btn" style="padding: 8px 20px;" data-i18n="save_btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Journal Modal -->
+    <div id="journal-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="width: 100%; max-width: 600px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph ph-book-open"></i> 
+                    <span id="journal-modal-title">Mental Journal</span>
+                </h3>
+                <span id="journal-modal-status" style="font-size: 0.8rem; color: var(--success); margin-left: auto; margin-right: 15px;"></span>
+                <button id="journal-modal-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            </div>
+            <textarea id="journal-modal-text" style="width: 100%; min-height: 200px; background: var(--input-bg); color: var(--input-text); border: 2px solid var(--border-darker); padding: 15px; resize: vertical; font-family: inherit; font-size: 0.95rem; border-radius: 8px;" placeholder="How are you feeling about your trades today? Did you follow your plan?"></textarea>
+            <div style="display: flex; justify-content: flex-end; margin-top: 15px; gap: 10px;">
+                <button id="journal-modal-save" class="primary-btn" style="padding: 8px 20px;">Save Entry</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Coach Archive Modal -->
+    <div id="coach-archive-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="width: 100%; max-width: 600px; display: flex; flex-direction: column; max-height: 80vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph ph-archive"></i> 
+                    <span data-i18n="archived_analyses_title">Archived Coach Analyses</span>
+                </h3>
+                <button id="coach-archive-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="coach-archive-list" style="overflow-y: auto; flex: 1; padding-right: 10px; display: flex; flex-direction: column; gap: 15px;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Kill-Switch Warning Modal -->
+    <div id="kill-switch-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="border: 1px solid #ef4444; max-width: 400px; text-align: center;">
+            <h2 style="color: #ef4444; margin-bottom: 15px;"><i class="ph ph-warning"></i> <span data-i18n="modal_warn">WARNUNG</span></h2>
+                                    <th data-i18n="th_profit">Profit</th>
+                                    <th data-i18n="th_gain">% Gain</th>
+                                    <th data-i18n="th_pf">Profit Factor</th>
+                                    <th data-i18n="th_trades">Trades</th>
+                                    <th data-i18n="th_winrate">Win Rate</th>
+                                    <th data-i18n="th_avg_win">Avg Win</th>
+                                    <th data-i18n="th_avg_loss">Avg Loss</th>
+                                    <th data-i18n="th_max_win">Max Win</th>
+                                    <th data-i18n="th_max_loss">Max Loss</th>
+                                    <th data-i18n="th_commission">Commission</th>
+                                    <th data-i18n="th_ls">L / S</th>
+                                    <th data-i18n="th_journal" style="text-align: center;">Journal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Data Row 3 (AI) -->
+                <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;" class="charts-row">
+                    <!-- AI Insights (Phase 4) -->
+                    <div class="ai-insights glass-panel" style="margin-bottom: 0;">
+                        <div class="ai-header">
+                            <i class="ph ph-sparkle" style="color: #a855f7; font-size: 1.2rem;"></i>
+                            <h3 data-i18n="ai_title">AI Trading Coach</h3>
+                            <span id="ai-limit" class="ai-limit" style="margin-left:auto; font-size: 0.8rem; color: #a855f7;"></span>
+                        </div>
+                        
+                        <!-- Trader Profile Settings (Moved inside AI Coach panel for UX) -->
+                        <div class="profile-settings" style="margin-bottom: 15px; padding: 10px; border: 1px solid var(--border-dark); background: rgba(0,0,0,0.2);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <i class="ph ph-user" style="font-size: 1rem; color: #a855f7;"></i>
+                                <span style="color: var(--text-main); font-size: 0.9rem;" data-i18n="profile_title">Trader Profile (Für AI)</span>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <select id="prof-style" class="profile-select" style="flex: 1; font-size: 0.8rem; padding: 4px;">
+                                    <option value="Scalper" data-i18n="prof_style_scalper">Scalper</option>
+                                    <option value="Day Trader" selected data-i18n="prof_style_day">Day Trader</option>
+                                    <option value="Swing Trader" data-i18n="prof_style_swing">Swing Trader</option>
+                                </select>
+                                <select id="prof-risk" class="profile-select" style="flex: 1; font-size: 0.8rem; padding: 4px;">
+                                    <option value="Conservative" data-i18n="prof_risk_cons">Conservative</option>
+                                    <option value="Moderate" selected data-i18n="prof_risk_mod">Moderate Risk</option>
+                                    <option value="Aggressive" data-i18n="prof_risk_agg">Aggressive</option>
+                                </select>
+                            </div>
+                            <div class="session-group" id="prof-session-group" style="margin-top: 10px; display: flex; gap: 5px;">
+                                <label class="session-pill" style="font-size: 0.75rem;"><input type="checkbox" value="London" class="session-cb"> London</label>
+                                <label class="session-pill" style="font-size: 0.75rem;"><input type="checkbox" value="New York" class="session-cb" checked> New York</label>
+                                <label class="session-pill" style="font-size: 0.75rem;"><input type="checkbox" value="Asian" class="session-cb"> Asian</label>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                            <i class="ph ph-calendar-check" style="color: #a855f7;"></i>
+                            <select id="ai-scope" class="profile-select" style="flex: 1; font-size: 0.8rem; padding: 4px;">
+                                <option value="month" data-i18n="ai_scope_month">Current Month</option>
+                                <option value="week" data-i18n="ai_scope_week">Current Week</option>
+                                <option id="ai-scope-day" value="day" data-i18n="ai_scope_day">Today</option>
+                            </select>
+                        </div>
+
+                        <div id="ai-controls" style="margin-bottom: 15px; display: flex; gap: 10px;">
+                            <button id="ai-btn" class="secondary-btn" style="flex: 1; background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: #fff;" data-i18n="ai_btn">
+                                Ask Coach for Analysis
+                            </button>
+                            <button id="view-archives-btn" class="secondary-btn" style="padding: 0 15px;" title="View Archives" data-i18n-title="view_archives_title">
+                                <i class="ph ph-archive"></i>
+                            </button>
+                        </div>
+                        <div id="ai-content" class="ai-content">
+                            <p class="ai-placeholder-text" data-i18n="ai_placeholder">Click the button above to get a harsh but helpful AI analysis of your recent trades.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Definitions Panel -->
+                <div class="glass-panel" style="margin-bottom: 20px;" id="strategy-definitions-panel">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-compass"></i>
+                            <span data-i18n="strategy_title">STRATEGY DEFINITIONS // SYSTEMS</span>
+                        </h3>
+                        <button id="add-strategy-btn" class="secondary-btn" style="padding: 6px 14px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                            <i class="ph ph-plus"></i> <span data-i18n="strategy_add_btn">+ NEW STRATEGY</span>
+                        </button>
+                    </div>
+                    <div id="strategy-cards-container" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start; min-height: 60px;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Strategy Performance Panel -->
+                <div class="glass-panel" style="margin-bottom: 20px;" id="strategy-performance-panel">
+                    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-chart-bar"></i>
+                        <span data-i18n="strategy_perf_title">STRATEGY PERFORMANCE</span>
+                    </h3>
+                    <div id="strategy-perf-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Recent Trades Table -->
+                <div class="glass-panel table-container" style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="ph ph-list-dashes"></i> <span data-i18n="trades_title">Recent Trades &amp; Tags</span></h3>
+                    <table id="trades-table" style="width: 100%; text-align: left;">
+                        <thead>
+                            <tr>
+                                <th data-i18n="th_symbol">Symbol</th>
+                                <th data-i18n="th_side">Side</th>
+                                <th data-i18n="th_profit">Profit</th>
+                                <th data-i18n="th_close">Close Time</th>
+                                <th data-i18n="th_strategy">Strategy</th>
+                                <th data-i18n="th_charts">Charts</th>
                                 <th data-i18n="th_note">Tag / Note</th>
                             </tr>
                         </thead>
@@ -479,6 +675,22 @@
         </div>
     </div>
 
-    <script src="app.js?v=27"></script>
+    <!-- Image Preview Modal -->
+    <div id="image-preview-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="width: 100%; max-width: 900px; display: flex; flex-direction: column; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph ph-image"></i>
+                    <span id="image-preview-title">Chart Preview</span>
+                </h3>
+                <button id="image-preview-close" class="secondary-btn" style="padding: 4px 8px; border: none; background: transparent; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="width: 100%; height: auto; text-align: center;">
+                <img id="image-preview-img" src="" alt="Chart Screenshot" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=28"></script>
 </body>
 </html>
