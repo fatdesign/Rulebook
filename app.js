@@ -108,6 +108,9 @@ const i18n = {
         nav_trades: "Trades",
         nav_tags: "Tags",
         nav_coach: "AI Coach",
+        nav_calendar: "Kalender",
+        calendar_title: "Wirtschaftskalender",
+        calendar_desc: "Behalte den Überblick über wichtige wirtschaftliche Events, die den Markt bewegen. (Data: ForexFactory)",
         tag_analyzer_title: "Tag Analyzer",
         tag_analyzer_desc: "Analysiere deine Fehler und Setups. Wähle einen Hashtag aus, um die entsprechenden Trades zu filtern und zu überprüfen."
     },
@@ -216,6 +219,9 @@ const i18n = {
         nav_trades: "Trades",
         nav_tags: "Tags",
         nav_coach: "AI Coach",
+        nav_calendar: "Calendar",
+        calendar_title: "Economic Calendar",
+        calendar_desc: "Keep track of important economic events that move the market. (Data: ForexFactory)",
         tag_analyzer_title: "Tag Analyzer",
         tag_analyzer_desc: "Analyze your mistakes and setups. Select a hashtag to filter and inspect the corresponding trades."
     },
@@ -322,7 +328,10 @@ const i18n = {
         nav_dashboard: "Panel",
         nav_journal: "Diario",
         nav_trades: "Operaciones",
-        nav_coach: "Coach IA"
+        nav_coach: "Coach IA",
+        nav_calendar: "Calendario",
+        calendar_title: "Calendario Económico",
+        calendar_desc: "Mantenga un registro de eventos económicos importantes. (Data: ForexFactory)"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -427,7 +436,10 @@ const i18n = {
         nav_dashboard: "Panel",
         nav_journal: "Günlük",
         nav_trades: "İşlemler",
-        nav_coach: "AI Koçu"
+        nav_coach: "AI Koçu",
+        nav_calendar: "Takvim",
+        calendar_title: "Ekonomik Takvim",
+        calendar_desc: "Piyasayı hareketlendiren önemli ekonomik olayları takip et. (Data: ForexFactory)"
     }
 };
 
@@ -1149,6 +1161,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Load Settings once
             loadSettings(key);
+            
+            if (!window.ecoCalendarLoaded) {
+                loadEconomicCalendar();
+                window.ecoCalendarLoaded = true;
+            }
 
             // Note: Journal is now loaded dynamically when opening the modal for a specific day.
 
@@ -3236,4 +3253,73 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    // --- ECONOMIC CALENDAR ---
+    async function loadEconomicCalendar() {
+        const feedContainer = document.getElementById("economic-calendar-feed");
+        if (!feedContainer) return;
+        
+        try {
+            const res = await fetch(`${API_URL}?action=news`);
+            if (!res.ok) throw new Error("Failed to fetch calendar");
+            const data = await res.json();
+            
+            feedContainer.innerHTML = "";
+            let currentDateStr = "";
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            data.forEach(item => {
+                // Ignore low impact if you want, but for now we show all
+                const evDate = new Date(item.date); // Parses ISO string
+                
+                // Format Date header
+                const dateOpts = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+                const dayStr = evDate.toLocaleDateString(navigator.language, dateOpts);
+                
+                if (dayStr !== currentDateStr) {
+                    const header = document.createElement("div");
+                    header.className = "eco-date-header";
+                    header.innerText = dayStr;
+                    
+                    // Add "Today" badge
+                    const evDayOnly = new Date(evDate);
+                    evDayOnly.setHours(0,0,0,0);
+                    if (evDayOnly.getTime() === today.getTime()) {
+                        header.innerHTML += ` <span style="background:var(--primary-color); color:#fff; font-size:0.6rem; padding: 2px 6px; border-radius:4px; vertical-align:middle; margin-left:8px;">TODAY</span>`;
+                    }
+                    
+                    feedContainer.appendChild(header);
+                    currentDateStr = dayStr;
+                }
+                
+                const timeOpts = { hour: '2-digit', minute: '2-digit' };
+                const timeStr = item.impact === "Holiday" ? "All Day" : evDate.toLocaleTimeString(navigator.language, timeOpts);
+                
+                const card = document.createElement("div");
+                card.className = "eco-event-card";
+                
+                let impactHtml = `<div class="eco-impact impact-${item.impact}" title="${item.impact} Impact"></div>`;
+                
+                card.innerHTML = `
+                    <div class="eco-time">${timeStr}</div>
+                    <div class="eco-country">${item.country}</div>
+                    ${impactHtml}
+                    <div class="eco-title">${item.title}</div>
+                    <div class="eco-forecast" title="Forecast">${item.forecast || "-"}</div>
+                    <div class="eco-previous" title="Previous">${item.previous || "-"}</div>
+                `;
+                
+                feedContainer.appendChild(card);
+            });
+            
+            if (data.length === 0) {
+                feedContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Keine Events für diese Woche gefunden.</div>`;
+            }
+        } catch (err) {
+            console.error("Calendar fetch error:", err);
+            feedContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Fehler beim Laden des Kalenders.</div>`;
+        }
+    }
 });

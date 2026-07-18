@@ -148,6 +148,10 @@
                             <i class="ph ph-brain"></i>
                             <span class="nav-text" data-i18n="nav_coach">AI Coach</span>
                         </a>
+                        <a href="#" class="sidebar-nav-item" data-tab="tab-calendar">
+                            <i class="ph ph-calendar-blank"></i>
+                            <span class="nav-text" data-i18n="nav_calendar">Calendar</span>
+                        </a>
                     </nav>
 
                     <div class="sidebar-footer">
@@ -687,6 +691,28 @@
                                                 above to get a
                                                 harsh but helpful AI analysis of your recent trades.</p>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: CALENDAR -->
+                        <div id="tab-calendar" class="tab-content">
+                            <div class="dashboard-grid">
+                                <div class="glass-panel" style="margin-bottom: 20px; padding: 25px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                            <i class="ph ph-calendar-blank"></i>
+                                            <span data-i18n="calendar_title">Economic Calendar</span>
+                                        </h3>
+                                    </div>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" data-i18n="calendar_desc">
+                                        Behalte den Überblick über wichtige wirtschaftliche Events, die den Markt bewegen. (Data: ForexFactory)
+                                    </p>
+                                    
+                                    <div id="economic-calendar-feed" style="display: flex; flex-direction: column; gap: 10px;">
+                                        <!-- Populated dynamically by JS -->
+                                        <div style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Daten...</div>
                                     </div>
                                 </div>
                             </div>

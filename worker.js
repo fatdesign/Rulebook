@@ -27,9 +27,11 @@ export default {
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE,
             password_hash TEXT,
-            token TEXT UNIQUE
+            token TEXT UNIQUE,
+            username TEXT
           )
         `).run();
+        try { await env.DB.prepare("ALTER TABLE users ADD COLUMN username TEXT").run(); } catch(e) {}
         await env.DB.prepare(`
           CREATE TABLE IF NOT EXISTS user_accounts (
             user_id TEXT,
@@ -69,6 +71,15 @@ export default {
       }
 
       // --- MASTER ACCOUNT ROUTES ---
+      function generateUsername() {
+          const adjs = ["Silent", "Neon", "Ghost", "Iron", "Quantum", "Crypto", "Alpha", "Shadow", "Apex", "Golden", "Swift", "Lunar", "Solar", "Cyber", "Whale", "Sniper", "Ape"];
+          const nouns = ["Fox", "Bull", "Trader", "Bear", "Wolf", "Hawk", "Shark", "Falcon", "Eagle", "Lion", "Tiger", "Dragon", "Phoenix"];
+          const adj = adjs[Math.floor(Math.random() * adjs.length)];
+          const noun = nouns[Math.floor(Math.random() * nouns.length)];
+          const num = Math.floor(1000 + Math.random() * 9000);
+          return `${adj}${noun}#${num}`;
+      }
+
       if (request.method === "POST" && action === "register") {
         await setupMasterTables(env);
         const body = await request.json();
@@ -80,11 +91,12 @@ export default {
         const id = crypto.randomUUID();
         const hash = await hashPassword(body.password);
         const token = crypto.randomUUID(); 
+        const username = generateUsername();
         
-        await env.DB.prepare("INSERT INTO users (id, email, password_hash, token) VALUES (?, ?, ?, ?)")
-          .bind(id, body.email, hash, token).run();
+        await env.DB.prepare("INSERT INTO users (id, email, password_hash, token, username) VALUES (?, ?, ?, ?, ?)")
+          .bind(id, body.email, hash, token, username).run();
           
-        return new Response(JSON.stringify({ success: true, token, email: body.email }), { headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true, token, email: body.email, username }), { headers: corsHeaders });
       }
 
       if (request.method === "POST" && action === "login") {
@@ -93,12 +105,12 @@ export default {
         if (!body.email || !body.password) return new Response("Email and password required", { status: 400, headers: corsHeaders });
         
         const hash = await hashPassword(body.password);
-        const user = await env.DB.prepare("SELECT id, email, token FROM users WHERE email = ? AND password_hash = ?")
+        const user = await env.DB.prepare("SELECT id, email, token, username FROM users WHERE email = ? AND password_hash = ?")
           .bind(body.email, hash).first();
           
         if (!user) return new Response(JSON.stringify({ error: "Invalid email or password" }), { status: 401, headers: corsHeaders });
         
-        return new Response(JSON.stringify({ success: true, token: user.token, email: user.email }), { headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true, token: user.token, email: user.email, username: user.username }), { headers: corsHeaders });
       }
 
       if (request.method === "GET" && action === "accounts") {
