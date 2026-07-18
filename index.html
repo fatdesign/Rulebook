@@ -119,6 +119,7 @@
                     </select>
                     <button id="delete-account-btn" class="secondary-btn" style="padding: 6px 10px; margin-right: 10px; border-color: #ef4444; color: #ef4444;" title="Delete current account">🗑️</button>
                     
+                    <button id="focus-btn" class="secondary-btn" style="padding: 6px 12px; margin-left: 5px; border-color: #a855f7; color: #a855f7;"><i class="ph ph-sparkle"></i> <span data-i18n="focus_btn">Focus Mode</span></button>
                     <button id="refresh-btn" class="secondary-btn" style="padding: 6px 10px; margin-left: 10px;" data-i18n="refresh_btn">↻ Refresh</button>
                     <button id="reset-btn" class="secondary-btn" style="padding: 6px 10px; margin-left: 5px; border-color: #ef4444; color: #ef4444;" data-i18n="reset_btn">⚠ Reset</button>
                     <button id="logout-btn" class="secondary-btn" style="margin-left: 5px;" data-i18n="disconnect_btn">Logout</button>
@@ -132,6 +133,42 @@
                     <button class="filter-btn" data-timeframe="yesterday" data-i18n="filter_yesterday">Gestern</button>
                     <button class="filter-btn" data-timeframe="week" data-i18n="filter_week">Diese Woche</button>
                     <button class="filter-btn" data-timeframe="all" data-i18n="filter_all">Alle Trades</button>
+                </div>
+
+                <!-- News Ticker (Focus Mode) -->
+                <div id="news-ticker-panel" class="news-ticker-panel">
+                    <div class="news-ticker-title"><i class="ph ph-globe-hemisphere-west"></i> <span data-i18n="ticker_title">Market Ticker</span></div>
+                    <div class="news-ticker-content" id="news-ticker-content">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Focus Mode KPIs (Visible only in Focus Mode) -->
+                <div class="kpi-row focus-only" id="focus-kpi-row">
+                    <div class="kpi-card glass-panel">
+                        <h3 data-i18n="kpi_hold_win" style="font-size: 0.85rem;">Avg Hold (Win)</h3>
+                        <p id="focus-kpi-hold-win" class="kpi-value positive" style="font-size: 1.2rem;">0m</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <h3 data-i18n="kpi_hold_loss" style="font-size: 0.85rem;">Avg Hold (Loss)</h3>
+                        <p id="focus-kpi-hold-loss" class="kpi-value negative" style="font-size: 1.2rem;">0m</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <h3 data-i18n="kpi_avg_win" style="font-size: 0.85rem;">Avg Win</h3>
+                        <p id="focus-kpi-avg-win" class="kpi-value positive" style="font-size: 1.2rem;">$0.00</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <h3 data-i18n="kpi_avg_loss" style="font-size: 0.85rem;">Avg Loss</h3>
+                        <p id="focus-kpi-avg-loss" class="kpi-value negative" style="font-size: 1.2rem;">$0.00</p>
+                    </div>
+                    <div class="kpi-card glass-panel" style="display: flex; flex-direction: column; justify-content: center;">
+                        <h3 style="font-size: 0.9rem; color: var(--success);"><i class="ph ph-trend-up"></i> <span data-i18n="kpi_best_day">Best Day</span></h3>
+                        <p id="focus-kpi-best-day" class="kpi-value positive" style="font-size: 1.2rem; margin: 0;">-</p>
+                    </div>
+                    <div class="kpi-card glass-panel" style="display: flex; flex-direction: column; justify-content: center;">
+                        <h3 style="font-size: 0.9rem; color: var(--danger);"><i class="ph ph-trend-down"></i> <span data-i18n="kpi_worst_day">Worst Day</span></h3>
+                        <p id="focus-kpi-worst-day" class="kpi-value negative" style="font-size: 1.2rem; margin: 0;">-</p>
+                    </div>
                 </div>
 
                 <!-- KPIs Row 1 -->
@@ -183,7 +220,7 @@
                 </div>
 
                 <!-- Data Row 1 (Charts) -->
-                <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;" class="charts-row">
+                <div id="equity-curve-row" style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;" class="charts-row">
                     <!-- Main Chart -->
                     <div class="chart-container glass-panel" style="margin-bottom: 0;">
                         <h3 data-i18n="chart_title">Equity Curve</h3>
@@ -194,7 +231,7 @@
                 </div>
 
                 <!-- Data Row 4 (Calendar & Monthly) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;" class="charts-row">
+                <div id="calendar-monthly-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;" class="charts-row">
                     <!-- Daily Performance Calendar -->
                     <div class="glass-panel" style="margin-bottom: 0;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
@@ -270,7 +307,7 @@
                 </div>
 
                 <!-- Daily Stats Table -->
-                <div class="glass-panel table-container" style="margin-bottom: 20px;">
+                <div id="daily-stats-panel" class="glass-panel table-container" style="margin-bottom: 20px;">
                     <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;"><i class="ph ph-calendar-check"></i> <span data-i18n="daily_stats_title">Daily Statistics</span></h3>
                     <div style="overflow-x: auto;">
                         <table id="daily-stats-table" style="width: 100%; text-align: left; white-space: nowrap;">
