@@ -811,6 +811,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 dashboard.classList.remove("hidden");
                 const llc = document.getElementById("login-lang-container");
                 if (llc) llc.style.display = "none";
+                
+                if (!window.ecoCalendarLoaded) {
+                    loadEconomicCalendar();
+                    window.ecoCalendarLoaded = true;
+                }
             } else {
                 accounts.forEach(acc => {
                     const opt = document.createElement("option");
