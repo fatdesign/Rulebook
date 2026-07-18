@@ -589,8 +589,10 @@ document.addEventListener("DOMContentLoaded", () => {
             e.target.classList.add("active");
             currentTimeframe = e.target.getAttribute("data-timeframe");
             
-            const dateFilterInput = document.getElementById("trades-date-filter");
-            if (dateFilterInput) dateFilterInput.value = "";
+            const tradesDateLabel = document.getElementById("trades-selected-date-label");
+            const clearTradesDateBtn = document.getElementById("clear-trades-date-btn");
+            if (tradesDateLabel) { tradesDateLabel.textContent = ""; tradesDateLabel.style.display = "none"; }
+            if (clearTradesDateBtn) clearTradesDateBtn.style.display = "none";
             
             const key = localStorage.getItem("tm_license_key");
             if (key) loadDashboard(key);
@@ -603,8 +605,10 @@ document.addEventListener("DOMContentLoaded", () => {
             currentTimeframe = e.target.value;
             filterBtns.forEach(b => b.classList.remove("active"));
             
-            const dateFilterInput = document.getElementById("trades-date-filter");
-            if (dateFilterInput) dateFilterInput.value = "";
+            const tradesDateLabel = document.getElementById("trades-selected-date-label");
+            const clearTradesDateBtn = document.getElementById("clear-trades-date-btn");
+            if (tradesDateLabel) { tradesDateLabel.textContent = ""; tradesDateLabel.style.display = "none"; }
+            if (clearTradesDateBtn) clearTradesDateBtn.style.display = "none";
             
             const key = localStorage.getItem("tm_license_key");
             if (key) loadDashboard(key);
@@ -1429,12 +1433,65 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    window.currentTradesPage = 1;
+    window.tradesPerPage = 25;
+    window._lastTradesArray = null;
+
     window.renderTradesTable = function(trades, curSym) {
         const tbody = document.querySelector("#trades-table tbody");
+        const paginationContainer = document.getElementById("trades-pagination");
         if (!tbody) return;
         
+        if (window._lastTradesArray !== trades) {
+            window.currentTradesPage = 1;
+            window._lastTradesArray = trades;
+        }
+        
         tbody.innerHTML = "";
-        trades.slice(0, 50).forEach(t => {
+        
+        const totalTrades = trades.length;
+        const totalPages = Math.ceil(totalTrades / window.tradesPerPage) || 1;
+        
+        if (window.currentTradesPage > totalPages) window.currentTradesPage = totalPages;
+        if (window.currentTradesPage < 1) window.currentTradesPage = 1;
+        
+        const startIndex = (window.currentTradesPage - 1) * window.tradesPerPage;
+        const endIndex = startIndex + window.tradesPerPage;
+        const pageTrades = trades.slice(startIndex, endIndex);
+        
+        if (paginationContainer) {
+            paginationContainer.innerHTML = "";
+            if (totalPages > 1) {
+                const prevBtn = document.createElement("button");
+                prevBtn.className = "secondary-btn";
+                prevBtn.style.padding = "2px 8px";
+                prevBtn.style.fontSize = "0.85rem";
+                prevBtn.innerHTML = "<i class='ph ph-caret-left'></i>";
+                prevBtn.disabled = window.currentTradesPage === 1;
+                if (window.currentTradesPage === 1) prevBtn.style.opacity = "0.5";
+                prevBtn.onclick = () => { window.currentTradesPage--; window.renderTradesTable(trades, curSym); };
+                
+                const nextBtn = document.createElement("button");
+                nextBtn.className = "secondary-btn";
+                nextBtn.style.padding = "2px 8px";
+                nextBtn.style.fontSize = "0.85rem";
+                nextBtn.innerHTML = "<i class='ph ph-caret-right'></i>";
+                nextBtn.disabled = window.currentTradesPage === totalPages;
+                if (window.currentTradesPage === totalPages) nextBtn.style.opacity = "0.5";
+                nextBtn.onclick = () => { window.currentTradesPage++; window.renderTradesTable(trades, curSym); };
+                
+                const pageInfo = document.createElement("span");
+                pageInfo.style.fontSize = "0.8rem";
+                pageInfo.style.color = "var(--text-muted)";
+                pageInfo.innerText = `Seite ${window.currentTradesPage} / ${totalPages}`;
+                
+                paginationContainer.appendChild(prevBtn);
+                paginationContainer.appendChild(pageInfo);
+                paginationContainer.appendChild(nextBtn);
+            }
+        }
+        
+        pageTrades.forEach(t => {
             const tr = document.createElement("tr");
             const sideStr = t.side || "";
             const sideColor = sideStr.startsWith("Buy") ? "var(--success)" : "var(--danger)";
