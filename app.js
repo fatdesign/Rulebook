@@ -1262,8 +1262,8 @@ document.addEventListener("DOMContentLoaded", () => {
             winrate: winrate,
             profitFactor: profitFactor,
             maxDrawdown: maxDrawdown,
-            avgHoldWinSec: avgHoldWin,
-            avgHoldLossSec: avgHoldLoss,
+            avgHoldWin: formatHoldTime(avgHoldWin),
+            avgHoldLoss: formatHoldTime(avgHoldLoss),
             bestDay: dayNames[bestDayIdx],
             worstDay: dayNames[worstDayIdx],
             strategyPerformance: {}

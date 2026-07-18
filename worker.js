@@ -208,14 +208,15 @@ Profil des Traders: ${JSON.stringify({style: body.style, session: body.session, 
 Aggregierte Statistiken: ${statsStr}
 WICHTIGE REGELN:
 1. Sprich den Trader IMMER direkt mit "Du" an.
-2. Nenne KEINE genauen Zeitstempel oder rohen Daten aus dem JSON, sondern leite wertvolle Schlüsse ab.
-3. Beziehe dich explizit auf die Statistiken: Welche Strategie ist am profitabelsten/schlechtesten? Welche Wochentage oder Uhrzeiten (Heatmap) sind Stärken/Schwächen? Sind kurze oder lange Haltedauern besser?
-4. Berechne und empfehle EINEN konkreten "Kill Switch" (Daily Loss Limit) basierend auf dem durchschnittlichen Verlust (z.B. 2-3x Avg Loss oder max Drawdown). Erkläre kurz, warum dieser Wert sinnvoll ist.
-5. KONTROLLIERE DAS PROFIL: Passt das angegebene Profil (Style, Session, Risk) zum tatsächlichen Verhalten?
-6. Gib hartes, ehrliches Feedback. Lobe bei Disziplin, kritisiere bei Fehlern. Achte auch auf Tags/Notizen der Trades.
-7. Gib am Ende EINEN starken Ratschlag zur Verbesserung.
-8. SPRACHE EXTREM WICHTIG: Antworte NUR auf ${promptLang}! Übersetze deine gesamte finale Antwort in ${promptLang}.
-Fasse dich prägnant, aber tiefgründig (ca. 6-8 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
+2. KEINE EINLEITUNG! Starte direkt mit dem ersten Punkt der Analyse. Phrasen wie "Ich werde nun deine Trades analysieren" oder "Deine Statistiken zeigen, dass..." sind STRIKT VERBOTEN. Komm sofort zur Sache.
+3. Nenne KEINE genauen Zeitstempel oder rohen Daten aus dem JSON, sondern leite wertvolle Schlüsse ab.
+4. Beziehe dich explizit auf die Statistiken: Welche Strategie ist am profitabelsten/schlechtesten? Welche Wochentage oder Uhrzeiten (Heatmap) sind Stärken/Schwächen? Sind kurze oder lange Haltedauern besser?
+5. Berechne und empfehle EINEN konkreten "Kill Switch" (Daily Loss Limit) basierend auf dem durchschnittlichen Verlust (z.B. 2-3x Avg Loss oder max Drawdown). Erkläre kurz, warum dieser Wert sinnvoll ist.
+6. KONTROLLIERE DAS PROFIL: Passt das angegebene Profil (Style, Session, Risk) zum tatsächlichen Verhalten?
+7. Gib hartes, ehrliches Feedback. Lobe bei Disziplin, kritisiere bei Fehlern. Achte auch auf Tags/Notizen der Trades.
+8. Gib am Ende EINEN starken Ratschlag zur Verbesserung.
+9. SPRACHE EXTREM WICHTIG: Antworte NUR auf ${promptLang}! Übersetze deine gesamte finale Antwort in ${promptLang}.
+Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
         
         if (!env.AI) return new Response(JSON.stringify({ error: "Cloudflare AI Binding fehlt." }), { status: 500, headers: corsHeaders });
 
