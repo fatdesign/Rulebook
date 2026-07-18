@@ -826,7 +826,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     d.forEach(n => { window.tradeNotesMap[n.ticket] = n.note; });
                     // Re-render table if data already processed
                     if (currentFilteredTrades && currentFilteredTrades.length > 0) {
-                        processData(currentFilteredTrades, window.currentCurSym);
+                        if (typeof renderTradesTable === "function") {
+                            renderTradesTable(currentFilteredTrades, window.currentCurSym);
+                        } else {
+                            processData(currentFilteredTrades, window.currentCurSym);
+                        }
                     }
                 }).catch(e => console.error(e));
 
@@ -838,6 +842,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     d.forEach(n => { window.tradeStrategyMap[n.ticket] = n.strategy_id; });
                     if (currentFilteredTrades && currentFilteredTrades.length > 0) {
                         renderStrategyPerformance(currentFilteredTrades);
+                        if (typeof renderTradesTable === "function") renderTradesTable(currentFilteredTrades, window.currentCurSym);
                     }
                 }).catch(e => console.error(e));
 
@@ -848,6 +853,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.strategyDefs = d || [];
                     renderStrategyCards();
                     renderStrategyPerformance(currentFilteredTrades);
+                    if (currentFilteredTrades && currentFilteredTrades.length > 0) {
+                        if (typeof renderTradesTable === "function") renderTradesTable(currentFilteredTrades, window.currentCurSym);
+                    }
                 }).catch(e => console.error(e));
             
             // Filter trades based on timeframe
@@ -1047,6 +1055,82 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function saveTradeNote(inputEl) {
+        const ticket = inputEl.getAttribute("data-ticket");
+        const note = inputEl.value.trim();
+        const key = localStorage.getItem("tm_license_key");
+        if (!key) return;
+        
+        const origBorder = inputEl.style.borderColor;
+        inputEl.style.borderColor = "#f59e0b"; // Yellow = saving
+        
+        fetch(`${API_URL}?action=notes`, {
+            method: "POST",
+            headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
+            body: JSON.stringify({ account_id: key, ticket: String(ticket), note })
+        }).then(res => {
+            if (res.ok) {
+                if (window.tradeNotesMap) window.tradeNotesMap[ticket] = note;
+                inputEl.style.borderColor = "#10b981"; // Green = saved
+                setTimeout(() => { inputEl.style.borderColor = origBorder; }, 1500);
+            } else {
+                console.error("Note save failed:", res.status);
+                inputEl.style.borderColor = "#ef4444"; // Red = error
+                setTimeout(() => { inputEl.style.borderColor = origBorder; }, 2000);
+            }
+        }).catch(err => {
+            console.error("Note save err", err);
+            inputEl.style.borderColor = "#ef4444";
+            setTimeout(() => { inputEl.style.borderColor = origBorder; }, 2000);
+        });
+    }
+
+    window.renderTradesTable = function(trades, curSym) {
+        const tbody = document.querySelector("#trades-table tbody");
+        if (!tbody) return;
+        
+        tbody.innerHTML = "";
+        trades.slice(0, 50).forEach(t => {
+            const tr = document.createElement("tr");
+            const sideColor = t.side.startsWith("Buy") ? "var(--success)" : "var(--danger)";
+            const netProfitNum = parseFloat(t.net_profit);
+            const profitColor = netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
+            const holdSec = t.close_time - t.open_time;
+            const durationStr = formatHoldTime(holdSec);
+            const strategyId = window.tradeStrategyMap ? (window.tradeStrategyMap[t.ticket] || "") : "";
+            const stratDefs = window.strategyDefs || [];
+            const assignedStrat = stratDefs.find(s => s.id === strategyId);
+            const stratColor = assignedStrat ? getStrategyColor(assignedStrat.id) : null;
+            const stratRgb = stratColor ? hexToRgb(stratColor) : null;
+            const stratBadgeHtml = assignedStrat
+                ? `<span class="strategy-badge" style="--s-color:${stratColor};--s-rgb:${stratRgb};" data-ticket="${t.ticket}" onclick="openStrategyPicker(this, '${t.ticket}')">${assignedStrat.name}</span>`
+                : `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${t.ticket}')">+ Assign</button>`;
+            const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
+
+            tr.innerHTML = `
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${t.side}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
+                    <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="${(i18n[localStorage.getItem('tm_global_lang') || 'de'] || {}).note_ph || 'Add note or #tag...'}" style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.querySelectorAll(".trade-note-input").forEach(inp => {
+            inp.addEventListener("blur", (e) => saveTradeNote(e.target));
+            inp.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.target.blur(); // triggers blur → saveTradeNote
+                }
+            });
+        });
+    }
+
     function processData(trades, curSym) {
         let totalProfit = 0;
         let wins = 0;
@@ -1185,80 +1269,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         // Trades Table rendering
-        const tbody = document.querySelector("#trades-table tbody");
-        if (tbody) {
-            tbody.innerHTML = "";
-            trades.slice(0, 50).forEach(t => {
-                const tr = document.createElement("tr");
-                const sideColor = t.side.startsWith("Buy") ? "var(--success)" : "var(--danger)";
-                const netProfitNum = parseFloat(t.net_profit);
-                const profitColor = netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
-                const holdSec = t.close_time - t.open_time;
-                const durationStr = formatHoldTime(holdSec);
-                const strategyId = window.tradeStrategyMap ? (window.tradeStrategyMap[t.ticket] || "") : "";
-                const stratDefs = window.strategyDefs || [];
-                const assignedStrat = stratDefs.find(s => s.id === strategyId);
-                const stratColor = assignedStrat ? getStrategyColor(assignedStrat.id) : null;
-                const stratRgb = stratColor ? hexToRgb(stratColor) : null;
-                const stratBadgeHtml = assignedStrat
-                    ? `<span class="strategy-badge" style="--s-color:${stratColor};--s-rgb:${stratRgb};" data-ticket="${t.ticket}" onclick="openStrategyPicker(this, '${t.ticket}')">${assignedStrat.name}</span>`
-                    : `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${t.ticket}')">+ Assign</button>`;
-                const currentNote = window.tradeNotesMap ? (window.tradeNotesMap[t.ticket] || "") : "";
-
-                tr.innerHTML = `
-                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${t.side}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
-                        <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="${(i18n[localStorage.getItem('tm_global_lang') || 'de'] || {}).note_ph || 'Add note or #tag...'}" style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            async function saveTradeNote(inputEl) {
-                const ticket = inputEl.getAttribute("data-ticket");
-                const note = inputEl.value.trim();
-                const key = localStorage.getItem("tm_license_key");
-                if (!key) return;
-                
-                const origBorder = inputEl.style.borderColor;
-                inputEl.style.borderColor = "#f59e0b"; // Yellow = saving
-                
-                try {
-                    const res = await fetch(`${API_URL}?action=notes`, {
-                        method: "POST",
-                        headers: { "Authorization": localStorage.getItem("tm_master_token"), "Content-Type": "application/json" },
-                        body: JSON.stringify({ account_id: key, ticket: String(ticket), note })
-                    });
-                    
-                    if (res.ok) {
-                        if (window.tradeNotesMap) window.tradeNotesMap[ticket] = note;
-                        inputEl.style.borderColor = "#10b981"; // Green = saved
-                        setTimeout(() => { inputEl.style.borderColor = origBorder; }, 1500);
-                    } else {
-                        console.error("Note save failed:", res.status);
-                        inputEl.style.borderColor = "#ef4444"; // Red = error
-                        setTimeout(() => { inputEl.style.borderColor = origBorder; }, 2000);
-                    }
-                } catch(err) {
-                    console.error("Note save err", err);
-                    inputEl.style.borderColor = "#ef4444";
-                    setTimeout(() => { inputEl.style.borderColor = origBorder; }, 2000);
-                }
-            }
-
-            document.querySelectorAll(".trade-note-input").forEach(inp => {
-                inp.addEventListener("blur", (e) => saveTradeNote(e.target));
-                inp.addEventListener("keydown", (e) => {
-                    if (e.key === "Enter") {
-                        e.preventDefault();
-                        e.target.blur(); // triggers blur → saveTradeNote
-                    }
-                });
-            });
+        if (typeof window.renderTradesTable === "function") {
+            window.renderTradesTable(trades, curSym);
         }
 
         renderChart(labels, equityCurve);
