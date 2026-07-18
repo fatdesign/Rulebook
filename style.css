@@ -103,7 +103,7 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .app-container {
@@ -154,7 +154,7 @@ body {
 /* Login Screen */
 #login-screen {
     max-width: 450px;
-    margin: 0 auto;
+    margin: 10vh auto 0 auto;
     text-align: center;
     display: none;
 }
