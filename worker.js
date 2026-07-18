@@ -124,7 +124,12 @@ export default {
       // --- FOREX FACTORY NEWS PROXY ---
       if (request.method === "GET" && action === "news") {
         try {
-            const ffResponse = await fetch("https://nfs.faireconomy.media/ff_calendar_thisweek.json");
+            const ffResponse = await fetch("https://nfs.faireconomy.media/ff_calendar_thisweek.json", {
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "application/json"
+                }
+            });
             const data = await ffResponse.json();
             return new Response(JSON.stringify(data), { headers: corsHeaders });
         } catch(e) {
