@@ -727,7 +727,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const payload = await response.json();
             const trades = payload.trades || payload;
-            const currentBalance = payload.current_balance || 0;
+            let currentBalance = payload.current_balance || 0;
+            
+            // --- MANUAL BALANCE INJECTION FOR PROOF ---
+            if (currentBalance === 0) {
+                let savedBal = localStorage.getItem(`tm_manual_balance_${key}`);
+                if (!savedBal) {
+                    savedBal = prompt("Amigo! Das Dashboard kennt deinen aktuellen Kontostand nicht (er ist 0€), deshalb ist die %-Rechnung falsch. Bitte gib hier deine exakte aktuelle Account Balance ein (z.B. 27.82), um zu beweisen, dass die Formel stimmt:");
+                    if (savedBal && !isNaN(parseFloat(savedBal))) {
+                        localStorage.setItem(`tm_manual_balance_${key}`, savedBal);
+                    }
+                }
+                if (savedBal && !isNaN(parseFloat(savedBal))) {
+                    currentBalance = parseFloat(savedBal);
+                }
+            }
             
             let runningBalance = parseFloat(currentBalance);
             window.accCurrency = "USD";
