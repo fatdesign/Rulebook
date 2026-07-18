@@ -702,4 +702,82 @@ th {
     gap: 10px;
     flex-wrap: wrap;
 }
+}
 
+/* --- Focus Mode --- */
+/* News Ticker Panel */
+.news-ticker-panel {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-light);
+    border-radius: var(--panel-radius);
+    padding: 8px 15px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.news-ticker-title {
+    font-weight: bold;
+    color: #ffaa00;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-right: 1px solid var(--border-light);
+    padding-right: 15px;
+    flex-shrink: 0;
+}
+
+.news-ticker-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: ticker-scroll 30s linear infinite;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.news-ticker-content span {
+    margin-right: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.news-ticker-content span.positive {
+    color: var(--success);
+}
+
+.news-ticker-content span.negative {
+    color: var(--danger);
+}
+
+@keyframes ticker-scroll {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
+}
+
+/* Hide Focus KPI row and News Ticker by default */
+#focus-kpi-row, #news-ticker-panel {
+    display: none;
+}
+
+/* When focus mode is active */
+.focus-mode-active #focus-kpi-row {
+    display: grid !important;
+}
+.focus-mode-active #news-ticker-panel {
+    display: flex !important;
+}
+.focus-mode-active .kpi-row:not(.focus-only),
+.focus-mode-active #equity-curve-row,
+.focus-mode-active #calendar-monthly-row,
+.focus-mode-active #daily-stats-panel,
+.focus-mode-active #strategy-definitions-panel,
+.focus-mode-active #ai-coach-row {
+    display: none !important;
+}

@@ -98,7 +98,11 @@ const i18n = {
         view_archives_title: "Archive Ansehen",
         th_charts: "Charts",
         chart_before: "Vorher",
-        chart_after: "Nachher"
+        chart_after: "Nachher",
+        focus_btn: "Fokus Modus",
+        kpi_avg_win: "Ø Gewinn",
+        kpi_avg_loss: "Ø Verlust",
+        ticker_title: "Markt Ticker"
     },
     en: {
         login_sub: "Connect your MT5 account to view AI insights.",
@@ -195,7 +199,11 @@ const i18n = {
         view_archives_title: "View Archives",
         th_charts: "Charts",
         chart_before: "Before",
-        chart_after: "After"
+        chart_after: "After",
+        focus_btn: "Focus Mode",
+        kpi_avg_win: "Avg Win",
+        kpi_avg_loss: "Avg Loss",
+        ticker_title: "Market Ticker"
     },
     es: {
         login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -292,7 +300,11 @@ const i18n = {
         view_archives_title: "Ver Archivos",
         th_charts: "Gráficos",
         chart_before: "Antes",
-        chart_after: "Después"
+        chart_after: "Después",
+        focus_btn: "Modo Enfoque",
+        kpi_avg_win: "Ganancia Prom.",
+        kpi_avg_loss: "Pérdida Prom.",
+        ticker_title: "Mercado Ticker"
     },
     tr: {
         login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -389,7 +401,11 @@ const i18n = {
         view_archives_title: "Arşivleri Görüntüle",
         th_charts: "Grafikler",
         chart_before: "Öncesi",
-        chart_after: "Sonrası"
+        chart_after: "Sonrası",
+        focus_btn: "Odak Modu",
+        kpi_avg_win: "Ort. Kazanç",
+        kpi_avg_loss: "Ort. Kayıp",
+        ticker_title: "Piyasa Takipçisi"
     }
 };
 
@@ -1470,8 +1486,20 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const curLang = localStorage.getItem("tm_global_lang") || "de";
         const dayNames = (i18n[curLang] && i18n[curLang].days) ? i18n[curLang].days : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        document.getElementById("kpi-best-day").innerText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
-        document.getElementById("kpi-worst-day").innerText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
+        
+        const bestDayText = dayTotals[bestDayIdx] === 0 ? "-" : `${dayNames[bestDayIdx]} (${curSym}${dayTotals[bestDayIdx].toFixed(2)})`;
+        const worstDayText = dayTotals[worstDayIdx] === 0 ? "-" : `${dayNames[worstDayIdx]} (${curSym}${dayTotals[worstDayIdx].toFixed(2)})`;
+        
+        document.getElementById("kpi-best-day").innerText = bestDayText;
+        document.getElementById("kpi-worst-day").innerText = worstDayText;
+
+        // Update Focus Mode KPIs
+        updateKPI("focus-kpi-hold-win", formatHoldTime(avgHoldWin), true);
+        updateKPI("focus-kpi-hold-loss", formatHoldTime(avgHoldLoss), false);
+        updateKPI("focus-kpi-avg-win", `${curSym}${avgWin.toFixed(2)}`, true);
+        updateKPI("focus-kpi-avg-loss", `-${curSym}${avgLoss.toFixed(2)}`, false);
+        document.getElementById("focus-kpi-best-day").innerText = bestDayText;
+        document.getElementById("focus-kpi-worst-day").innerText = worstDayText;
 
         // Capture stats for AI Coach
         window.coachStats = {
@@ -2597,3 +2625,59 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// ── News Ticker & Focus Mode Logic ───────────────────────────────────────────────────
+const newsItems = [
+    "[EURUSD] 1.0854 <span class='positive'>(+0.12%)</span>",
+    "[GBPUSD] 1.2678 <span class='negative'>(-0.05%)</span>",
+    "[XAUUSD] 2341.20 <span class='positive'>(+0.85%)</span>",
+    "[USOIL] 78.45 <span class='negative'>(-1.20%)</span>",
+    "[BTCUSD] 67450 <span class='positive'>(+2.40%)</span>",
+    "NEWS: Fed Chair signals potential rate cuts later this year.",
+    "NEWS: Gold prices hit record high amid geopolitical tensions.",
+    "NEWS: US Core PCE Inflation rises 0.2% in line with expectations.",
+    "NEWS: European Central Bank holds interest rates steady."
+];
+
+function initNewsTicker() {
+    const ticker = document.getElementById("news-ticker-content");
+    if (!ticker) return;
+    // Repeat the news array to create a continuous scroll effect
+    const combinedNews = [...newsItems, ...newsItems].map(item => `<span>${item}</span>`).join("");
+    ticker.innerHTML = combinedNews;
+}
+
+window.focusModeActive = localStorage.getItem("tm_focus_mode") === "true";
+
+function updateFocusModeUI() {
+    const dashboard = document.getElementById("dashboard");
+    const focusBtn = document.getElementById("focus-btn");
+    if (!dashboard) return;
+    
+    if (window.focusModeActive) {
+        dashboard.classList.add("focus-mode-active");
+        if (focusBtn) {
+            focusBtn.style.background = "var(--border-light)";
+            focusBtn.style.color = "var(--border-darker)";
+        }
+    } else {
+        dashboard.classList.remove("focus-mode-active");
+        if (focusBtn) {
+            focusBtn.style.background = "var(--panel-bg)";
+            focusBtn.style.color = "#a855f7";
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initNewsTicker();
+    updateFocusModeUI();
+    
+    const focusBtn = document.getElementById("focus-btn");
+    if (focusBtn) {
+        focusBtn.addEventListener("click", () => {
+            window.focusModeActive = !window.focusModeActive;
+            localStorage.setItem("tm_focus_mode", window.focusModeActive);
+            updateFocusModeUI();
+        });
+    }
+});
