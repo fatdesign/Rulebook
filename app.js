@@ -543,6 +543,9 @@ function updateTradeImagesBackend(ticket) {
     }).then(r => r.json()).then(d => {
         if (d.success && typeof renderTradesTable === "function" && currentFilteredTrades) {
             renderTradesTable(currentFilteredTrades, window.currentCurSym);
+            if (window.currentAllTrades && typeof window.renderTagAnalyzer === "function") {
+                window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
+            }
         }
     }).catch(e => console.error(e));
 }
@@ -1172,6 +1175,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             processData(currentFilteredTrades, window.currentCurSym);
                         }
                     }
+                    if (window.currentAllTrades && typeof window.renderTagAnalyzer === "function") {
+                        window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
+                    }
                 }).catch(e => console.error(e));
 
             // Load Trade Images
@@ -1185,6 +1191,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             renderTradesTable(currentFilteredTrades, window.currentCurSym);
                         }
                     }
+                    if (window.currentAllTrades && typeof window.renderTagAnalyzer === "function") {
+                        window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
+                    }
                 }).catch(e => console.error(e));
 
             // Load Trade Strategy Assignments
@@ -1197,6 +1206,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         renderStrategyPerformance(currentFilteredTrades);
                         if (typeof renderTradesTable === "function") renderTradesTable(currentFilteredTrades, window.currentCurSym);
                     }
+                    if (window.currentAllTrades && typeof window.renderTagAnalyzer === "function") {
+                        window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
+                    }
                 }).catch(e => console.error(e));
 
             // Load Strategy Definitions
@@ -1208,6 +1220,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     renderStrategyPerformance(currentFilteredTrades);
                     if (currentFilteredTrades && currentFilteredTrades.length > 0) {
                         if (typeof renderTradesTable === "function") renderTradesTable(currentFilteredTrades, window.currentCurSym);
+                    }
+                    if (window.currentAllTrades && typeof window.renderTagAnalyzer === "function") {
+                        window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
                     }
                 }).catch(e => console.error(e));
             
@@ -1440,6 +1455,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (window.tradeNotesMap) window.tradeNotesMap[ticket] = note;
                 inputEl.style.borderColor = "#10b981"; // Green = saved
                 setTimeout(() => { inputEl.style.borderColor = origBorder; }, 1500);
+                if (window.currentAllTrades && typeof window.renderTagAnalyzer === "function") {
+                    window.renderTagAnalyzer(window.currentAllTrades, window.currentCurSym || "$");
+                }
             } else {
                 console.error("Note save failed:", res.status);
                 inputEl.style.borderColor = "#ef4444"; // Red = error
