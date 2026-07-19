@@ -241,39 +241,40 @@ export default {
 
       // --- COMMUNITY FEED ROUTES ---
       if (request.method === "POST" && action === "community_post") {
-        const user_id = await authenticateUser(request, env);
-        if (!user_id)
-          return new Response("Unauthorized", {
-            status: 401,
-            headers: corsHeaders,
-          });
-
-        let body;
         try {
-          body = await request.json();
-        } catch (e) {
-          return new Response("Invalid JSON", {
-            status: 400,
-            headers: corsHeaders,
-          });
-        }
+          const user_id = await authenticateUser(request, env);
+          if (!user_id)
+            return new Response("Unauthorized", {
+              status: 401,
+              headers: corsHeaders,
+            });
 
-        // Get or assign username
-        let user = await env.DB.prepare(
-          "SELECT username FROM users WHERE id = ?",
-        )
-          .bind(user_id)
-          .first();
-        let username = user ? user.username : null;
-        if (!username) {
-          username = generateRandomUsername();
-          await env.DB.prepare("UPDATE users SET username = ? WHERE id = ?")
-            .bind(username, user_id)
-            .run();
-        }
+          let body;
+          try {
+            body = await request.json();
+          } catch (e) {
+            return new Response("Invalid JSON", {
+              status: 400,
+              headers: corsHeaders,
+            });
+          }
 
-        await env.DB.prepare(
-          `
+          // Get or assign username
+          let user = await env.DB.prepare(
+            "SELECT username FROM users WHERE id = ?",
+          )
+            .bind(user_id)
+            .first();
+          let username = user ? user.username : null;
+          if (!username) {
+            username = generateRandomUsername();
+            await env.DB.prepare("UPDATE users SET username = ? WHERE id = ?")
+              .bind(username, user_id)
+              .run();
+          }
+
+          await env.DB.prepare(
+            `
           CREATE TABLE IF NOT EXISTS community_posts (
             id TEXT PRIMARY KEY,
             user_id TEXT,
@@ -285,28 +286,31 @@ export default {
             created_at INTEGER
           )
         `,
-        ).run();
+          ).run();
 
-        const post_id = crypto.randomUUID();
-        const created_at = Math.floor(Date.now() / 1000);
+          const post_id = crypto.randomUUID();
+          const created_at = Math.floor(Date.now() / 1000);
 
-        await env.DB.prepare(
-          "INSERT INTO community_posts (id, user_id, username, content, trade_data, image_urls, likes, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)",
-        )
-          .bind(
-            post_id,
-            user_id,
-            username,
-            body.content || "",
-            JSON.stringify(body.trade_data || null),
-            JSON.stringify(body.image_urls || []),
-            created_at,
+          await env.DB.prepare(
+            "INSERT INTO community_posts (id, user_id, username, content, trade_data, image_urls, likes, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)",
           )
-          .run();
+            .bind(
+              post_id,
+              user_id,
+              username,
+              body.content || "",
+              JSON.stringify(body.trade_data || null),
+              JSON.stringify(body.image_urls || []),
+              created_at,
+            )
+            .run();
 
-        return new Response(JSON.stringify({ success: true, post_id }), {
-          headers: corsHeaders,
-        });
+          return new Response(JSON.stringify({ success: true, post_id }), {
+            headers: corsHeaders,
+          });
+        } catch (e) {
+          return new Response(e.message, { status: 500, headers: corsHeaders });
+        }
       }
 
       if (request.method === "POST" && action === "community_like") {
@@ -382,15 +386,16 @@ export default {
       }
 
       if (request.method === "GET" && action === "community_feed") {
-        const user_id = await authenticateUser(request, env);
-        if (!user_id)
-          return new Response("Unauthorized", {
-            status: 401,
-            headers: corsHeaders,
-          });
+        try {
+          const user_id = await authenticateUser(request, env);
+          if (!user_id)
+            return new Response("Unauthorized", {
+              status: 401,
+              headers: corsHeaders,
+            });
 
-        await env.DB.prepare(
-          `
+          await env.DB.prepare(
+            `
           CREATE TABLE IF NOT EXISTS community_posts (
             id TEXT PRIMARY KEY,
             user_id TEXT,
@@ -402,42 +407,54 @@ export default {
             created_at INTEGER
           )
         `,
-        ).run();
+          ).run();
 
-        await env.DB.prepare(
-          `
+          await env.DB.prepare(
+            `
           CREATE TABLE IF NOT EXISTS community_likes (
             post_id TEXT,
             user_id TEXT,
             PRIMARY KEY (post_id, user_id)
           )
         `,
-        ).run();
+          ).run();
 
-        // Fetch top 50 posts
-        const { results } = await env.DB.prepare(
-          "SELECT * FROM community_posts ORDER BY created_at DESC LIMIT 50",
-        ).all();
+          // Fetch top 50 posts
+          const { results } = await env.DB.prepare(
+            "SELECT * FROM community_posts ORDER BY created_at DESC LIMIT 50",
+          ).all();
 
-        // Fetch user's liked posts to show active heart icon
-        const likedRes = await env.DB.prepare(
-          "SELECT post_id FROM community_likes WHERE user_id = ?",
-        )
-          .bind(user_id)
-          .all();
-        const likedSet = new Set(likedRes.results.map((r) => r.post_id));
+          // Fetch user's liked posts to show active heart icon
+          const likedRes = await env.DB.prepare(
+            "SELECT post_id FROM community_likes WHERE user_id = ?",
+          )
+            .bind(user_id)
+            .all();
+          const likedSet = new Set(likedRes.results.map((r) => r.post_id));
 
-        const feed = results.map((post) => {
-          return {
-            ...post,
-            has_liked: likedSet.has(post.id),
-            is_owner: post.user_id === user_id,
-            trade_data: JSON.parse(post.trade_data || "null"),
-            image_urls: JSON.parse(post.image_urls || "[]"),
-          };
-        });
+          const feed = results.map((post) => {
+            let parsedTrade = null;
+            let parsedImages = [];
+            try {
+              parsedTrade = JSON.parse(post.trade_data || "null");
+            } catch (e) {}
+            try {
+              parsedImages = JSON.parse(post.image_urls || "[]");
+            } catch (e) {}
 
-        return new Response(JSON.stringify(feed), { headers: corsHeaders });
+            return {
+              ...post,
+              has_liked: likedSet.has(post.id),
+              is_owner: post.user_id === user_id,
+              trade_data: parsedTrade,
+              image_urls: parsedImages,
+            };
+          });
+
+          return new Response(JSON.stringify(feed), { headers: corsHeaders });
+        } catch (e) {
+          return new Response(e.message, { status: 500, headers: corsHeaders });
+        }
       }
 
       if (request.method === "POST" && action === "community_delete_post") {
