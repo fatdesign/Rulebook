@@ -864,8 +864,14 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             .run();
         }
 
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE trades ADD COLUMN sl_widened INTEGER DEFAULT 0",
+          ).run();
+        } catch (e) {}
+
         const stmt = env.DB.prepare(
-          "INSERT INTO trades (ticket, license_key, symbol, side, volume, net_profit, open_time, close_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ticket) DO UPDATE SET net_profit=excluded.net_profit, license_key=excluded.license_key",
+          "INSERT INTO trades (ticket, license_key, symbol, side, volume, net_profit, open_time, close_time, sl_widened) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ticket) DO UPDATE SET net_profit=excluded.net_profit, license_key=excluded.license_key, sl_widened=excluded.sl_widened",
         );
         const batch = [];
         for (const t of body.trades) {
@@ -879,6 +885,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
               t.net_profit,
               t.open_time,
               t.close_time,
+              t.sl_widened || 0,
             ),
           );
         }
