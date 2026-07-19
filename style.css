@@ -1087,7 +1087,7 @@ th {
   margin-bottom: 25px;
   padding-bottom: 15px;
   border-bottom: 1px solid var(--border-light);
-  height: 40px;
+  height: 55px;
   overflow: hidden;
 }
 
@@ -1114,17 +1114,15 @@ th {
 
 .logo-expanded {
   display: block;
-  max-height: 42px;
+  max-height: 50px;
   max-width: 100%;
-  width: 160px;
   object-fit: contain;
-  object-position: left center;
   transition: opacity 0.2s ease;
 }
 
 .logo-collapsed {
   display: none;
-  max-height: 35px;
+  max-height: 40px;
   max-width: 100%;
   object-fit: contain;
   transition: opacity 0.2s ease;
