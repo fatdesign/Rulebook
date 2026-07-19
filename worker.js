@@ -763,7 +763,7 @@ WICHTIGE REGELN:
 4. Beziehe dich explizit auf die Statistiken: Welche Strategie ist am profitabelsten/schlechtesten? Welche Wochentage oder Uhrzeiten (Heatmap) sind Stärken/Schwächen? Sind kurze oder lange Haltedauern besser?
 5. Berechne und empfehle EINEN konkreten "Kill Switch" (Daily Loss Limit) basierend auf dem durchschnittlichen Verlust (z.B. 2-3x Avg Loss oder max Drawdown). Erkläre kurz, warum dieser Wert sinnvoll ist.
 6. KONTROLLIERE DAS PROFIL: Passt das angegebene Profil (Style, Session, Risk) zum tatsächlichen Verhalten?
-7. Gib hartes, ehrliches Feedback. Lobe bei Disziplin, kritisiere bei Fehlern. Achte auch auf Tags/Notizen der Trades.
+7. Gib hartes, ehrliches Feedback. Lobe bei Disziplin, kritisiere bei Fehlern. Wenn bei Trades "sl_widened" > 0 ist, weise den Trader STRENG darauf hin, dass das Verschieben des Stop Loss in den Verlustbereich ein gefährlicher Disziplinverstoß (Hoffnungstrading) ist! Achte auch auf Tags/Notizen der Trades.
 8. Gib am Ende EINEN starken Ratschlag zur Verbesserung.
 9. SPRACHE EXTREM WICHTIG: Antworte NUR auf ${promptLang}! Übersetze deine gesamte finale Antwort in ${promptLang}.
 Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
