@@ -93,7 +93,7 @@ const i18n = {
     trades_title: "Letzte Trades & Tags",
     th_symbol: "Symbol",
     th_side: "Seite",
-    th_sl_widening: "SL Widening",
+    th_sl_widening: "SL-Verschiebung",
     th_profit: "Gewinn",
     th_close: "Haltezeit",
     th_note: "Tag / Notiz",
@@ -325,7 +325,7 @@ const i18n = {
     trades_title: "Recent Trades & Tags",
     th_symbol: "Symbol",
     th_side: "Side",
-    th_sl_widening: "SL Widening",
+    th_sl_widening: "SL Shift",
     th_profit: "Profit",
     th_close: "Duration",
     th_note: "Tag / Note",
@@ -556,7 +556,7 @@ const i18n = {
     trades_title: "Operaciones Recientes",
     th_symbol: "Símbolo",
     th_side: "Lado",
-    th_sl_widening: "Ampliación SL",
+    th_sl_widening: "Ajuste SL",
     th_profit: "Beneficio",
     th_close: "Duración",
     th_note: "Etiqueta / Nota",
@@ -787,7 +787,7 @@ const i18n = {
     trades_title: "Son İşlemler & Etiketler",
     th_symbol: "Sembol",
     th_side: "Yön",
-    th_sl_widening: "SL Genişletme",
+    th_sl_widening: "SL Kaydırma",
     th_profit: "Kâr",
     th_close: "Süre",
     th_note: "Etiket / Not",
@@ -2427,7 +2427,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${dateStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${slBadgeHtml}</td>
+                <td style="padding: 8px 6px; border-bottom: 1px solid var(--border-dark); text-align: center; width: 100px; white-space: nowrap;">${slBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
