@@ -93,6 +93,7 @@ const i18n = {
     trades_title: "Letzte Trades & Tags",
     th_symbol: "Symbol",
     th_side: "Seite",
+    th_sl_widening: "SL Widening",
     th_profit: "Gewinn",
     th_close: "Haltezeit",
     th_note: "Tag / Notiz",
@@ -324,6 +325,7 @@ const i18n = {
     trades_title: "Recent Trades & Tags",
     th_symbol: "Symbol",
     th_side: "Side",
+    th_sl_widening: "SL Widening",
     th_profit: "Profit",
     th_close: "Duration",
     th_note: "Tag / Note",
@@ -554,6 +556,7 @@ const i18n = {
     trades_title: "Operaciones Recientes",
     th_symbol: "Símbolo",
     th_side: "Lado",
+    th_sl_widening: "Ampliación SL",
     th_profit: "Beneficio",
     th_close: "Duración",
     th_note: "Etiqueta / Nota",
@@ -784,6 +787,7 @@ const i18n = {
     trades_title: "Son İşlemler & Etiketler",
     th_symbol: "Sembol",
     th_side: "Yön",
+    th_sl_widening: "SL Genişletme",
     th_profit: "Kâr",
     th_close: "Süre",
     th_note: "Etiket / Not",
@@ -2416,13 +2420,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const slBadgeHtml =
         slWidenedCount > 0
-          ? `<span class="sl-widened-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 3px; margin-left: 6px;" title="${slTitle}"><i class="ph ph-warning-circle"></i> SL +${slWidenedCount}x</span>`
-          : "";
+          ? `<span class="sl-widened-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;" title="${slTitle}"><i class="ph ph-warning-circle"></i> SL +${slWidenedCount}x</span>`
+          : `<span style="color: var(--text-muted); font-size: 0.85rem;">-</span>`;
 
       tr.innerHTML = `
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${dateStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}${slBadgeHtml}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${slBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
@@ -5701,29 +5706,29 @@ const psychologyLessons = [
       tr: "<p>Kârlı her strateji istatistiksel kayıp dönemleri yaşar. %50 kazanma oranında üst üste 5-8 kayıp matematiksel olarak kaçınılmazdır.</p><p><b>Sistem Değiştirme Tuzağı:</b> Kayıp serisinden sonra stratejiyi bırakmak, hemen ardından gelecek toparlanmayı kaçırmanıza neden olur.</p>"
     },
     points: {
-      de: [
-        "Verstehe, dass Drawdowns mathematisch unvermeidbar sind.",
-        "Reduziere im Drawdown dein Risiko pro Trade um die Hälfte.",
-        "Wechsle nicht vorschnell die Strategie."
-      ],
-      en: [
-        "Understand that drawdowns are mathematically inevitable.",
-        "Cut your risk per trade in half during a drawdown.",
-        "Do not change strategies impulsively."
-      ],
-      es: [
-        "Entiende que las pérdidas seguidas son matemáticamente inevitables.",
-        "Reduce tu riesgo a la mitad durante el drawdown.",
-        "No cambies de estrategia impulsivamente."
-      ],
-      tr: [
-        "Drawdown dönemlerinin matematiksel olarak kaçınılmaz olduğunu bilin.",
-        "Kayıp serisinde işlem başına riski yarıya indirin.",
-        "Aceleyle strateji değiştirmeyin."
-      ]
+        de: [
+          "Verstehe, dass Drawdowns mathematisch unvermeidbar sind.",
+          "Reduziere im Drawdown dein Risiko pro Trade um die Hälfte.",
+          "Wechsle nicht vorschnell die Strategie."
+        ],
+        en: [
+          "Understand that drawdowns are mathematically inevitable.",
+          "Cut your risk per trade in half during a drawdown.",
+          "Do not change strategies impulsively."
+        ],
+        es: [
+          "Entiende que las pérdidas seguidas son matemáticamente inevitables.",
+          "Reduce tu riesgo a la mitad durante el drawdown.",
+          "No cambies de estrategia impulsivamente."
+        ],
+        tr: [
+          "Drawdown dönemlerinin matematiksel olarak kaçınılmaz olduğunu bilin.",
+          "Kayıp serisinde işlem başına riski yarıya indirin.",
+          "Aceleyle strateji değiştirmeyin."
+        ]
+      }
     }
-  }
-];
+  ];
 
 let activePsychCat = "all";
 
@@ -5733,17 +5738,11 @@ function renderPsychologyLessons() {
 
   const currentLang = localStorage.getItem("tm_global_lang") || "de";
   const dict = i18n[currentLang] || i18n["de"];
-  const searchInput = document.getElementById("psychology-search");
-  const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
   container.innerHTML = "";
 
   const filtered = psychologyLessons.filter((item) => {
-    const matchesCat = activePsychCat === "all" || item.cat === activePsychCat;
-    const itemTitle = (item.title[currentLang] || item.title["de"]).toLowerCase();
-    const itemSummary = (item.summary[currentLang] || item.summary["de"]).toLowerCase();
-    const matchesQuery = !query || itemTitle.includes(query) || itemSummary.includes(query);
-    return matchesCat && matchesQuery;
+    return activePsychCat === "all" || item.cat === activePsychCat;
   });
 
   if (filtered.length === 0) {
@@ -5756,9 +5755,7 @@ function renderPsychologyLessons() {
     const quoteText = item.quote[currentLang] || item.quote["de"];
     const summaryText = item.summary[currentLang] || item.summary["de"];
     const catLabel = dict[`cat_${item.cat}`] || item.cat.toUpperCase();
-    const readTimeLabel = dict.read_time || "Min. Lesezeit";
     const readLessonLabel = dict.read_lesson || "Lektion lesen";
-    const askAiLabel = dict.ask_ai_lesson || "KI Coach fragen";
 
     const card = document.createElement("div");
     card.className = "glass-panel";
@@ -5773,8 +5770,7 @@ function renderPsychologyLessons() {
     };
 
     // Clicking card opens modal
-    card.addEventListener("click", (e) => {
-      if (e.target.closest(".ask-psych-ai-btn")) return; // don't open modal if ask AI button clicked
+    card.addEventListener("click", () => {
       openPsychologyModal(item.id);
     });
 
@@ -5782,7 +5778,6 @@ function renderPsychologyLessons() {
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <span style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 12px; background: rgba(0, 242, 254, 0.1); color: var(--accent-color); border: 1px solid rgba(0, 242, 254, 0.2);">${catLabel}</span>
-          <span style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px;"><i class="ph ph-clock"></i> ${item.readTime} ${readTimeLabel}</span>
         </div>
         <h3 style="margin: 0 0 10px 0; font-size: 1.15rem; color: var(--text-main);">${titleText}</h3>
         <p style="font-size: 0.85rem; font-style: italic; color: var(--accent-color); margin-bottom: 12px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--accent-color); border-radius: 4px;">
@@ -5813,7 +5808,6 @@ function openPsychologyModal(lessonId) {
   const titleEl = document.getElementById("psych-modal-title");
   const quoteEl = document.getElementById("psych-modal-quote");
   const bodyEl = document.getElementById("psych-modal-body");
-  const timeEl = document.getElementById("psych-modal-time");
 
   if (catEl) catEl.innerText = dict[`cat_${lesson.cat}`] || lesson.cat.toUpperCase();
   if (titleEl) titleEl.innerText = lesson.title[currentLang] || lesson.title["de"];
