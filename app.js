@@ -4058,13 +4058,50 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const tradesTableBody = document.querySelector("#trades-table tbody");
-  if (tradesTableBody) {
-    tradesTableBody.addEventListener("click", (e) => {
-      const btn = e.target.closest(".share-trade-btn");
-      if (!btn) return;
-      const ticket = btn.getAttribute("data-ticket");
-      openShareModal(ticket);
+  document.body.addEventListener("click", (e) => {
+    const btn = e.target.closest(".share-trade-btn");
+    if (!btn) return;
+    const ticket = btn.getAttribute("data-ticket");
+    openShareModal(ticket);
+  });
+
+  // Composer logic
+  const composerSubmitBtn = document.getElementById("composer-submit-btn");
+  if (composerSubmitBtn) {
+    composerSubmitBtn.addEventListener("click", async () => {
+      const textarea = document.getElementById("composer-textarea");
+      const text = textarea.value.trim();
+      if (!text) {
+        alert("Bitte gib einen Text ein!");
+        return;
+      }
+
+      composerSubmitBtn.disabled = true;
+      composerSubmitBtn.textContent = "Lädt...";
+
+      try {
+        const d = await fetch(`${API_URL}?action=community_post`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("tm_master_token"),
+          },
+          body: JSON.stringify({ content: text }),
+        }).then((r) => r.json());
+
+        if (d.success) {
+          textarea.value = "";
+          loadCommunityFeed();
+        } else {
+          alert("Fehler: " + d.message);
+        }
+      } catch (err) {
+        console.error("Composer error", err);
+        alert("Error posting to community.");
+      } finally {
+        composerSubmitBtn.disabled = false;
+        composerSubmitBtn.textContent = "Posten";
+      }
     });
   }
 

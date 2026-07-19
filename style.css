@@ -1735,8 +1735,47 @@ th {
 }
 
 /* =========================================
-   COMMUNITY FEED STYLES
+   COMMUNITY FEED & COMPOSER STYLES
    ========================================= */
+
+/* --- COMPOSER --- */
+.composer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-panel-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  border: 1px solid var(--border-dark);
+}
+
+.composer-actions .icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.composer-actions .icon-btn:hover {
+  background: var(--accent-glow);
+}
+
+#composer-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* --- FEED POSTS --- */
 .community-post {
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-dark);
