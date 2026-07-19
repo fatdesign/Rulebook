@@ -5313,11 +5313,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // --- TRADING PSYCHOLOGY & MINDSET DATA & LOGIC ---
+// --- TRADING PSYCHOLOGY & MINDSET DATA & LOGIC ---
 const psychologyLessons = [
   {
     id: "fomo_trap",
     cat: "fomo",
-    readTime: 3,
+    readTime: 4,
     title: {
       de: "Die FOMO-Falle überwinden",
       en: "Overcoming the FOMO Trap",
@@ -5331,10 +5332,16 @@ const psychologyLessons = [
       tr: "Piyasada sonsuz fırsat vardır. Bir işlemi kaçırmak sizi öldürmez, ama kötü bir işlem öldürür."
     },
     summary: {
-      de: "Impulstrades bei schnellen Kerzen entstehen durch Angst. Lerne, geduldig auf deinen vorgegebenen Einstieg zu warten.",
-      en: "Impulse trades during fast candle movements stem from fear. Learn to patiently wait for your planned entry.",
-      es: "Las operaciones impulsivas durante velas rápidas surgen del miedo. Aprende a esperar pacientemente tu entrada programada.",
-      tr: "Hızlı mum hareketlerinde yapılan anlık işlemler korkudan kaynaklanır. Planladığınız girişi sabırla beklemeyi öğrenin."
+      de: "Impulstrades bei schnellen Kerzen entstehen durch die Angst, etwas zu verpassen. Lerne, geduldig auf deinen vorgegebenen Einstieg zu warten.",
+      en: "Impulse trades during fast candle movements stem from the fear of missing out. Learn to patiently wait for your planned entry.",
+      es: "Las operaciones impulsivas durante velas rápidas surgen del miedo a perderse la oportunidad. Aprende a esperar tu entrada.",
+      tr: "Hızlı mum hareketlerinde yapılan anlık işlemler fırsatı kaçırma korkusundan kaynaklanır. Planladığınız girişi sabırla beklemeyi öğrenin."
+    },
+    content: {
+      de: "<p>FOMO (Fear Of Missing Out) ist einer der häufigsten Konto-Killer für Trader aller Erfahrungsstufen. Es tritt auf, wenn du siehst, wie sich eine Kerze aggressiv in eine Richtung bewegt, und dein Gehirn dir vorgaukelt, dass du sofort einsteigen musst, um den 'Gewinn deines Lebens' nicht zu verpassen.</p><p><b>Warum das eine Falle ist:</b> Wenn du in eine bereits stark gelaufene Kerze springst, steigst du fast immer am schlechtesten möglichen Preis ein. Banken und institutionelle Händler nutzen diesen späten Nachfragen-Ansturm, um ihre eigenen Positionen abzuverkaufen.</p><p><b>Die Lösung:</b> Entwickle das Bewusstsein, dass der Markt wie ein Busbahnhof ist. Verpasst du einen Bus, kommt in wenigen Minuten der nächste. Ein regelkonformer Einstieg ist das Einzige, was zählt.</p>",
+      en: "<p>FOMO (Fear Of Missing Out) is one of the most common account destroyers for traders of all experience levels. It happens when you see a candle moving aggressively in one direction, and your brain tricks you into believing you must enter right now not to miss out on profit.</p><p><b>Why it's a trap:</b> When you jump into a candle that has already extended, you almost always enter at the worst possible price. Institutional players use this late retail rush to dump their positions onto late buyers.</p><p><b>The Solution:</b> Realize the market is like a bus station. If you miss one bus, another will arrive shortly. Only rule-based entries matter.</p>",
+      es: "<p>FOMO (Miedo a Perderse Algo) es uno de los destructores de cuentas más comunes. Ocurre cuando ves una vela moviéndose agresivamente y tu cerebro te obliga a entrar de inmediato.</p><p><b>Por qué es una trampa:</b> Al saltar a una vela ya extendida, entras al peor precio posible. Los institucionales aprovechan este impulso minorista tardío para cerrar sus posiciones.</p><p><b>La Solución:</b> Trata el mercado como una estación de autobuses. Si pierdes uno, vendrá otro pronto. Solo importan las entradas bajo tus reglas.</p>",
+      tr: "<p>FOMO (Fırsatı Kaçırma Korkusu) en yaygın hesap batırma nedenlerinden biridir. Hızlı hareket eden bir mum gördüğünüzde zihniniz sizi anında işleme girmeye zorlar.</p><p><b>Neden bir tuzaktır:</b> Zaten ilerlemiş bir muma atladığınızda neredeyse her zaman en kötü fiyattan girersiniz. Kurumsal oyuncular bu geç kalan talebi pozisyonlarını boşaltmak için kullanır.</p><p><b>Çözüm:</b> Piyasayı bir otobüs durağı gibi görün. Birini kaçırırsanız yenisi gelir. Önemli olan sadece kurallarınıza uyan girişlerdir.</p>"
     },
     points: {
       de: [
@@ -5381,6 +5388,12 @@ const psychologyLessons = [
       es: "La necesidad de entrar inmediatamente con mayor riesgo tras una pérdida es puramente emocional. Vuelve al modo analítico.",
       tr: "Kayıptan hemen sonra daha yüksek riskle işleme girme isteği tamamen duygusaldır. Zihninizi tekrar analitik moda alın."
     },
+    content: {
+      de: "<p>Revenge Trading entsteht durch eine verletzte Ego-Reaktion. Wenn ein Trade im Stop Loss endet, empfindet das Gehirn den Verlust als persönlichen Angriff oder Ungerechtigkeit.</p><p><b>Das gefährliche Schema:</b> Du verdoppelst die Lotgröße, ignorierst deine Analyse und willst das verlorene Geld 'sofort zurückholen'. Innerhalb von 30 Minuten entsteht so ein irreparabler Drawdown.</p><p><b>Wie du dich schützt:</b> Errichte eine eiserne Firewall. Nach 2 Verlusten in Folge herrscht absolutes Handelsverbot für mindestens 30 Minuten. Schließe deine Trading-Plattform und mache einen Spaziergang.</p>",
+      en: "<p>Revenge trading is triggered by a bruised ego. When a trade hits your stop loss, your brain interprets the loss as a personal threat or injustice.</p><p><b>The Dangerous Loop:</b> You double your position size, ignore your setup, and demand your money back right now. Within 30 minutes, a manageable loss turns into account destruction.</p><p><b>Protection:</b> Build a circuit breaker. After 2 consecutive losses, enforce a strict mandatory 30-minute cooling-off period away from all screens.</p>",
+      es: "<p>El trading de venganza nace de un ego herido. Cuando saltas un stop loss, tu cerebro interpreta la pérdida como una ofensa personal.</p><p><b>Bucle peligroso:</b> Duplicas el riesgo, ignoras tu plan y quieres recuperar el dinero de inmediato. En 30 minutos quemas la cuenta.</p><p><b>Protección:</b> Establece un cortafuegos. Tras 2 pérdidas seguidas, desconecta 30 minutos de la pantalla de forma obligatoria.</p>",
+      tr: "<p>İntikam işlemleri incinmiş bir egodan kaynaklanır. Stop olduğunuzda zihniniz kaybı kişisel bir haksızlık olarak görür.</p><p><b>Tehlikeli Döngü:</b> Lotu ikiye katlar, planı unutur ve paranızı hemen geri istersiniz. 30 dakikada yönetilebilir kayıp felakete dönüşür.</p><p><b>Korunma:</b> Güvenlik şalteri koyun. Üst üste 2 kayıptan sonra en az 30 dakika ekrandan kesinlikle uzaklaşın.</p>"
+    },
     points: {
       de: [
         "Nach 2 Verlusten in Folge zwingend 15 Minuten den Bildschirm verlassen.",
@@ -5425,6 +5438,12 @@ const psychologyLessons = [
       en: "Mark Douglas taught: A loss doesn't mean you were wrong, only that the distribution of outcomes varied.",
       es: "Mark Douglas enseñó: Una pérdida no significa que te equivocaste, solo que la distribución de resultados varió.",
       tr: "Mark Douglas'ın öğrettiği gibi: Bir kayıp haksız olduğunuz anlamına gelmez, sadece olasılık dağılımının o anki sonucudur."
+    },
+    content: {
+      de: "<p>In seinem Buch <i>'Trading in the Zone'</i> beschreibt Mark Douglas den fundamentalen Unterschied zwischen Anfängern und Profis: Anfänger suchen nach Gewissheit bei jedem einzelnen Trade, während Profis wissen, dass das Ergebnis jedes einzelnen Trades rein zufällig ist.</p><p><b>Das Casino-Prinzip:</b> Ein Roulettetisch beim Roulette gewinnt nicht jedes Mal. Das Casino weiß aber, dass es über 1.000 Spiele hinweg einen mathematischen Vorteil von 2.7% hat. Genau so musst du dein Trading betrachten.</p><p><b>Praktische Umsetzung:</b> Höre auf, dich nach einem Verlust zu fragen 'Was habe ich falsch gemacht?'. Wenn du deine Regeln eingehalten hast, war der Trade perfekt – egal wie er ausging!</p>",
+      en: "<p>In <i>'Trading in the Zone'</i>, Mark Douglas highlights the core difference between novices and pros: novices look for certainty on a trade-by-trade basis, while pros understand that outcomes are randomly distributed.</p><p><b>The Casino Principle:</b> A casino doesn't win every single spin of roulette. But over 1,000 spins, its 2.7% edge guarantees profit. Treat your strategy like a casino edge.</p><p><b>Action:</b> Stop asking 'What did I do wrong?' after a valid stop loss. If you followed your plan, the execution was 100% successful regardless of PnL.</p>",
+      es: "<p>En <i>'Trading en la Zona'</i>, Mark Douglas explica que los principiantes buscan certeza en cada operación, mientras que los profesionales piensan en probabilidades sobre muestras grandes.</p><p><b>El Principio del Casino:</b> El casino no gana cada ruleta, pero la ventaja matemática del 2.7% le da ganancias tras 1.000 tiradas. Así debes ver tu sistema.</p><p><b>Acción:</b> Deja de culparte tras un stop loss si seguiste tus reglas. Si ejecutaste el plan, la operación fue un éxito.</p>",
+      tr: "<p>Mark Douglas <i>'Disiplinli Trader'</i> kitabında profesyonellerin her tekil işlemin sonucunun rastgele dağıldığını bildiğini belirtir.</p><p><b>Kasa Mantığı:</b> Kumarhane her rulet turunu kazanmaz ama 1.000 turda %2.7'lik avantajı kârı garantiler. Stratejinizi kumarhane avantajı gibi görün.</p><p><b>Uygulama:</b> Kurallara uyduğunuz bir kayıptan sonra kendinizi suçlamayı bırakın. Plana uyduysanız işlem %100 başarılıdır.</p>"
     },
     points: {
       de: [
@@ -5471,6 +5490,12 @@ const psychologyLessons = [
       es: "La esperanza no es una estrategia. Cuando el precio se acerque a tu stop loss, acepta la pérdida y protege tu capital.",
       tr: "Umut bir işlem stratejisi değildir. Fiyat stop noktanıza yaklaştığında zararı kabullenin ve sermayenizi koruyun."
     },
+    content: {
+      de: "<p>Das manuelle Erweitern oder Löschen eines Stop Loss während der Trade läuft, gehört zu den gefährlichsten psychologischen Fehlern überhaupt. Es entspringt der Unfähigkeit des Gehirns, einen schmerzvollen Verlust im Hier und Jetzt zu akzeptieren.</p><p><b>Die Illusion:</b> Trader reden sich ein: 'Der Markt dreht gleich, ich gebe ihm nur noch 10 Pips Platz.' Oft dreht der Markt erst, wenn das gesamte Konto platzt.</p><p><b>Goldene Regel:</b> Dein Stop Loss darf NIEMALS nach unten (in den Verlust) verschoben werden. Er darf ausschließlich zur Absicherung von Gewinnen (Break Even / Trailing Stop) nachgezogen werden!</p>",
+      en: "<p>Manually moving or removing your stop loss while a trade is running is a deadly psychological trap. It comes from the brain's unwillingness to realize a loss immediately.</p><p><b>The Illusion:</b> Traders tell themselves 'It will turn around, just 10 more pips.' Usually the market turns around right after blowing the whole account.</p><p><b>Golden Rule:</b> Never widen a stop loss into drawdown. Trailing into profit is allowed; widening into loss is strictly forbidden.</p>",
+      es: "<p>Ampliar o quitar el stop loss con la operación abierta es un error fatal producido por no querer aceptar la pérdida.</p><p><b>Ilusión:</b> Te dices 'Ya se dará la vuelta, le doy 10 pips más'. El mercado se da la vuelta tras liquidarte la cuenta.</p><p><b>Regla de Oro:</b> El stop loss NUNCA se mueve a favor de la pérdida. Solo se mueve para asegurar ganancias (Break Even).</p>",
+      tr: "<p>Açık işlemde stop loss'u eksiye çekmek veya kaldırmak büyük bir psikolojik hatadır. Kaybı kabul edememe duygusundan doğar.</p><p><b>İllüzyon:</b> 'Birazdan döner, 10 pip daha vereyim' dersiniz. Piyasa genelde hesabınız sıfırlandıktan sonra döner.</p><p><b>Altın Kural:</b> Stop seviyesi ASLA zarara doğru esnetilmez. Sadece kârı korumak için çekilebilir.</p>"
+    },
     points: {
       de: [
         "Setze den Stop Loss VOR dem Einstieg und passe ihn NIEMALS ins Negative an.",
@@ -5515,6 +5540,12 @@ const psychologyLessons = [
       en: "True risk acceptance means feeling completely calm about a loss because your position size is properly calibrated.",
       es: "La verdadera aceptación del riesgo significa mantener la calma total ante una pérdida gracias a un lotaje calibrado.",
       tr: "Riski gerçekten kabul etmek, pozisyon büyüklüğünüz doğru ayarlandığı için kayıp durumunda tamamen sakin kalmaktır."
+    },
+    content: {
+      de: "<p>Es gibt einen gewaltigen Unterschied zwischen dem Wissen, dass ein Trade verlieren kann, und dem <b>echten Akzeptieren</b> des Verlustes. Wenn du beim Einstieg zögerst, Angst verspürst oder deine Position alle 5 Sekunden aktualisierst, hast du das Risiko nicht akzeptiert.</p><p><b>Positionsgröße reduzieren:</b> Das einfachste Heilmittel für Trading-Angst ist die Reduzierung der Lotgröße. Wenn du nur 0.5% deines Kontos riskierst, verliert ein Stop Loss seine emotionale Macht über dich.</p>",
+      en: "<p>There is a vast difference between knowing a trade can lose and <b>truly accepting</b> the loss. If you hesitate to enter or check prices every 5 seconds, you haven't accepted the risk.</p><p><b>Reduce Position Size:</b> The ultimate cure for trading anxiety is cutting your lot size. Risking 0.5% per trade disarms emotional pain.</p>",
+      es: "<p>Hay una gran diferencia entre saber que puedes perder y <b>aceptar realmente</b> la pérdida. Si dudas al entrar o miras la pantalla cada 5 segundos, no has aceptado el riesgo.</p><p><b>Reduce el Lotaje:</b> La cura contra la ansiedad es reducir la posición. Arriesgar solo el 0.5% elimina el dolor emocional.</p>",
+      tr: "<p>Bir işlemin kaybedebileceğini bilmek ile kaybı <b>gerçekten kabul etmek</b> arasında dağlar kadar fark vardır. Tereddüt ediyorsanız riski kabul etmemişsinizdir.</p><p><b>Lotu Düşürün:</b> İşlem kaygısının en net çözümü lot büyüklüğünü azaltmaktır. %0.5 risk almak duygusal baskıyı sıfırlar.</p>"
     },
     points: {
       de: [
@@ -5561,6 +5592,12 @@ const psychologyLessons = [
       es: "Las rachas ganadoras inducen a la imprudencia, saltarse reglas y sobreapalancarse. Mantén la disciplina tras el éxito.",
       tr: "Kazanç serileri dikkatsizliğe, kuralları esnetmeye ve aşırı kaldıraca yol açar. Başarılı serilerden sonra ekstra dikkatli olun."
     },
+    content: {
+      de: "<p>Viele Trader glauben, dass Verluste die größte Gefahr darstellen. In Wirklichkeit ist Euphorie nach einer Gewinnsträhne viel gefährlicher. Das Gehirn schüttet Dopamin aus und vermittelt das trügerische Gefühl, 'den Markt geknackt zu haben'.</p><p><b>Die Folge:</b> Du verdoppelst unüberlegt die Lotgröße, nimmst Setups zweiter Wahl und verzichtest auf den Stop Loss. Ein einziger übergroßer Verlust wischt die Gewinne von zwei Wochen weg.</p>",
+      en: "<p>Many believe losses are the main danger. In reality, euphoria following a winning streak is far more fatal. Dopamine floods your brain, convincing you that you have mastered the market.</p><p><b>The Consequence:</b> You double your lots, trade B-grade setups, and skip stops. One oversized trade wipes out two weeks of hard work.</p>",
+      es: "<p>Muchos creen que las pérdidas son el gran peligro, pero la euforia tras ganar 5 operaciones seguidas es peor. El cerebro se llena de dopamina.</p><p><b>Consecuencia:</b> Duplicas lotes, operas setups de baja calidad y quitas el stop loss. Una mala operación destruye dos semanas de ganancias.</p>",
+      tr: "<p>Pek çok kişi kaybın en büyük tehlike olduğunu sanır. Oysa kazanç serisi sonrası öfori çok daha tehlikelidir. Zihin piyasayı çözdüğünü sanır.</p><p><b>Sonuç:</b> Lotu rastgele artırır, kötü kurulumları alır ve stop koymazsınız. Tek bir işlem 2 haftalık kârı siler.</p>"
+    },
     points: {
       de: [
         "Erhöhe deine Lotgröße NICHT spontan nur weil die letzten Trades Gewinner waren.",
@@ -5585,92 +5622,104 @@ const psychologyLessons = [
     }
   },
   {
-    id: "pre_session_routine",
-    cat: "mindset",
+    id: "patience_wait",
+    cat: "discipline",
     readTime: 4,
     title: {
-      de: "Die Pre-Session Mental-Routine",
-      en: "Pre-Session Mental Routine",
-      es: "Rutina Mental Pre-Sesión",
-      tr: "Seans Öncesi Zihinsel Rutin"
+      de: "Die Kunst des Warten & Geduld",
+      en: "The Art of Waiting & Patience",
+      es: "El Arte de Esperar y la Paciencia",
+      tr: "Bekleme Sanatı ve Sabır"
     },
     quote: {
-      de: "Ein Profi-Trader betritt den Markt nie unvorbereitet. Dein Geist braucht Aufwärmzeit.",
-      en: "A professional trader never enters the market unprepared. Your mind requires a warm-up.",
-      es: "Un trader profesional nunca entra al mercado sin preparación. Tu mente necesita un calentamiento.",
-      tr: "Profesyonel bir trader piyasaya asla hazırlıksız girmez. Zihninizin ısınmaya ihtiyacı vardır."
+      de: "Gute Trader verbringen 90% ihrer Zeit mit Warten und nur 10% mit der Ausführung.",
+      en: "Good traders spend 90% of their time waiting and only 10% executing.",
+      es: "Los buenos traders pasan el 90% de su tiempo esperando y solo el 10% ejecutando.",
+      tr: "İyi traderlar zamanlarının %90'ını bekleyerek, sadece %10'unu işlem yaparak geçirir."
     },
     summary: {
-      de: "Wie Spitzen-Athleten vor dem Wettkampf bauen Profi-Trader feste mentale Routinen auf, um kühlen Kopf zu bewahren.",
-      en: "Like elite athletes before competition, pro traders build pre-market routines to maintain peak focus.",
-      es: "Como los atletas de élite antes de competir, los traders profesionales crean rutinas previas para mantener el enfoque.",
-      tr: "Müsabaka öncesi elit sporcular gibi, profesyonel traderlar da yüksek odaklanma için seans öncesi rutinler uygular."
+      de: "Lerne zu akzeptieren, dass an manchen Tagen kein valides Setup vorhanden ist. Kein Trade ist auch eine Position.",
+      en: "Learn to accept that on some days there is simply no valid setup. Sitting on hands is a profitable position.",
+      es: "Aprende a aceptar que algunos días simplemente no hay setups válidos. No operar también es una posición.",
+      tr: "Bazı günler uygun kurulum olmadığını kabul etmeyi öğrenin. İşlem yapmamak da bir pozisyondur."
+    },
+    content: {
+      de: "<p>Anfängern fällt es extrem schwer, vor dem Bildschirm zu sitzen und 3 Stunden lang keinen Klick zu tätigen. Sie verwechseln Aktivität mit Produktivität. Im Trading wird man jedoch fürs Warten bezahlt, nicht fürs Viel-Traden.</p><p><b>Erkenntnis:</b> Wenn dein Setup nicht 100% erfüllt ist, ist das Beste was du tun kannst: Nichts tun. Kapital erhalten ist die höchste Priorität.</p>",
+      en: "<p>Beginners struggle to sit in front of charts for 3 hours without taking action. They confuse busyness with profitability. In trading, you are paid for waiting for your edge.</p><p><b>Insight:</b> If your setup isn't 100% valid, the smartest move is doing nothing. Capital preservation is priority #1.</p>",
+      es: "<p>A los novatos les cuesta estar 3 horas mirando gráficos sin operar. Confunden actividad con rentabilidad. En trading te pagan por esperar tu ventaja.</p><p><b>Lección:</b> Si tu setup no cumple las reglas al 100%, no hagas nada. Preservar capital es lo primero.</p>",
+      tr: "<p>Yeni başlayanlar 3 saat ekran başında işlem açmadan durmakta zorlanır. Yoğunluğu kazançla karıştırırlar. Tradingde bekleme disiplinine ödeme yapılır.</p><p><b>İpucu:</b> Kurulumunuz %100 uymuyorsa hiçbir şey yapmayın. Sermayeyi korumak ilk kuraldır.</p>"
     },
     points: {
       de: [
-        "Absolviere vor der Session den 15-Sekunden Mental Check-in.",
-        "Gehe deine Top-3 Einstiegsregeln gedanklich oder schriftlich durch.",
-        "Prüfe den Wirtschaftskalender auf wichtige News-Events (High Impact)."
+        "Setze dir feste Regeln für A+ Setups.",
+        "Steige nur ein, wenn alle Bedingungen der Strategie erfüllt sind.",
+        "Wiederhole das Mantra: 'Kein Trade ist ein guter Trade'."
       ],
       en: [
-        "Complete your 15-second Mental Readiness Check before trading.",
-        "Review your top 3 entry rules mentally or in your trading checklist.",
-        "Check economic calendar for high-impact red-folder news events."
+        "Establish clear non-negotiable rules for A+ setups.",
+        "Enter only when 100% of your checklist conditions are met.",
+        "Repeat the mantra: 'No trade is a good trade'."
       ],
       es: [
-        "Realiza tu Check-in Mental de 15 segundos antes de operar.",
-        "Repasa mentalmente o por escrito tus 3 reglas clave de entrada.",
-        "Consulta el calendario económico para evitar noticias de alto impacto inesperadas."
+        "Establece reglas no negociables para setups A+.",
+        "Entra solo cuando se cumplan todas las condiciones de tu lista.",
+        "Repite la premisa: 'No operar también es ganar'."
       ],
       tr: [
-        "İşleme başlamadan önce 15 saniyelik Zihinsel Check-in testini yapın.",
-        "En önemli 3 giriş kuralınızı zihnen veya listenizden gözden geçirin.",
-        "Önemli haber saatlerini görmek için ekonomik takvimi kontrol edin."
+        "A+ kurulumlar için esnetilemez kurallar koyun.",
+        "Sadece tüm kontrol listesi onaylandığında işleme girin.",
+        "'İşlem yapmamak da doğru bir karardır' mottosunu hatırlayın."
       ]
     }
   },
   {
-    id: "journaling_mindset",
-    cat: "discipline",
-    readTime: 4,
+    id: "drawdown_resilience",
+    cat: "risk",
+    readTime: 5,
     title: {
-      de: "Das Journal als Spiegel deiner Seele",
-      en: "Journaling as a Mirror of Mindset",
-      es: "El Diario como Espejo de la Mente",
-      tr: "Günlük: Zihninizin Aynası"
+      de: "Mentale Stärke im Drawdown",
+      en: "Mental Resilience in Drawdown",
+      es: "Fortaleza Mental en Drawdown",
+      tr: "Drawdown Sırasında Zihinsel Dayanıklılık"
     },
     quote: {
-      de: "Was nicht gemessen wird, kann nicht verbessert werden. Dein Journal offenbart deine Blinden Flecken.",
-      en: "What gets measured gets managed. Your trading journal reveals your emotional blind spots.",
-      es: "Lo que se mide se puede mejorar. Tu diario de trading revela tus puntos ciegos emocionales.",
-      tr: "Ölçülmeyen şey geliştirilemez. İşlem günlüğünüz duygusal kör noktalarınızı ortaya çıkarır."
+      de: "Ein Drawdown testet nicht dein System, sondern deinen Charakter.",
+      en: "A drawdown tests your character far more than your system.",
+      es: "Un drawdown prueba tu carácter mucho más que tu sistema.",
+      tr: "Bir drawdown sisteminizi değil, karakterinizi test eder."
     },
     summary: {
-      de: "Erfahre, wie das konsequente Eintragen von Notizen und Fehler-Tags deine unbewussten Gewohnheiten transformiert.",
-      en: "Learn how consistent trade notes and error tagging transform your sub-conscious trading habits.",
-      es: "Aprende cómo las notas constantes y las etiquetas de errores transforman tus hábitos subconscientes.",
-      tr: "Düzenli işlem notları ve hata etiketlerinin bilinçaltı trading alışkanlıklarınızı nasıl dönüştürdüğünü görün."
+      de: "Wie du Phasen von aufeinanderfolgenden Verlusten überstehst, ohne dein System im Frust über den Haufen zu werfen.",
+      en: "How to survive periods of consecutive losses without abandoning a proven system out of frustration.",
+      es: "Cómo sobrevivir a rachas de pérdidas sin abandonar un sistema probado por pura frustración.",
+      tr: "Kayıp serilerini frustrated olup kanıtlanmış sisteminizi terk etmeden nasıl atlatırsınız."
+    },
+    content: {
+      de: "<p>Jedes rentable Handelsmodell durchläuft statistisch bedingte Verlustserien (Drawdowns). Der Verlust von 5-8 Trades in Folge ist bei einer 50% Gewinnrate mathematisch völlig normal.</p><p><b>Der häufigste Fehler:</b> Nach 4 Verlusten wechselt der Trader die Strategie (System Hopping). Er verlässt das System genau an dem Punkt, an dem die nächste Gewinnsträhne einsetzen würde.</p>",
+      en: "<p>Every profitable trading strategy encounters statistical drawdowns. Losing 5-8 trades in a row with a 50% win rate is mathematically bound to happen over time.</p><p><b>System Hopping Trap:</b> Traders abandon their strategy right after a loss streak, missing the inevitable recovery phase.</p>",
+      es: "<p>Todo sistema rentable sufre rachas de pérdidas. Perder 5-8 operaciones seguidas con un 50% de acierto es matemáticamente normal.</p><p><b>Trampa de cambiar de sistema:</b> Abandonar la estrategia tras una racha mala evita aprovechar la fase ganadora posterior.</p>",
+      tr: "<p>Kârlı her strateji istatistiksel kayıp dönemleri yaşar. %50 kazanma oranında üst üste 5-8 kayıp matematiksel olarak kaçınılmazdır.</p><p><b>Sistem Değiştirme Tuzağı:</b> Kayıp serisinden sonra stratejiyi bırakmak, hemen ardından gelecek toparlanmayı kaçırmanıza neden olur.</p>"
     },
     points: {
       de: [
-        "Notiere bei jedem Trade dein persönliches Sentiment (z.B. Ruhig, Nervös, FOMO).",
-        "Nutze Fehler-Tags wie #SLWidened oder #ImpulseTrade für ehrliches Feedback.",
-        "Reviewe dein Journal wöchentlich um Verhaltensmuster zu erkennen."
+        "Verstehe, dass Drawdowns mathematisch unvermeidbar sind.",
+        "Reduziere im Drawdown dein Risiko pro Trade um die Hälfte.",
+        "Wechsle nicht vorschnell die Strategie."
       ],
       en: [
-        "Log your emotional sentiment for every trade (e.g. Calm, Nervous, FOMO).",
-        "Use error tags like #SLWidened or #ImpulseTrade for honest post-analysis.",
-        "Review your trading journal weekly to spot repeated behavioral patterns."
+        "Understand that drawdowns are mathematically inevitable.",
+        "Cut your risk per trade in half during a drawdown.",
+        "Do not change strategies impulsively."
       ],
       es: [
-        "Registra tu estado emocional en cada operación (ej. Calma, Nervioso, FOMO).",
-        "Utiliza etiquetas de error como #SLWidened o #ImpulseTrade para un análisis honesto.",
-        "Revisa tu diario semanalmente para identificar patrones de comportamiento repetidos."
+        "Entiende que las pérdidas seguidas son matemáticamente inevitables.",
+        "Reduce tu riesgo a la mitad durante el drawdown.",
+        "No cambies de estrategia impulsivamente."
       ],
       tr: [
-        "Her işlemde duygusal durumunuzu kaydedin (ör. Sakin, Endişeli, FOMO).",
-        "#SLWidened veya #ImpulseTrade gibi hata etiketleriyle dürüst analiz yapın.",
-        "Tekrarlayan davranış kalıplarını tespit etmek için günlüğünüzü haftalık inceleyin."
+        "Drawdown dönemlerinin matematiksel olarak kaçınılmaz olduğunu bilin.",
+        "Kayıp serisinde işlem başına riski yarıya indirin.",
+        "Aceleyle strateji değiştirmeyin."
       ]
     }
   }
@@ -5706,14 +5755,14 @@ function renderPsychologyLessons() {
     const titleText = item.title[currentLang] || item.title["de"];
     const quoteText = item.quote[currentLang] || item.quote["de"];
     const summaryText = item.summary[currentLang] || item.summary["de"];
-    const pointsList = item.points[currentLang] || item.points["de"];
     const catLabel = dict[`cat_${item.cat}`] || item.cat.toUpperCase();
     const readTimeLabel = dict.read_time || "Min. Lesezeit";
+    const readLessonLabel = dict.read_lesson || "Lektion lesen";
     const askAiLabel = dict.ask_ai_lesson || "KI Coach fragen";
 
     const card = document.createElement("div");
     card.className = "glass-panel";
-    card.style.cssText = "padding: 20px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; border: 1px solid var(--border-dark);";
+    card.style.cssText = "padding: 20px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; border: 1px solid var(--border-dark); cursor: pointer;";
     card.onmouseover = () => {
       card.style.borderColor = "var(--accent-color)";
       card.style.transform = "translateY(-2px)";
@@ -5722,6 +5771,12 @@ function renderPsychologyLessons() {
       card.style.borderColor = "var(--border-dark)";
       card.style.transform = "translateY(0)";
     };
+
+    // Clicking card opens modal
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".ask-psych-ai-btn")) return; // don't open modal if ask AI button clicked
+      openPsychologyModal(item.id);
+    });
 
     card.innerHTML = `
       <div>
@@ -5734,11 +5789,11 @@ function renderPsychologyLessons() {
           "${quoteText}"
         </p>
         <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 15px;">${summaryText}</p>
-        <ul style="padding-left: 18px; font-size: 0.85rem; color: var(--text-main); margin-bottom: 20px; line-height: 1.6;">
-          ${pointsList.map(p => `<li style="margin-bottom: 6px;">${p}</li>`).join("")}
-        </ul>
       </div>
-      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-dark); padding-top: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-dark); padding-top: 14px;">
+        <button class="secondary-btn read-lesson-btn" style="padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; color: var(--accent-color); border-color: rgba(0, 242, 254, 0.3);">
+          <i class="ph ph-book-open"></i> ${readLessonLabel}
+        </button>
         <button class="secondary-btn ask-psych-ai-btn" data-lesson-id="${item.id}" style="padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
           <i class="ph ph-sparkle" style="color: #a855f7;"></i> ${askAiLabel}
         </button>
@@ -5750,94 +5805,88 @@ function renderPsychologyLessons() {
 
   // Attach event listener for Ask AI buttons
   container.querySelectorAll(".ask-psych-ai-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
       const lessonId = btn.getAttribute("data-lesson-id");
-      const lesson = psychologyLessons.find((l) => l.id === lessonId);
-      if (lesson) {
-        const currentLang = localStorage.getItem("tm_global_lang") || "de";
-        const lessonTitle = lesson.title[currentLang] || lesson.title["de"];
-        // Switch to AI Coach tab and populate prompt input
-        const coachTabBtn = document.querySelector('.sidebar-nav-item[data-tab="tab-coach"]');
-        if (coachTabBtn) {
-          coachTabBtn.click();
-          const coachInput = document.getElementById("coach-prompt-input");
-          if (coachInput) {
-            coachInput.value = `Wie betrifft mich das Thema "${lessonTitle}" basierend auf meinen letzten Trades und meinen Statistiken?`;
-            coachInput.focus();
-          }
-        }
-      }
+      triggerPsychologyAICoach(lessonId);
     });
   });
 }
 
-// Interactive Mental Check-in Handler
-function initMentalCheckIn() {
-  const inputs = document.querySelectorAll(".mental-check-input");
-  inputs.forEach((input) => {
-    input.addEventListener("change", updateMentalCheckScore);
-  });
-
-  const searchInput = document.getElementById("psychology-search");
-  if (searchInput) {
-    searchInput.addEventListener("input", renderPsychologyLessons);
-  }
-
-  const catBtns = document.querySelectorAll(".psych-cat-btn");
-  catBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      catBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      activePsychCat = btn.getAttribute("data-cat") || "all";
-      renderPsychologyLessons();
-    });
-  });
-
-  updateMentalCheckScore();
-}
-
-function updateMentalCheckScore() {
-  const focusVal = parseInt(document.getElementById("check-focus-select")?.value || "3");
-  const fomoVal = parseInt(document.getElementById("check-fomo-select")?.value || "3");
-  const riskVal = parseInt(document.getElementById("check-risk-select")?.value || "3");
-
-  const total = focusVal + fomoVal + riskVal; // Max 9, Min 3
-  const scorePercent = Math.round((total / 9) * 100);
-
-  const scoreValEl = document.getElementById("mental-score-val");
-  const scoreBadge = document.getElementById("mental-score-badge");
-  const adviceTextEl = document.getElementById("mental-check-advice-text");
-
-  if (scoreValEl) scoreValEl.innerText = scorePercent + "%";
+function openPsychologyModal(lessonId) {
+  const lesson = psychologyLessons.find((l) => l.id === lessonId);
+  if (!lesson) return;
 
   const currentLang = localStorage.getItem("tm_global_lang") || "de";
   const dict = i18n[currentLang] || i18n["de"];
 
-  if (scorePercent >= 85) {
-    if (scoreBadge) {
-      scoreBadge.style.background = "rgba(0, 230, 118, 0.15)";
-      scoreBadge.style.color = "var(--success)";
-      scoreBadge.style.borderColor = "rgba(0, 230, 118, 0.3)";
+  const modal = document.getElementById("psychology-modal");
+  const catEl = document.getElementById("psych-modal-cat");
+  const titleEl = document.getElementById("psych-modal-title");
+  const quoteEl = document.getElementById("psych-modal-quote");
+  const bodyEl = document.getElementById("psych-modal-body");
+  const timeEl = document.getElementById("psych-modal-time");
+  const askAiBtn = document.getElementById("psych-modal-ask-ai");
+
+  if (catEl) catEl.innerText = dict[`cat_${lesson.cat}`] || lesson.cat.toUpperCase();
+  if (titleEl) titleEl.innerText = lesson.title[currentLang] || lesson.title["de"];
+  if (quoteEl) quoteEl.innerText = `"${lesson.quote[currentLang] || lesson.quote["de"]}"`;
+
+  const bodyHtml = lesson.content && lesson.content[currentLang] 
+    ? lesson.content[currentLang] 
+    : (lesson.content ? lesson.content["de"] : `<p>${lesson.summary[currentLang] || lesson.summary["de"]}</p>`);
+
+  const pointsList = lesson.points[currentLang] || lesson.points["de"];
+  const pointsHtml = pointsList 
+    ? `<div style="margin-top: 20px; padding: 14px; background: rgba(0, 242, 254, 0.04); border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.15);"><h4 style="margin: 0 0 10px 0; color: var(--accent-color); font-size: 0.9rem;">Key Takeaways:</h4><ul style="padding-left: 18px; margin: 0; font-size: 0.88rem; line-height: 1.6;">${pointsList.map(p => `<li style="margin-bottom: 6px;">${p}</li>`).join("")}</ul></div>` 
+    : "";
+
+  if (bodyEl) bodyEl.innerHTML = bodyHtml + pointsHtml;
+  if (timeEl) timeEl.innerHTML = `<i class="ph ph-clock"></i> ${lesson.readTime} ${dict.read_time || "Min. Lesezeit"}`;
+
+  if (askAiBtn) {
+    askAiBtn.onclick = () => {
+      modal.classList.add("hidden");
+      triggerPsychologyAICoach(lesson.id);
+    };
+  }
+
+  if (modal) modal.classList.remove("hidden");
+}
+
+function triggerPsychologyAICoach(lessonId) {
+  const lesson = psychologyLessons.find((l) => l.id === lessonId);
+  if (!lesson) return;
+  const currentLang = localStorage.getItem("tm_global_lang") || "de";
+  const lessonTitle = lesson.title[currentLang] || lesson.title["de"];
+
+  const coachTabBtn = document.querySelector('.sidebar-nav-item[data-tab="tab-coach"]');
+  if (coachTabBtn) {
+    coachTabBtn.click();
+    const coachInput = document.getElementById("coach-prompt-input");
+    if (coachInput) {
+      coachInput.value = `Wie betrifft mich das Thema "${lessonTitle}" basierend auf meinen letzten Trades und meinen Statistiken?`;
+      coachInput.focus();
     }
-    if (adviceTextEl) adviceTextEl.innerText = dict.mental_check_advice_good || "Du bist in hervorragender Verfassung! Befolge deinen Trading-Plan ohne Ausnahmen.";
-  } else if (scorePercent >= 60) {
-    if (scoreBadge) {
-      scoreBadge.style.background = "rgba(255, 179, 0, 0.15)";
-      scoreBadge.style.color = "#ffb300";
-      scoreBadge.style.borderColor = "rgba(255, 179, 0, 0.3)";
-    }
-    if (adviceTextEl) adviceTextEl.innerText = dict.mental_check_advice_warn || "Achtung: Du zeigst leichte emotionale Unruhe. Halte dein Risiko klein und traden nur A+ Setups.";
-  } else {
-    if (scoreBadge) {
-      scoreBadge.style.background = "rgba(255, 23, 68, 0.15)";
-      scoreBadge.style.color = "var(--danger)";
-      scoreBadge.style.borderColor = "rgba(255, 23, 68, 0.3)";
-    }
-    if (adviceTextEl) adviceTextEl.innerText = dict.mental_check_advice_bad || "🚨 Gefahr: Hohes Tilt / FOMO Risiko! Wir empfehlen dringend, heute eine Pause einzulegen.";
   }
 }
 
-// Initialize psychology tab when DOM is loaded
+// Modal Close logic
 document.addEventListener("DOMContentLoaded", () => {
-  initMentalCheckIn();
+  const closeBtn = document.getElementById("close-psychology-modal");
+  const modal = document.getElementById("psychology-modal");
+
+  if (closeBtn && modal) {
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
+  }
 });

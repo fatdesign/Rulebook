@@ -2008,6 +2008,48 @@
           </div>
         </div>
       </div>
+      <!-- Psychology Article Detail Modal -->
+      <div id="psychology-modal" class="modal-overlay hidden">
+        <div
+          class="modal-content glass-panel"
+          style="
+            width: 100%;
+            max-width: 680px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border-left: 4px solid var(--accent-color);
+            padding: 24px;
+          "
+        >
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div>
+              <span id="psych-modal-cat" style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 12px; background: rgba(0, 242, 254, 0.1); color: var(--accent-color); border: 1px solid rgba(0, 242, 254, 0.2);">CATEGORY</span>
+              <h2 id="psych-modal-title" style="margin: 10px 0 0 0; font-size: 1.4rem; color: var(--text-main);">Article Title</h2>
+            </div>
+            <button id="close-psychology-modal" class="icon-btn" style="font-size: 1.3rem; cursor: pointer; background: transparent; border: none; color: var(--text-muted);">
+              <i class="ph ph-x"></i>
+            </button>
+          </div>
+
+          <div id="psych-modal-quote" style="font-size: 0.95rem; font-style: italic; color: var(--accent-color); margin-bottom: 15px; padding: 12px 16px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--accent-color); border-radius: 6px; line-height: 1.5;">
+            "Quote"
+          </div>
+
+          <div id="psych-modal-body" style="font-size: 0.92rem; color: var(--text-main); line-height: 1.7; margin-bottom: 20px;">
+            <!-- Article full text paragraphs dynamically inserted -->
+          </div>
+
+          <div style="border-top: 1px solid var(--border-dark); padding-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <span id="psych-modal-time" style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px;"><i class="ph ph-clock"></i> 4 Min Read</span>
+            <button id="psych-modal-ask-ai" class="primary-btn" style="padding: 8px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+              <i class="ph ph-sparkle"></i> <span data-i18n="ask_ai_lesson">KI Coach fragen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Strategy Create/Edit Modal -->
       <div id="strategy-modal" class="modal-overlay hidden">
         <div
