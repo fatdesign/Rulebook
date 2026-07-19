@@ -1657,9 +1657,7 @@ th {
   display: block !important;
 }
 
-.focus-mode-active #tab-journal,
-.focus-mode-active #tab-trades,
-.focus-mode-active #tab-coach {
+.focus-mode-active .tab-content:not(#tab-dashboard) {
   display: none !important;
 }
 

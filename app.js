@@ -124,6 +124,14 @@ const i18n = {
     tag_analyzer_title: "Tag Analyzer",
     tag_analyzer_desc:
       "Analysiere deine Fehler und Setups. Wähle einen Hashtag aus, um die entsprechenden Trades zu filtern und zu überprüfen.",
+    community_title: "Rulebook Community",
+    community_trending: "Trending Now",
+    composer_ph: "Was gibt's Neues?",
+    composer_attach_trade: "Trade anhängen",
+    composer_submit: "Posten",
+    loading_feed: "Lade Feed...",
+    no_posts: "Noch keine Posts. Teile als Erster einen Trade!",
+    failed_feed: "Fehler beim Laden des Feeds.",
   },
   en: {
     login_sub: "Connect your MT5 account to view AI insights.",
@@ -246,6 +254,14 @@ const i18n = {
     tag_analyzer_title: "Tag Analyzer",
     tag_analyzer_desc:
       "Analyze your mistakes and setups. Select a hashtag to filter and inspect the corresponding trades.",
+    community_title: "Rulebook Community",
+    community_trending: "Trending Now",
+    composer_ph: "What's new?",
+    composer_attach_trade: "Attach Trade",
+    composer_submit: "Post",
+    loading_feed: "Loading Feed...",
+    no_posts: "No posts yet. Be the first to share a trade!",
+    failed_feed: "Failed to load feed.",
   },
   es: {
     login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -3955,8 +3971,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function loadCommunityFeed() {
     if (!communityFeedContainer) return;
-    communityFeedContainer.innerHTML =
-      '<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">Loading Feed...</p>';
+    communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].loading_feed}</p>`;
     const token = localStorage.getItem("tm_master_token");
     fetch(`${API_URL}?action=community_feed&t=${Date.now()}`, {
       headers: { Authorization: token },
@@ -3964,21 +3979,18 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((posts) => {
         if (!Array.isArray(posts)) {
-          communityFeedContainer.innerHTML =
-            '<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">Failed to load feed.</p>';
+          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].failed_feed}</p>`;
           return;
         }
         if (posts.length === 0) {
-          communityFeedContainer.innerHTML =
-            '<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">No posts yet. Be the first to share a trade!</p>';
+          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].no_posts}</p>`;
           return;
         }
         renderCommunityFeed(posts);
       })
       .catch((e) => {
         console.error(e);
-        communityFeedContainer.innerHTML =
-          '<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">Error loading feed.</p>';
+        communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].failed_feed}</p>`;
       });
   }
 
@@ -4288,19 +4300,25 @@ document.addEventListener("DOMContentLoaded", () => {
               <div style="color: ${profitColor}; font-weight: bold;">${netProfitNum >= 0 ? "+" : ""}${netProfitNum.toFixed(2)}</div>
            `;
           item.addEventListener("click", () => {
+            const imgData = window.tradeImagesMap
+              ? window.tradeImagesMap[t.ticket] || {}
+              : {};
+            const noteData = window.tradeNotesMap
+              ? window.tradeNotesMap[t.ticket] || ""
+              : "";
+
             attachedTradeData = {
               ticket: String(t.ticket),
               symbol: t.symbol,
               side: t.side,
               profit: netProfitNum.toFixed(2),
               duration: window.formatHoldTime(holdSec),
-              screenshot:
-                t.images && t.images.after
-                  ? t.images.after
-                  : t.images && t.images.before
-                    ? t.images.before
-                    : null,
-              note: t.note || "",
+              screenshot: imgData.after
+                ? imgData.after
+                : imgData.before
+                  ? imgData.before
+                  : null,
+              note: noteData,
             };
             document.getElementById("composer-attached-trade-text").innerHTML =
               `<i class="ph ph-paperclip"></i> Anhang: ${t.symbol} ${t.side} <span style="color:${profitColor}; margin-left: 5px;">${netProfitNum >= 0 ? "+" : ""}${netProfitNum.toFixed(2)}</span>`;
