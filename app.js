@@ -1174,7 +1174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const dailyProfit = {};
     currentAllTrades.forEach((t) => {
       const d = new Date(t.close_time * 1000);
-      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (!dailyProfit[key]) dailyProfit[key] = 0;
       dailyProfit[key] += parseFloat(t.net_profit);
     });
@@ -1220,7 +1220,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const dayTrades = currentAllTrades.filter((t) => {
           const tDate = new Date(t.close_time * 1000);
-          const tKey = `${tDate.getUTCFullYear()}-${String(tDate.getUTCMonth() + 1).padStart(2, "0")}-${String(tDate.getUTCDate()).padStart(2, "0")}`;
+          const tKey = `${tDate.getFullYear()}-${String(tDate.getMonth() + 1).padStart(2, "0")}-${String(tDate.getDate()).padStart(2, "0")}`;
           return tKey === dKey;
         });
 
@@ -1567,12 +1567,12 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (currentTimeframe === "current_month") {
         const y = now.getFullYear();
         const m = now.getMonth();
-        startTime = Math.floor(Date.UTC(y, m, 1) / 1000);
-        endTime = Math.floor(Date.UTC(y, m + 1, 1) / 1000) - 1;
+        startTime = Math.floor(new Date(y, m, 1).getTime() / 1000);
+        endTime = Math.floor(new Date(y, m + 1, 1).getTime() / 1000) - 1;
       } else if (currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
         const [y, m] = currentTimeframe.split("-").map(Number);
-        startTime = Math.floor(Date.UTC(y, m, 1) / 1000);
-        endTime = Math.floor(Date.UTC(y, m + 1, 1) / 1000) - 1;
+        startTime = Math.floor(new Date(y, m, 1).getTime() / 1000);
+        endTime = Math.floor(new Date(y, m + 1, 1).getTime() / 1000) - 1;
       } else if (currentTimeframe === "all") {
         startTime = 0;
         endTime = 2000000000;
@@ -2522,9 +2522,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     trades.forEach((t) => {
       const dateObj = new Date(t.close_time * 1000);
-      const y = dateObj.getUTCFullYear();
-      const m = dateObj.getUTCMonth() + 1;
-      const d = dateObj.getUTCDate();
+      const y = dateObj.getFullYear();
+      const m = dateObj.getMonth() + 1;
+      const d = dateObj.getDate();
 
       const dateKey = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
@@ -2532,7 +2532,7 @@ document.addEventListener("DOMContentLoaded", () => {
         daysMap[dateKey] = {
           dateKey: dateKey,
           dateStr: `${String(d).padStart(2, "0")}.${String(m).padStart(2, "0")}.${y}`,
-          timestamp: Date.UTC(y, m - 1, d),
+          timestamp: new Date(y, m - 1, d).getTime(),
           netProfit: 0,
           grossProfit: 0,
           grossLoss: 0,
@@ -2653,9 +2653,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const dayTrades = trades.filter((t) => {
           const tDate = new Date(t.close_time * 1000);
-          const y = tDate.getUTCFullYear();
-          const m = tDate.getUTCMonth() + 1;
-          const d = tDate.getUTCDate();
+          const y = tDate.getFullYear();
+          const m = tDate.getMonth() + 1;
+          const d = tDate.getDate();
           const tKey = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           return tKey === day.dateKey;
         });
@@ -2847,7 +2847,8 @@ document.addEventListener("DOMContentLoaded", () => {
           .map((c) => c.value);
         const now = new Date();
         const todayStartTime = Math.floor(
-          Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000,
+          new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() /
+            1000,
         );
 
         let tradesToAnalyze = window.currentAllTrades || [];
@@ -2881,7 +2882,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tradesToAnalyze = (window.currentAllTrades || []).filter((t) => {
               const d = new Date(t.close_time * 1000);
               return (
-                `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}` ===
+                `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` ===
                 dKey
               );
             });
