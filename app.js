@@ -120,6 +120,9 @@ const i18n = {
     nav_journal: "Journal",
     nav_trades: "Trades",
     nav_tags: "Fehleranalyse",
+    nav_prop: "Prop Challenge",
+    market_sessions: "Market Sessions & Timezones",
+    prop_tracker: "Prop Firm Challenge Tracker",
     nav_coach: "AI Coach",
     tag_analyzer_title: "Fehleranalyse",
     tag_analyzer_desc:
@@ -249,9 +252,12 @@ const i18n = {
     nav_dashboard: "Dashboard",
     nav_journal: "Journal",
     nav_trades: "Trades",
-    nav_tags: "Fehleranalyse",
+    nav_tags: "Error Analysis",
+    nav_prop: "Prop Challenge",
+    market_sessions: "Market Sessions & Timezones",
+    prop_tracker: "Prop Firm Challenge Tracker",
     nav_coach: "AI Coach",
-    tag_analyzer_title: "Fehleranalyse",
+    tag_analyzer_title: "Error Analysis",
     tag_analyzer_desc:
       "Analyze your mistakes and setups. Select a hashtag to filter and inspect the corresponding trades.",
     community_title: "Rulebook Community",
@@ -378,8 +384,11 @@ const i18n = {
     nav_dashboard: "Panel",
     nav_journal: "Diario",
     nav_trades: "Operaciones",
+    nav_tags: "Análisis de Errores",
+    nav_prop: "Reto Prop",
+    market_sessions: "Sesiones de Mercado",
+    prop_tracker: "Rastreador de Retos Prop",
     nav_coach: "Coach IA",
-  },
   tr: {
     login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
     username_ph: "Kullanıcı Adı",
@@ -495,6 +504,10 @@ const i18n = {
     nav_dashboard: "Panel",
     nav_journal: "Günlük",
     nav_trades: "İşlemler",
+    nav_tags: "Hata Analizi",
+    nav_prop: "Prop Mücadelesi",
+    market_sessions: "Piyasa Saatleri",
+    prop_tracker: "Prop Challenge Takipçisi",
     nav_coach: "AI Koçu",
   },
 };
@@ -3957,141 +3970,289 @@ function updateMarketSessions() {
   container.innerHTML = html;
 }
 
-window.updatePropChallengeTracker = function(trades) {
-  const tabProp = document.getElementById("tab-prop");
-  if (!tabProp) return;
-
-  const startBalanceInput = document.getElementById("prop-start-balance");
-  const targetPctInput = document.getElementById("prop-target-pct");
-  const dailyLossPctInput = document.getElementById("prop-daily-loss-pct");
-  const maxLossPctInput = document.getElementById("prop-max-loss-pct");
-
-  if (!startBalanceInput) return;
-
-  const configKey = "prop_challenge_config";
-  if (!window.propConfigLoaded) {
-    const saved = localStorage.getItem(configKey);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.startBalance) startBalanceInput.value = parsed.startBalance;
-        if (parsed.targetPct) targetPctInput.value = parsed.targetPct;
-        if (parsed.dailyLossPct) dailyLossPctInput.value = parsed.dailyLossPct;
-        if (parsed.maxLossPct) maxLossPctInput.value = parsed.maxLossPct;
-      } catch (e) {}
+window.loadPropChallenges = function() {
+  const saved = localStorage.getItem("tm_prop_challenges");
+  if (saved) {
+    try {
+      window.propChallenges = JSON.parse(saved);
+    } catch(e) {
+      window.propChallenges = [];
     }
-    window.propConfigLoaded = true;
+  } else {
+    window.propChallenges = [];
+  }
+};
 
-    [startBalanceInput, targetPctInput, dailyLossPctInput, maxLossPctInput].forEach((el) => {
-      el.addEventListener("input", () => {
-        const cfg = {
-          startBalance: parseFloat(startBalanceInput.value) || 100000,
-          targetPct: parseFloat(targetPctInput.value) || 10,
-          dailyLossPct: parseFloat(dailyLossPctInput.value) || 5,
-          maxLossPct: parseFloat(maxLossPctInput.value) || 10,
-        };
-        localStorage.setItem(configKey, JSON.stringify(cfg));
-        window.updatePropChallengeTracker(window.currentAllTrades || []);
-      });
+window.savePropChallenges = function() {
+  localStorage.setItem("tm_prop_challenges", JSON.stringify(window.propChallenges || []));
+};
+
+window.renderPropChallenges = function() {
+  const container = document.getElementById("prop-challenges-container");
+  if (!container) return;
+  
+  if (!window.propChallenges) window.loadPropChallenges();
+
+  let html = "";
+  const curSym = window.currentCurrencySymbol || "$";
+
+  // Get available accounts to populate dropdowns
+  const availableAccounts = [];
+  const accountSelect = document.getElementById("account-switcher");
+  if (accountSelect) {
+    Array.from(accountSelect.options).forEach(opt => {
+      availableAccounts.push(opt.value);
     });
   }
 
-  const startBalance = parseFloat(startBalanceInput.value) || 100000;
-  const targetPct = parseFloat(targetPctInput.value) || 10;
-  const dailyLossPct = parseFloat(dailyLossPctInput.value) || 5;
-  const maxLossPct = parseFloat(maxLossPctInput.value) || 10;
+  window.propChallenges.forEach((chal, index) => {
+    let optionsHtml = '<option value="">Select Account...</option>';
+    availableAccounts.forEach(acc => {
+      optionsHtml += `<option value="${acc}" ${chal.accountId === acc ? 'selected' : ''}>${acc}</option>`;
+    });
 
-  const curSym = window.currentCurrencySymbol || "$";
-  const validTrades = trades || window.currentAllTrades || [];
-  let totalNetP = 0;
+    html += `
+      <div class="prop-challenge-block" data-id="${chal.id}" style="border-bottom: 2px dashed rgba(255,255,255,0.1); padding-bottom: 30px; margin-bottom: 30px;">
+        <div class="glass-panel" style="margin-bottom: 20px; position: relative;">
+          <button class="delete-challenge-btn icon-btn" data-id="${chal.id}" style="position: absolute; top: 15px; right: 15px; color: var(--danger); font-size: 1.2rem; cursor: pointer; border:none; background:transparent;"><i class="ph ph-trash"></i></button>
+          
+          <h3 style="margin-bottom: 15px"><i class="ph ph-gear"></i> Challenge Rules & Setup</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">MT5 Account</label>
+              <select class="profile-select prop-acc-select" data-id="${chal.id}" style="width: 100%; padding: 8px;">
+                ${optionsHtml}
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Initial Balance ($)</label>
+              <input type="number" class="profile-select prop-start-balance" data-id="${chal.id}" value="${chal.startBalance}" style="width: 100%; padding: 8px;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Profit Target (%)</label>
+              <input type="number" class="profile-select prop-target-pct" data-id="${chal.id}" value="${chal.targetPct}" step="0.5" style="width: 100%; padding: 8px;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Max Daily Loss (%)</label>
+              <input type="number" class="profile-select prop-daily-loss-pct" data-id="${chal.id}" value="${chal.dailyLossPct}" step="0.5" style="width: 100%; padding: 8px;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Max Total Loss (%)</label>
+              <input type="number" class="profile-select prop-max-loss-pct" data-id="${chal.id}" value="${chal.maxLossPct}" step="0.5" style="width: 100%; padding: 8px;" />
+            </div>
+          </div>
+        </div>
 
-  const dailyPnl = {};
-  validTrades.forEach((t) => {
-    const p = parseFloat(t.net_profit) || 0;
-    totalNetP += p;
+        <!-- Live Monitor Cards -->
+        <div class="glass-panel prop-status-card" style="margin-bottom: 20px;">
+          <div>
+            <h2 style="margin: 0; font-size: 1.3rem;">Status: <span id="prop-status-text-${chal.id}">LOADING...</span></h2>
+            <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.85rem;" id="prop-status-subtext-${chal.id}">Fetching data...</p>
+          </div>
+          <div id="prop-status-badge-${chal.id}" class="prop-status-badge" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">WAITING</div>
+        </div>
 
-    const dObj = new Date(t.close_time * 1000);
-    const dKey = `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}-${String(dObj.getDate()).padStart(2, "0")}`;
-    dailyPnl[dKey] = (dailyPnl[dKey] || 0) + p;
+        <div class="kpi-row">
+          <div class="kpi-card glass-panel">
+            <h3 style="font-size: 0.85rem;">Profit Target</h3>
+            <p id="prop-target-val-${chal.id}" class="kpi-value positive">$0.00</p>
+            <div class="prop-progress-bar"><div id="prop-target-fill-${chal.id}" class="prop-progress-fill" style="width: 0%;"></div></div>
+            <span id="prop-target-pct-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">0% reached</span>
+          </div>
+
+          <div class="kpi-card glass-panel">
+            <h3 style="font-size: 0.85rem;">Daily Loss Buffer</h3>
+            <p id="prop-daily-buffer-val-${chal.id}" class="kpi-value positive">$0.00</p>
+            <span id="prop-daily-loss-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Limit: $0.00</span>
+          </div>
+
+          <div class="kpi-card glass-panel">
+            <h3 style="font-size: 0.85rem;">Max Drawdown Buffer</h3>
+            <p id="prop-max-buffer-val-${chal.id}" class="kpi-value positive">$0.00</p>
+            <span id="prop-max-loss-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Floor: $0.00</span>
+          </div>
+
+          <div class="kpi-card glass-panel">
+            <h3 style="font-size: 0.85rem;">Current Equity</h3>
+            <p id="prop-current-equity-${chal.id}" class="kpi-value">$0.00</p>
+            <span id="prop-net-profit-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">P&L: $0.00</span>
+          </div>
+        </div>
+      </div>
+    `;
   });
 
-  const currentEquity = startBalance + totalNetP;
-  const targetProfitAmount = startBalance * (targetPct / 100);
-  const maxLossAmount = startBalance * (maxLossPct / 100);
-  const maxLossFloor = startBalance - maxLossAmount;
-  const dailyLossLimitAmount = startBalance * (dailyLossPct / 100);
+  if (window.propChallenges.length === 0) {
+    html = `<div style="text-align: center; padding: 40px; color: var(--text-muted);">
+      <i class="ph ph-trophy" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i>
+      <p>No Challenges tracked. Click the + button above to add one.</p>
+    </div>`;
+  }
 
-  let worstDayLoss = 0;
-  Object.values(dailyPnl).forEach((dayPnl) => {
-    if (dayPnl < 0 && Math.abs(dayPnl) > worstDayLoss) {
-      worstDayLoss = Math.abs(dayPnl);
+  container.innerHTML = html;
+
+  // Add event listeners for inputs
+  container.querySelectorAll('.prop-acc-select, .prop-start-balance, .prop-target-pct, .prop-daily-loss-pct, .prop-max-loss-pct').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const id = e.target.getAttribute('data-id');
+      const chal = window.propChallenges.find(c => c.id == id);
+      if (chal) {
+        const block = e.target.closest('.prop-challenge-block');
+        chal.accountId = block.querySelector('.prop-acc-select').value;
+        chal.startBalance = parseFloat(block.querySelector('.prop-start-balance').value) || 100000;
+        chal.targetPct = parseFloat(block.querySelector('.prop-target-pct').value) || 10;
+        chal.dailyLossPct = parseFloat(block.querySelector('.prop-daily-loss-pct').value) || 5;
+        chal.maxLossPct = parseFloat(block.querySelector('.prop-max-loss-pct').value) || 10;
+        window.savePropChallenges();
+        window.updatePropChallengeStats(chal);
+      }
+    });
+  });
+
+  // Add event listeners for delete buttons
+  container.querySelectorAll('.delete-challenge-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = e.target.closest('button').getAttribute('data-id');
+      if (confirm('Delete this challenge?')) {
+        window.propChallenges = window.propChallenges.filter(c => c.id != id);
+        window.savePropChallenges();
+        window.renderPropChallenges();
+      }
+    });
+  });
+
+  // Fetch and update stats for all challenges
+  window.propChallenges.forEach(chal => {
+    if (chal.accountId) {
+      window.updatePropChallengeStats(chal);
+    } else {
+      const statusElem = document.getElementById(`prop-status-text-${chal.id}`);
+      const statusSubElem = document.getElementById(`prop-status-subtext-${chal.id}`);
+      if (statusElem) statusElem.textContent = "NO ACCOUNT SELECTED";
+      if (statusSubElem) statusSubElem.textContent = "Please select an account to track.";
     }
   });
+};
 
-  const targetReachedPct = Math.min(100, Math.max(0, (totalNetP / targetProfitAmount) * 100));
-  const maxLossBuffer = currentEquity - maxLossFloor;
-  const dailyLossBuffer = dailyLossLimitAmount - worstDayLoss;
+window.updatePropChallengeStats = async function(chal) {
+  if (!chal.accountId) return;
 
-  let statusText = "ACTIVE";
-  let statusSubtext = "Challenge läuft — Alle Limits eingehalten.";
-  let statusClass = "active";
+  const curSym = window.currentCurrencySymbol || "$";
+  
+  try {
+    const token = localStorage.getItem("tm_master_token");
+    if (!token) return;
 
-  if (currentEquity <= maxLossFloor) {
-    statusText = "FAILED (Max Drawdown)";
-    statusSubtext = "Account hat das maximale Drawdown-Limit überschritten!";
-    statusClass = "failed";
-  } else if (dailyLossBuffer <= 0) {
-    statusText = "FAILED (Daily Drawdown)";
-    statusSubtext = "Tages-Verlustlimit wurde an einem Handelstag überschritten!";
-    statusClass = "failed";
-  } else if (totalNetP >= targetProfitAmount) {
-    statusText = "PASSED 🏆";
-    statusSubtext = "Herzlichen Glückwunsch! Du hast das Profit-Ziel erreicht!";
-    statusClass = "passed";
+    const response = await fetch(`${typeof API_URL !== "undefined" ? API_URL : ""}?account_id=${encodeURIComponent(chal.accountId)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch trades for challenge");
+    const payload = await response.json();
+    const trades = payload.trades || [];
+    
+    let totalNetP = 0;
+    const dailyPnl = {};
+    trades.forEach((t) => {
+      const p = parseFloat(t.net_profit) || 0;
+      totalNetP += p;
+      const dObj = new Date(t.close_time * 1000);
+      const dKey = `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}-${String(dObj.getDate()).padStart(2, "0")}`;
+      dailyPnl[dKey] = (dailyPnl[dKey] || 0) + p;
+    });
+
+    const currentEquity = chal.startBalance + totalNetP;
+    const targetProfitAmount = chal.startBalance * (chal.targetPct / 100);
+    const maxLossAmount = chal.startBalance * (chal.maxLossPct / 100);
+    const maxLossFloor = chal.startBalance - maxLossAmount;
+    const dailyLossLimitAmount = chal.startBalance * (chal.dailyLossPct / 100);
+
+    let worstDayLoss = 0;
+    Object.values(dailyPnl).forEach((dayPnl) => {
+      if (dayPnl < 0 && Math.abs(dayPnl) > worstDayLoss) {
+        worstDayLoss = Math.abs(dayPnl);
+      }
+    });
+
+    const targetReachedPct = Math.min(100, Math.max(0, (totalNetP / targetProfitAmount) * 100));
+    const maxLossBuffer = currentEquity - maxLossFloor;
+    const dailyLossBuffer = dailyLossLimitAmount - worstDayLoss;
+
+    let statusText = "ACTIVE";
+    let statusSubtext = "Challenge läuft — Alle Limits eingehalten.";
+    let statusClass = "active";
+
+    if (currentEquity <= maxLossFloor) {
+      statusText = "FAILED (Max Drawdown)";
+      statusSubtext = "Account hat das maximale Drawdown-Limit überschritten!";
+      statusClass = "failed";
+    } else if (dailyLossBuffer <= 0) {
+      statusText = "FAILED (Daily Drawdown)";
+      statusSubtext = "Tages-Verlustlimit wurde an einem Handelstag überschritten!";
+      statusClass = "failed";
+    } else if (totalNetP >= targetProfitAmount) {
+      statusText = "PASSED 🏆";
+      statusSubtext = "Herzlichen Glückwunsch! Du hast das Profit-Ziel erreicht!";
+      statusClass = "passed";
+    }
+
+    const statusElem = document.getElementById(`prop-status-text-${chal.id}`);
+    const statusSubElem = document.getElementById(`prop-status-subtext-${chal.id}`);
+    const statusBadge = document.getElementById(`prop-status-badge-${chal.id}`);
+
+    if (statusElem) statusElem.textContent = statusText;
+    if (statusSubElem) statusSubElem.textContent = statusSubtext;
+    if (statusBadge) {
+      statusBadge.className = `prop-status-badge ${statusClass}`;
+      statusBadge.textContent = statusText;
+      statusBadge.style.background = ""; 
+      statusBadge.style.border = "";
+    }
+
+    const targetValElem = document.getElementById(`prop-target-val-${chal.id}`);
+    const targetFillElem = document.getElementById(`prop-target-fill-${chal.id}`);
+    const targetPctLbl = document.getElementById(`prop-target-pct-lbl-${chal.id}`);
+
+    if (targetValElem) targetValElem.textContent = `${curSym}${targetProfitAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    if (targetFillElem) targetFillElem.style.width = `${targetReachedPct}%`;
+    if (targetPctLbl) targetPctLbl.textContent = `${targetReachedPct.toFixed(1)}% reached (${curSym}${totalNetP.toFixed(2)} / ${curSym}${targetProfitAmount.toFixed(2)})`;
+
+    const dailyBufferVal = document.getElementById(`prop-daily-buffer-val-${chal.id}`);
+    const dailyLossLbl = document.getElementById(`prop-daily-loss-lbl-${chal.id}`);
+    if (dailyBufferVal) {
+      dailyBufferVal.textContent = `${curSym}${dailyLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      dailyBufferVal.className = `kpi-value ${dailyLossBuffer < 1000 ? "negative" : "positive"}`;
+    }
+    if (dailyLossLbl) dailyLossLbl.textContent = `Daily Limit: ${curSym}${dailyLossLimitAmount.toFixed(2)} (Max Tag Loss: ${curSym}${worstDayLoss.toFixed(2)})`;
+
+    const maxBufferVal = document.getElementById(`prop-max-buffer-val-${chal.id}`);
+    const maxLossLbl = document.getElementById(`prop-max-loss-lbl-${chal.id}`);
+    if (maxBufferVal) {
+      maxBufferVal.textContent = `${curSym}${maxLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      maxBufferVal.className = `kpi-value ${maxLossBuffer < 2000 ? "negative" : "positive"}`;
+    }
+    if (maxLossLbl) maxLossLbl.textContent = `Equity Floor: ${curSym}${maxLossFloor.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+    const currentEquityElem = document.getElementById(`prop-current-equity-${chal.id}`);
+    const netProfitElem = document.getElementById(`prop-net-profit-${chal.id}`);
+    if (currentEquityElem) currentEquityElem.textContent = `${curSym}${currentEquity.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    if (netProfitElem) {
+      netProfitElem.textContent = `P&L: ${totalNetP >= 0 ? "+" : ""}${curSym}${totalNetP.toFixed(2)}`;
+      netProfitElem.className = totalNetP >= 0 ? "positive" : "negative";
+    }
+
+  } catch (err) {
+    console.error("Failed to update prop stats for account", chal.accountId, err);
   }
+};
 
-  const statusElem = document.getElementById("prop-status-text");
-  const statusSubElem = document.getElementById("prop-status-subtext");
-  const statusBadge = document.getElementById("prop-status-badge");
-
-  if (statusElem) statusElem.textContent = statusText;
-  if (statusSubElem) statusSubElem.textContent = statusSubtext;
-  if (statusBadge) {
-    statusBadge.className = `prop-status-badge ${statusClass}`;
-    statusBadge.textContent = statusText;
-  }
-
-  const targetValElem = document.getElementById("prop-target-val");
-  const targetFillElem = document.getElementById("prop-target-fill");
-  const targetPctLbl = document.getElementById("prop-target-pct-lbl");
-
-  if (targetValElem) targetValElem.textContent = `${curSym}${targetProfitAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-  if (targetFillElem) targetFillElem.style.width = `${targetReachedPct}%`;
-  if (targetPctLbl) targetPctLbl.textContent = `${targetReachedPct.toFixed(1)}% reached (${curSym}${totalNetP.toFixed(2)} / ${curSym}${targetProfitAmount.toFixed(2)})`;
-
-  const dailyBufferVal = document.getElementById("prop-daily-buffer-val");
-  const dailyLossLbl = document.getElementById("prop-daily-loss-lbl");
-  if (dailyBufferVal) {
-    dailyBufferVal.textContent = `${curSym}${dailyLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-    dailyBufferVal.className = `kpi-value ${dailyLossBuffer < 1000 ? "negative" : "positive"}`;
-  }
-  if (dailyLossLbl) dailyLossLbl.textContent = `Daily Limit: ${curSym}${dailyLossLimitAmount.toFixed(2)} (Max Tag Loss: ${curSym}${worstDayLoss.toFixed(2)})`;
-
-  const maxBufferVal = document.getElementById("prop-max-buffer-val");
-  const maxLossLbl = document.getElementById("prop-max-loss-lbl");
-  if (maxBufferVal) {
-    maxBufferVal.textContent = `${curSym}${maxLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-    maxBufferVal.className = `kpi-value ${maxLossBuffer < 2000 ? "negative" : "positive"}`;
-  }
-  if (maxLossLbl) maxLossLbl.textContent = `Equity Floor: ${curSym}${maxLossFloor.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-
-  const currentEquityElem = document.getElementById("prop-current-equity");
-  const netProfitElem = document.getElementById("prop-net-profit");
-  if (currentEquityElem) currentEquityElem.textContent = `${curSym}${currentEquity.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-  if (netProfitElem) {
-    netProfitElem.textContent = `P&L: ${totalNetP >= 0 ? "+" : ""}${curSym}${totalNetP.toFixed(2)}`;
-    netProfitElem.className = totalNetP >= 0 ? "positive" : "negative";
-  }
+window.updatePropChallengeTracker = function(trades) {
+  // Trigger re-render of Prop Challenges if the tab is active or data changes globally
+  window.renderPropChallenges();
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -4099,6 +4260,22 @@ document.addEventListener("DOMContentLoaded", () => {
   updateFocusModeUI();
   updateMarketSessions();
   setInterval(updateMarketSessions, 1000);
+  const addPropBtn = document.getElementById("add-prop-challenge-btn");
+  if (addPropBtn) {
+    addPropBtn.addEventListener("click", () => {
+      if (!window.propChallenges) window.loadPropChallenges();
+      window.propChallenges.push({
+        id: Date.now(),
+        accountId: "",
+        startBalance: 100000,
+        targetPct: 10,
+        dailyLossPct: 5,
+        maxLossPct: 10
+      });
+      window.savePropChallenges();
+      window.renderPropChallenges();
+    });
+  }
 
   const focusBtn = document.getElementById("focus-btn");
   const focusBtnExit = document.getElementById("focus-btn-exit");
