@@ -1111,6 +1111,30 @@ th {
   display: none;
 }
 
+.logo-expanded {
+  display: block;
+  max-height: 38px;
+  max-width: 100%;
+  object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+
+.logo-collapsed {
+  display: none;
+  max-height: 35px;
+  max-width: 100%;
+  object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar.collapsed .logo-expanded {
+  display: none;
+}
+
+.sidebar.collapsed .logo-collapsed {
+  display: block;
+}
+
 .sidebar-toggle-btn {
   background: transparent;
   border: none;
