@@ -389,6 +389,7 @@ const i18n = {
     market_sessions: "Sesiones de Mercado",
     prop_tracker: "Rastreador de Retos Prop",
     nav_coach: "Coach IA",
+  },
   tr: {
     login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
     username_ph: "Kullanıcı Adı",
@@ -1672,7 +1673,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       showError(err.message);
     } finally {
-      connectBtn.innerText = "Connect & Analyze";
+      if (connectBtn) {
+        connectBtn.innerText = "Connect & Analyze";
+      }
     }
   }
 
