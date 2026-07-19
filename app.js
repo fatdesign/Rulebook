@@ -1923,7 +1923,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <input type="text" class="trade-note-input profile-select" data-ticket="${t.ticket}" value="${currentNote}" placeholder="${(i18n[localStorage.getItem("tm_global_lang") || "de"] || {}).note_ph || "Add note or #tag..."}" style="width: 100%; max-width: 250px; padding: 4px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
-                        <button class="share-trade-btn" data-ticket="${t.ticket}"><i class="ph ph-share-network"></i> Share</button>
                     </div>
                 </td>
             `;
@@ -4058,26 +4057,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  document.body.addEventListener("click", (e) => {
-    const btn = e.target.closest(".share-trade-btn");
-    if (!btn) return;
-    const ticket = btn.getAttribute("data-ticket");
-    openShareModal(ticket);
-  });
+  let attachedTradeData = null;
 
-  // Composer logic
+  // Composer submit logic
   const composerSubmitBtn = document.getElementById("composer-submit-btn");
   if (composerSubmitBtn) {
     composerSubmitBtn.addEventListener("click", async () => {
       const textarea = document.getElementById("composer-textarea");
       const text = textarea.value.trim();
-      if (!text) {
-        alert("Bitte gib einen Text ein!");
+      if (!text && !attachedTradeData) {
+        alert("Bitte gib einen Text ein oder wähle einen Trade!");
         return;
       }
 
       composerSubmitBtn.disabled = true;
       composerSubmitBtn.textContent = "Lädt...";
+
+      const payload = { content: text };
+      if (attachedTradeData) {
+        payload.trade_data = attachedTradeData;
+      }
 
       try {
         const d = await fetch(`${API_URL}?action=community_post`, {
@@ -4086,11 +4085,19 @@ document.addEventListener("DOMContentLoaded", () => {
             "Content-Type": "application/json",
             Authorization: localStorage.getItem("tm_master_token"),
           },
-          body: JSON.stringify({ content: text }),
+          body: JSON.stringify(payload),
         }).then((r) => r.json());
 
         if (d.success) {
           textarea.value = "";
+          attachedTradeData = null;
+          const attachedPill = document.getElementById(
+            "composer-attached-trade",
+          );
+          if (attachedPill) {
+            attachedPill.classList.add("hidden");
+            attachedPill.style.display = "none";
+          }
           loadCommunityFeed();
         } else {
           alert("Fehler: " + d.message);
@@ -4105,98 +4112,83 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function openShareModal(ticket) {
-    const trade = window.currentAllTrades
-      ? window.currentAllTrades.find((t) => String(t.ticket) === String(ticket))
-      : null;
-    if (!trade) {
-      alert("Trade details could not be found.");
-      return;
+  // Attach Trade UI logic
+  const attachTradeBtn = document.getElementById("composer-attach-trade-btn");
+  const tradeDropdown = document.getElementById("composer-trade-dropdown");
+  const tradeList = document.getElementById("composer-trade-list");
+
+  if (attachTradeBtn && tradeDropdown && tradeList) {
+    attachTradeBtn.addEventListener("click", () => {
+      tradeDropdown.classList.toggle("hidden");
+      if (!tradeDropdown.classList.contains("hidden")) {
+        tradeDropdown.style.display = "flex";
+        tradeList.innerHTML = "";
+        const trades = window.currentAllTrades || [];
+        if (trades.length === 0) {
+          tradeList.innerHTML =
+            '<div style="padding: 10px; color: var(--text-muted); font-size: 0.9rem;">Keine Trades gefunden.</div>';
+          return;
+        }
+
+        trades.slice(0, 10).forEach((t) => {
+          const netProfitNum = parseFloat(t.net_profit || 0);
+          const profitColor =
+            netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
+          const holdSec = (t.close_time || 0) - (t.open_time || 0);
+
+          const item = document.createElement("div");
+          item.style.cssText =
+            "padding: 10px; border-bottom: 1px solid var(--border-dark); cursor: pointer; display: flex; justify-content: space-between; transition: background 0.2s;";
+          item.onmouseover = () =>
+            (item.style.background = "var(--bg-panel-hover)");
+          item.onmouseout = () => (item.style.background = "transparent");
+          item.innerHTML = `
+              <div><span style="color: var(--text-muted);">${t.symbol}</span> <span style="font-size: 0.85rem;">${t.side}</span></div>
+              <div style="color: ${profitColor}; font-weight: bold;">${netProfitNum >= 0 ? "+" : ""}${netProfitNum.toFixed(2)}</div>
+           `;
+          item.addEventListener("click", () => {
+            attachedTradeData = {
+              ticket: String(t.ticket),
+              symbol: t.symbol,
+              side: t.side,
+              profit: netProfitNum.toFixed(2),
+              duration: formatHoldTime(holdSec),
+            };
+            document.getElementById("composer-attached-trade-text").innerHTML =
+              `<i class="ph ph-paperclip"></i> Anhang: ${t.symbol} ${t.side} <span style="color:${profitColor}; margin-left: 5px;">${netProfitNum >= 0 ? "+" : ""}${netProfitNum.toFixed(2)}</span>`;
+            const attachedPill = document.getElementById(
+              "composer-attached-trade",
+            );
+            attachedPill.classList.remove("hidden");
+            attachedPill.style.display = "flex";
+            tradeDropdown.classList.add("hidden");
+            tradeDropdown.style.display = "none";
+          });
+          tradeList.appendChild(item);
+        });
+      } else {
+        tradeDropdown.style.display = "none";
+      }
+    });
+
+    const removeBtn = document.getElementById("composer-remove-trade");
+    if (removeBtn) {
+      removeBtn.addEventListener("click", () => {
+        attachedTradeData = null;
+        const attachedPill = document.getElementById("composer-attached-trade");
+        attachedPill.classList.add("hidden");
+        attachedPill.style.display = "none";
+      });
     }
 
-    shareModalTicket.value = ticket;
-    shareModalText.value = "";
-
-    const netProfitNum = parseFloat(trade.net_profit || 0);
-    const holdSec = (trade.close_time || 0) - (trade.open_time || 0);
-    const durationStr = formatHoldTime(holdSec);
-
-    shareTradePreview.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="color: var(--text-muted); margin-right: 8px;">${trade.symbol}</span>
-                    <span style="color: ${trade.side.startsWith("Buy") ? "var(--success)" : "var(--danger)"};">${trade.side}</span>
-                </div>
-                <div style="text-align: right;">
-                    <span style="color: ${netProfitNum >= 0 ? "var(--success)" : "var(--danger)"}; font-weight: bold; margin-right: 8px;">
-                        ${netProfitNum >= 0 ? "+" : ""}${netProfitNum.toFixed(2)}
-                    </span>
-                    <span style="color: var(--text-muted);">${durationStr}</span>
-                </div>
-            </div>
-        `;
-    shareModal.classList.remove("hidden");
-  }
-
-  if (shareModalSubmit) {
-    shareModalSubmit.addEventListener("click", () => {
-      const ticket = shareModalTicket.value;
-      const content = shareModalText.value.trim();
-      if (!content) {
-        alert("Please add some text to your post.");
-        return;
+    document.addEventListener("click", (e) => {
+      if (
+        !attachTradeBtn.contains(e.target) &&
+        !tradeDropdown.contains(e.target)
+      ) {
+        tradeDropdown.classList.add("hidden");
+        tradeDropdown.style.display = "none";
       }
-
-      const trade = window.currentAllTrades
-        ? window.currentAllTrades.find((t) => t.ticket == ticket)
-        : null;
-      if (!trade) return;
-
-      const holdSec = (trade.close_time || 0) - (trade.open_time || 0);
-
-      const payload = {
-        content: content,
-        trade_data: {
-          ticket: String(trade.ticket),
-          symbol: trade.symbol,
-          side: trade.side,
-          profit: parseFloat(trade.net_profit).toFixed(2),
-          duration: formatHoldTime(holdSec),
-        },
-      };
-
-      const origBtnText = shareModalSubmit.innerHTML;
-      shareModalSubmit.innerHTML = "Posting...";
-      shareModalSubmit.disabled = true;
-
-      const token = localStorage.getItem("tm_master_token");
-      fetch(`${API_URL}?action=community_post`, {
-        method: "POST",
-        headers: { Authorization: token, "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.success) {
-            shareModal.classList.add("hidden");
-            loadCommunityFeed();
-            // Switch to community tab
-            const commTab = document.querySelector(
-              '.sidebar-nav-item[data-tab="tab-community"]',
-            );
-            if (commTab) commTab.click();
-          } else {
-            alert(d.error || "Failed to post to community.");
-          }
-        })
-        .catch((e) => {
-          console.error(e);
-          alert("An error occurred while posting.");
-        })
-        .finally(() => {
-          shareModalSubmit.innerHTML = origBtnText;
-          shareModalSubmit.disabled = false;
-        });
     });
   }
 });

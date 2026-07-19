@@ -1571,20 +1571,36 @@
               <!-- TAB: COMMUNITY -->
               <div id="tab-community" class="tab-content">
                 <div
-                  class="dashboard-grid"
-                  style="grid-template-columns: 2fr 1fr; gap: 20px"
+                  style="
+                    display: flex;
+                    justify-content: center;
+                    max-width: 1050px;
+                    margin: 0 auto;
+                    gap: 30px;
+                  "
                 >
-                  <!-- Feed Column -->
+                  <!-- Main Feed Column -->
                   <div
-                    class="glass-panel"
-                    style="margin-bottom: 20px; padding: 25px"
+                    style="
+                      flex: 1;
+                      max-width: 600px;
+                      border-left: 1px solid var(--border-dark);
+                      border-right: 1px solid var(--border-dark);
+                      min-height: 100vh;
+                    "
                   >
+                    <!-- Header -->
                     <div
                       style="
+                        padding: 15px 20px;
+                        border-bottom: 1px solid var(--border-dark);
+                        position: sticky;
+                        top: 0;
+                        background: var(--bg-main);
+                        z-index: 10;
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
-                        margin-bottom: 20px;
                       "
                     >
                       <h3
@@ -1619,8 +1635,7 @@
                     <div
                       class="feed-composer"
                       style="
-                        margin-bottom: 20px;
-                        padding-bottom: 20px;
+                        padding: 20px;
                         border-bottom: 1px solid var(--border-dark);
                       "
                     >
@@ -1648,6 +1663,35 @@
                             "
                           ></textarea>
 
+                          <!-- Attached Trade Pill -->
+                          <div
+                            id="composer-attached-trade"
+                            class="hidden"
+                            style="
+                              align-items: center;
+                              justify-content: space-between;
+                              padding: 8px 12px;
+                              background: var(--accent-glow);
+                              border: 1px solid var(--accent-color);
+                              border-radius: 8px;
+                              margin-bottom: 15px;
+                              color: var(--text-main);
+                              font-size: 0.85rem;
+                              font-weight: bold;
+                            "
+                          >
+                            <span id="composer-attached-trade-text"></span>
+                            <i
+                              class="ph ph-x"
+                              id="composer-remove-trade"
+                              style="
+                                cursor: pointer;
+                                font-size: 1rem;
+                                color: var(--danger);
+                              "
+                            ></i>
+                          </div>
+
                           <div
                             style="
                               display: flex;
@@ -1663,6 +1707,7 @@
                                 display: flex;
                                 gap: 12px;
                                 color: var(--accent-color);
+                                position: relative;
                               "
                             >
                               <button
@@ -1689,6 +1734,51 @@
                               >
                                 <i class="ph ph-calendar-blank"></i>
                               </button>
+
+                              <!-- Attach Trade Button -->
+                              <button
+                                id="composer-attach-trade-btn"
+                                class="icon-btn tooltip-container"
+                                title="Trade anhängen"
+                              >
+                                <i class="ph ph-trend-up"></i>
+                              </button>
+
+                              <!-- Trade Selector Dropdown -->
+                              <div
+                                id="composer-trade-dropdown"
+                                class="glass-panel hidden"
+                                style="
+                                  position: absolute;
+                                  top: 100%;
+                                  left: 0;
+                                  margin-top: 10px;
+                                  width: 300px;
+                                  max-height: 250px;
+                                  overflow-y: auto;
+                                  z-index: 100;
+                                  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                                  flex-direction: column;
+                                "
+                              >
+                                <div
+                                  style="
+                                    padding: 10px;
+                                    border-bottom: 1px solid var(--border-dark);
+                                    font-weight: bold;
+                                    font-size: 0.85rem;
+                                    color: var(--text-muted);
+                                  "
+                                >
+                                  Select a Trade
+                                </div>
+                                <div
+                                  id="composer-trade-list"
+                                  style="display: flex; flex-direction: column"
+                                >
+                                  <!-- Populated by JS -->
+                                </div>
+                              </div>
                             </div>
                             <button
                               id="composer-submit-btn"
@@ -1706,9 +1796,10 @@
                       </div>
                     </div>
 
+                    <!-- Feed Container -->
                     <div
                       id="community-feed-container"
-                      style="display: flex; flex-direction: column; gap: 20px"
+                      style="display: flex; flex-direction: column"
                     >
                       <!-- Posts populated by JS -->
                       <p
@@ -1719,14 +1810,11 @@
                       </p>
                     </div>
                   </div>
+
                   <!-- Sidebar Stats Column -->
                   <div
-                    class="glass-panel"
-                    style="
-                      margin-bottom: 20px;
-                      padding: 25px;
-                      height: fit-content;
-                    "
+                    class="glass-panel desktop-only-sidebar"
+                    style="width: 350px; height: fit-content; padding: 25px"
                   >
                     <h3
                       style="
@@ -2120,107 +2208,6 @@
                 cursor: zoom-in;
               "
             />
-          </div>
-        </div>
-      </div>
-
-      <!-- Share Trade Modal -->
-      <div id="share-modal" class="modal-overlay hidden">
-        <div
-          class="modal-content glass-panel"
-          style="
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-          "
-        >
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 15px;
-            "
-          >
-            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px">
-              <i class="ph ph-share-network"></i>
-              <span>Share Trade to Community</span>
-            </h3>
-            <button
-              id="share-modal-close"
-              class="secondary-btn"
-              style="
-                padding: 4px 8px;
-                border: none;
-                background: transparent;
-                font-size: 1.2rem;
-                cursor: pointer;
-              "
-            >
-              &times;
-            </button>
-          </div>
-          <input type="hidden" id="share-modal-ticket" value="" />
-
-          <div
-            style="
-              background: rgba(0, 0, 0, 0.2);
-              padding: 12px;
-              border-radius: 8px;
-              margin-bottom: 15px;
-              border: 1px solid var(--border-dark);
-            "
-          >
-            <div
-              id="share-trade-preview"
-              style="
-                font-size: 0.9rem;
-                color: var(--text-main);
-                font-weight: 500;
-              "
-            >
-              Loading...
-            </div>
-          </div>
-
-          <textarea
-            id="share-modal-text"
-            style="
-              width: 100%;
-              min-height: 120px;
-              background: var(--input-bg);
-              color: var(--input-text);
-              border: 2px solid var(--border-darker);
-              padding: 15px;
-              resize: vertical;
-              font-family: inherit;
-              font-size: 0.95rem;
-              border-radius: 8px;
-            "
-            placeholder="What's your thought process on this trade?"
-          ></textarea>
-
-          <div
-            style="
-              display: flex;
-              justify-content: flex-end;
-              margin-top: 15px;
-              gap: 10px;
-            "
-          >
-            <button
-              id="share-modal-submit"
-              class="primary-btn"
-              style="
-                padding: 8px 20px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-              "
-            >
-              <i class="ph ph-paper-plane-tilt"></i> Post
-            </button>
           </div>
         </div>
       </div>
