@@ -3991,7 +3991,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const p = document.createElement("div");
       p.className = "community-post";
+      let tradeHtml = "";
+      if (post.trade_data) {
+        const td = post.trade_data;
+        const isProfit = parseFloat(td.profit) >= 0;
+        const profitColor = isProfit ? "var(--success)" : "var(--danger)";
+        const profitSign = isProfit ? "+" : "";
+
+        let hashtagsHtml = "";
+        if (td.note) {
+          const tags = td.note.match(/#[\w]+/g);
+          if (tags) {
+            hashtagsHtml = `<div style="margin-top: 10px; color: var(--accent-color); font-size: 0.85rem; display: flex; gap: 8px; flex-wrap: wrap;">${tags.map((tag) => `<span>${tag}</span>`).join("")}</div>`;
+          }
+        }
+
+        let screenshotHtml = "";
+        if (td.screenshot) {
+          screenshotHtml = `<div style="margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-dark);"><img src="${td.screenshot}" style="width: 100%; display: block; object-fit: contain; max-height: 400px; cursor: pointer;" alt="Trade Screenshot" onclick="window.open('${td.screenshot}', '_blank')" /></div>`;
+        }
+
+        tradeHtml = `
+          <div class="post-trade-card" style="margin-top: 15px; padding: 15px; border-radius: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-dark);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                      <span style="font-weight: bold; font-size: 1.05rem; color: var(--text-main);">${td.symbol || "-"}</span>
+                      <span style="font-size: 0.85rem; color: var(--text-muted);">${td.side || "-"}</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                      <span style="font-weight: bold; font-size: 1.05rem; color: ${profitColor}">
+                          ${profitSign}${parseFloat(td.profit || 0).toFixed(2)}
+                      </span>
+                      <span style="font-size: 0.85rem; color: var(--text-muted);"><i class="ph ph-clock"></i> ${td.duration || "-"}</span>
+                  </div>
+              </div>
+              ${hashtagsHtml}
+              ${screenshotHtml}
+          </div>
+        `;
+      }
+
+      let optionsMenu = "";
+      if (post.is_owner) {
+        optionsMenu = `
+            <div class="post-options-menu">
+                <button class="post-options-btn"><i class="ph ph-dots-three"></i></button>
+                <div class="post-options-dropdown" data-post-id="${post.id}">
+                    <button class="delete-post-btn"><i class="ph ph-trash"></i> Löschen</button>
+                </div>
+            </div>
+         `;
+      }
+
       p.innerHTML = `
+                ${optionsMenu}
                 <div class="post-header">
                     <div class="post-avatar">${post.username ? post.username.substring(0, 1).toUpperCase() : "U"}</div>
                     <div class="post-author-info">
@@ -4000,24 +4053,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
                 <div class="post-content">${escapeHTML(post.content || "")}</div>
-                ${
-                  post.trade_data
-                    ? `
-                <div class="post-trade-card">
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <span style="font-weight: bold; font-size: 1.05rem; color: var(--text-main);">${post.trade_data.symbol || "-"}</span>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">${post.trade_data.side || "-"}</span>
-                    </div>
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                        <span style="font-weight: bold; font-size: 1.05rem; color: ${parseFloat(post.trade_data.profit) >= 0 ? "var(--success)" : "var(--danger)"}">
-                            ${parseFloat(post.trade_data.profit) >= 0 ? "+" : ""}${parseFloat(post.trade_data.profit || 0).toFixed(2)}
-                        </span>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">${post.trade_data.duration || "-"}</span>
-                    </div>
-                </div>
-                `
-                    : ""
-                }
+                ${tradeHtml}
                 <div class="post-actions">
                     <button class="post-action-btn ${post.user_liked ? "liked" : ""}" data-post-id="${post.id}">
                         <i class="${post.user_liked ? "ph-fill ph-heart" : "ph ph-heart"}"></i>
@@ -4034,6 +4070,66 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", function () {
           const postId = this.getAttribute("data-post-id");
           toggleLike(postId, this);
+        });
+      });
+
+    // Add event delegation for post options
+    communityFeedContainer
+      .querySelectorAll(".post-options-btn")
+      .forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const menu = this.closest(".post-options-menu");
+          const dropdown = menu.querySelector(".post-options-dropdown");
+
+          // Close all other dropdowns
+          document
+            .querySelectorAll(".post-options-dropdown.show")
+            .forEach((d) => {
+              if (d !== dropdown) d.classList.remove("show");
+            });
+
+          dropdown.classList.toggle("show");
+        });
+      });
+
+    communityFeedContainer
+      .querySelectorAll(".delete-post-btn")
+      .forEach((btn) => {
+        btn.addEventListener("click", async function (e) {
+          e.stopPropagation();
+          const dropdown = this.closest(".post-options-dropdown");
+          const postId = dropdown.getAttribute("data-post-id");
+
+          if (
+            confirm("Bist du sicher, dass du diesen Post löschen möchtest?")
+          ) {
+            this.innerHTML = "Lösche...";
+            this.disabled = true;
+            try {
+              const d = await fetch(`${API_URL}?action=community_delete_post`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: localStorage.getItem("tm_master_token"),
+                },
+                body: JSON.stringify({ post_id: postId }),
+              }).then((r) => r.json());
+
+              if (d.success) {
+                loadCommunityFeed();
+              } else {
+                alert("Fehler beim Löschen: " + d.error);
+                this.innerHTML = `<i class="ph ph-trash"></i> Löschen`;
+                this.disabled = false;
+              }
+            } catch (e) {
+              console.error(e);
+              alert("Fehler beim Löschen des Posts.");
+              this.innerHTML = `<i class="ph ph-trash"></i> Löschen`;
+              this.disabled = false;
+            }
+          }
         });
       });
   }
@@ -4094,6 +4190,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let attachedTradeData = null;
+
+  // Ensure post options dropdowns close when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".post-options-menu")) {
+      document
+        .querySelectorAll(".post-options-dropdown.show")
+        .forEach((d) => d.classList.remove("show"));
+    }
+  });
 
   // Composer submit logic
   const composerSubmitBtn = document.getElementById("composer-submit-btn");
@@ -4189,6 +4294,8 @@ document.addEventListener("DOMContentLoaded", () => {
               side: t.side,
               profit: netProfitNum.toFixed(2),
               duration: window.formatHoldTime(holdSec),
+              screenshot: t.screenshot_url || null,
+              note: t.note || "",
             };
             document.getElementById("composer-attached-trade-text").innerHTML =
               `<i class="ph ph-paperclip"></i> Anhang: ${t.symbol} ${t.side} <span style="color:${profitColor}; margin-left: 5px;">${netProfitNum >= 0 ? "+" : ""}${netProfitNum.toFixed(2)}</span>`;
