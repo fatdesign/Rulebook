@@ -419,6 +419,19 @@ export default {
         `,
           ).run();
 
+          await env.DB.prepare(
+            `
+          CREATE TABLE IF NOT EXISTS community_comments (
+            id TEXT PRIMARY KEY,
+            post_id TEXT,
+            user_id TEXT,
+            username TEXT,
+            content TEXT,
+            created_at INTEGER
+          )
+        `,
+          ).run();
+
           // Fetch top 50 posts
           const { results } = await env.DB.prepare(
             "SELECT * FROM community_posts ORDER BY created_at DESC LIMIT 50",
@@ -431,6 +444,22 @@ export default {
             .bind(user_id)
             .all();
           const likedSet = new Set(likedRes.results.map((r) => r.post_id));
+
+          // Fetch comments for these posts
+          const postsIds = results.map((r) => r.id);
+          const commentsByPost = {};
+          if (postsIds.length > 0) {
+            const placeholders = postsIds.map(() => "?").join(",");
+            const commentsRes = await env.DB.prepare(
+              `SELECT * FROM community_comments WHERE post_id IN (${placeholders}) ORDER BY created_at ASC`,
+            )
+              .bind(...postsIds)
+              .all();
+            commentsRes.results.forEach((c) => {
+              if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+              commentsByPost[c.post_id].push(c);
+            });
+          }
 
           const feed = results.map((post) => {
             let parsedTrade = null;
@@ -448,10 +477,83 @@ export default {
               is_owner: post.user_id === user_id,
               trade_data: parsedTrade,
               image_urls: parsedImages,
+              comments: commentsByPost[post.id] || [],
             };
           });
 
           return new Response(JSON.stringify(feed), { headers: corsHeaders });
+        } catch (e) {
+          return new Response(e.message, { status: 500, headers: corsHeaders });
+        }
+      }
+
+      if (request.method === "POST" && action === "community_comment") {
+        try {
+          const user_id = await authenticateUser(request, env);
+          if (!user_id)
+            return new Response("Unauthorized", {
+              status: 401,
+              headers: corsHeaders,
+            });
+
+          let body;
+          try {
+            body = await request.json();
+          } catch (e) {
+            return new Response("Invalid JSON", {
+              status: 400,
+              headers: corsHeaders,
+            });
+          }
+
+          if (!body.post_id || !body.content) {
+            return new Response("Missing post_id or content", {
+              status: 400,
+              headers: corsHeaders,
+            });
+          }
+
+          // Check comment limit (max 5)
+          const countRes = await env.DB.prepare(
+            "SELECT COUNT(*) as count FROM community_comments WHERE post_id = ?",
+          )
+            .bind(body.post_id)
+            .first();
+
+          if (countRes && countRes.count >= 5) {
+            return new Response(
+              JSON.stringify({ error: "Max 5 comments reached for this post" }),
+              { status: 403, headers: corsHeaders },
+            );
+          }
+
+          let user = await env.DB.prepare(
+            "SELECT username FROM users WHERE id = ?",
+          )
+            .bind(user_id)
+            .first();
+          let username = user ? user.username : "Unknown";
+
+          const comment_id = crypto.randomUUID();
+          const created_at = Math.floor(Date.now() / 1000);
+
+          await env.DB.prepare(
+            "INSERT INTO community_comments (id, post_id, user_id, username, content, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+          )
+            .bind(
+              comment_id,
+              body.post_id,
+              user_id,
+              username,
+              body.content,
+              created_at,
+            )
+            .run();
+
+          return new Response(
+            JSON.stringify({ success: true, comment_id, username, created_at }),
+            { headers: corsHeaders },
+          );
         } catch (e) {
           return new Response(e.message, { status: 500, headers: corsHeaders });
         }

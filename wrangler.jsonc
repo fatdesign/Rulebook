@@ -18,5 +18,8 @@
       "database_name": "trademaster-db",
       "database_id": "1b6bb46c-566c-4a0d-af7d-74270b707536"
     }
-  ]
+  ],
+  "ai": {
+    "binding": "AI"
+  }
 }

@@ -119,9 +119,9 @@ const i18n = {
     nav_dashboard: "Dashboard",
     nav_journal: "Journal",
     nav_trades: "Trades",
-    nav_tags: "Tags",
+    nav_tags: "Fehleranalyse",
     nav_coach: "AI Coach",
-    tag_analyzer_title: "Tag Analyzer",
+    tag_analyzer_title: "Fehleranalyse",
     tag_analyzer_desc:
       "Analysiere deine Fehler und Setups. Wähle einen Hashtag aus, um die entsprechenden Trades zu filtern und zu überprüfen.",
     community_title: "Rulebook Community",
@@ -249,9 +249,9 @@ const i18n = {
     nav_dashboard: "Dashboard",
     nav_journal: "Journal",
     nav_trades: "Trades",
-    nav_tags: "Tags",
+    nav_tags: "Fehleranalyse",
     nav_coach: "AI Coach",
-    tag_analyzer_title: "Tag Analyzer",
+    tag_analyzer_title: "Fehleranalyse",
     tag_analyzer_desc:
       "Analyze your mistakes and setups. Select a hashtag to filter and inspect the corresponding trades.",
     community_title: "Rulebook Community",
@@ -1925,6 +1925,15 @@ document.addEventListener("DOMContentLoaded", () => {
         netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
       const holdSec = (t.close_time || 0) - (t.open_time || 0);
       const durationStr = formatHoldTime(holdSec);
+
+      const openDate = new Date((t.open_time || 0) * 1000);
+      const dateStr = openDate.toLocaleString([], {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
       const strategyId = window.tradeStrategyMap
         ? window.tradeStrategyMap[t.ticket] || ""
         : "";
@@ -1966,6 +1975,7 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
 
       tr.innerHTML = `
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${dateStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
@@ -2840,9 +2850,19 @@ document.addEventListener("DOMContentLoaded", () => {
           Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000,
         );
 
-        let tradesToAnalyze = currentFilteredTrades;
+        let tradesToAnalyze = window.currentAllTrades || [];
         const aiScopeVal = document.getElementById("ai-scope")?.value;
-        if (aiScopeVal === "week") {
+
+        if (aiScopeVal === "month") {
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+          tradesToAnalyze = (window.currentAllTrades || []).filter((t) => {
+            const d = new Date(t.close_time * 1000);
+            return (
+              d.getMonth() === currentMonth && d.getFullYear() === currentYear
+            );
+          });
+        } else if (aiScopeVal === "week") {
           const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
           const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
           const monday = new Date(
@@ -2851,14 +2871,14 @@ document.addEventListener("DOMContentLoaded", () => {
             now.getDate() - diffToMonday,
           );
           const weekStartSec = Math.floor(monday.getTime() / 1000);
-          tradesToAnalyze = currentFilteredTrades.filter(
+          tradesToAnalyze = (window.currentAllTrades || []).filter(
             (t) => t.close_time >= weekStartSec,
           );
         } else if (aiScopeVal === "day") {
           const scopeDayOpt = document.getElementById("ai-scope-day");
           if (scopeDayOpt && scopeDayOpt.hasAttribute("data-datekey")) {
             const dKey = scopeDayOpt.getAttribute("data-datekey");
-            tradesToAnalyze = currentFilteredTrades.filter((t) => {
+            tradesToAnalyze = (window.currentAllTrades || []).filter((t) => {
               const d = new Date(t.close_time * 1000);
               return (
                 `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}` ===
@@ -2867,7 +2887,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
           } else {
             // fallback to today
-            tradesToAnalyze = currentFilteredTrades.filter(
+            tradesToAnalyze = (window.currentAllTrades || []).filter(
               (t) => t.close_time >= todayStartTime,
             );
           }
@@ -3935,11 +3955,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Toggle timeframe filters visibility: only shown on DASHBOARD page
       const timeframeFilters = document.getElementById("timeframe-filters");
+      const monthSelector = document.getElementById("month-selector");
       if (timeframeFilters) {
         if (tabId === "tab-dashboard") {
           timeframeFilters.style.display = "";
+          if (monthSelector) monthSelector.style.display = "";
         } else {
           timeframeFilters.style.display = "none";
+          if (monthSelector) monthSelector.style.display = "none";
         }
       }
 
@@ -4062,6 +4085,34 @@ document.addEventListener("DOMContentLoaded", () => {
          `;
       }
 
+      let commentsHtml = "";
+      if (post.comments && post.comments.length > 0) {
+        commentsHtml = `<div class="post-comments-list" style="margin-top: 15px; border-top: 1px solid var(--border-dark); padding-top: 10px;">
+             ${post.comments
+               .map(
+                 (c) => `
+                 <div style="margin-bottom: 8px; font-size: 0.85rem;">
+                     <span style="font-weight: bold; color: var(--primary-color);">${c.username}:</span> 
+                     <span style="color: var(--text-main);">${escapeHTML(c.content)}</span>
+                 </div>
+             `,
+               )
+               .join("")}
+         </div>`;
+      }
+
+      let commentInputHtml = "";
+      if (!post.comments || post.comments.length < 5) {
+        commentInputHtml = `
+             <div class="comment-input-container" style="display: flex; gap: 10px; margin-top: 10px;">
+                 <input type="text" class="profile-select comment-input" data-post-id="${post.id}" placeholder="Kommentieren..." style="flex: 1; padding: 6px 10px; font-size: 0.85rem;" />
+                 <button class="secondary-btn post-comment-btn" data-post-id="${post.id}" style="padding: 6px 12px; font-size: 0.85rem;"><i class="ph ph-paper-plane-right"></i></button>
+             </div>
+         `;
+      } else {
+        commentInputHtml = `<div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Maximum von 5 Kommentaren erreicht.</div>`;
+      }
+
       p.innerHTML = `
                 ${optionsMenu}
                 <div class="post-header">
@@ -4073,12 +4124,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="post-content">${escapeHTML(post.content || "")}</div>
                 ${tradeHtml}
-                <div class="post-actions">
+                <div class="post-actions" style="margin-bottom: 10px;">
                     <button class="post-action-btn ${post.user_liked ? "liked" : ""}" data-post-id="${post.id}">
                         <i class="${post.user_liked ? "ph-fill ph-heart" : "ph ph-heart"}"></i>
                         <span class="like-count">${post.likes || 0}</span>
                     </button>
                 </div>
+                ${commentsHtml}
+                ${commentInputHtml}
             `;
       communityFeedContainer.appendChild(p);
     });
@@ -4089,6 +4142,54 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", function () {
           const postId = this.getAttribute("data-post-id");
           toggleLike(postId, this);
+        });
+      });
+
+    communityFeedContainer
+      .querySelectorAll(".post-comment-btn")
+      .forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const postId = this.getAttribute("data-post-id");
+          const input = communityFeedContainer.querySelector(
+            `.comment-input[data-post-id="${postId}"]`,
+          );
+          const text = input.value.trim();
+          if (!text) return;
+
+          btn.disabled = true;
+          try {
+            const token = localStorage.getItem("tm_master_token");
+            const r = await fetch(`${API_URL}?action=community_comment`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+              },
+              body: JSON.stringify({ post_id: postId, content: text }),
+            }).then((res) => res.json());
+
+            if (r.success) {
+              loadCommunityFeed(); // reload to show new comment
+            } else {
+              alert(r.error || "Fehler beim Posten des Kommentars.");
+            }
+          } catch (e) {
+            alert("Fehler beim Kommentieren.");
+          }
+          btn.disabled = false;
+        });
+      });
+
+    communityFeedContainer
+      .querySelectorAll(".comment-input")
+      .forEach((input) => {
+        input.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            const btn = communityFeedContainer.querySelector(
+              `.post-comment-btn[data-post-id="${this.getAttribute("data-post-id")}"]`,
+            );
+            if (btn) btn.click();
+          }
         });
       });
 

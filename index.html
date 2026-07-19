@@ -295,7 +295,7 @@
               </a>
               <a href="#" class="sidebar-nav-item" data-tab="tab-tags">
                 <i class="ph ph-tag"></i>
-                <span class="nav-text" data-i18n="nav_tags">Tags</span>
+                <span class="nav-text" data-i18n="nav_tags">Fehleranalyse</span>
               </a>
               <a href="#" class="sidebar-nav-item" data-tab="tab-calendar">
                 <i class="ph ph-calendar-blank"></i>
@@ -1217,9 +1217,32 @@
                       id="trades-table"
                       style="width: 100%; text-align: left"
                     >
-                      <thead>
+                      <thead
+                        style="
+                          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        "
+                      >
                         <tr>
-                          <th data-i18n="th_symbol">Symbol</th>
+                          <th
+                            style="
+                              padding: 10px 8px;
+                              text-align: left;
+                              color: var(--text-muted);
+                              font-weight: 500;
+                            "
+                          >
+                            Datum
+                          </th>
+                          <th
+                            style="
+                              padding: 10px 8px;
+                              text-align: left;
+                              color: var(--text-muted);
+                              font-weight: 500;
+                            "
+                          >
+                            Symbol
+                          </th>
                           <th data-i18n="th_side">Side</th>
                           <th data-i18n="th_profit">Profit</th>
                           <th data-i18n="th_close">Close Time</th>
@@ -1236,8 +1259,14 @@
                 </div>
               </div>
 
-              <!-- TAB: TAGS -->
-              <div id="tab-tags" class="tab-content">
+              <!-- TAB: FEHLERANALYSE -->
+              <div id="tab-tags" class="tab-content" style="display: none">
+                <div class="content-header" style="margin-bottom: 20px">
+                  <h2 style="margin: 0; font-size: 1.5rem">Fehleranalyse</h2>
+                  <p style="margin: 5px 0 0 0; color: var(--text-muted)">
+                    Kritischer Blick auf deine Trades und Muster.
+                  </p>
+                </div>
                 <div class="dashboard-grid">
                   <div
                     class="glass-panel"
@@ -1714,31 +1743,6 @@
                                 position: relative;
                               "
                             >
-                              <button
-                                class="icon-btn tooltip-container"
-                                title="Bild (coming soon)"
-                              >
-                                <i class="ph ph-image"></i>
-                              </button>
-                              <button
-                                class="icon-btn tooltip-container"
-                                title="GIF (coming soon)"
-                              >
-                                <i class="ph ph-gif"></i>
-                              </button>
-                              <button
-                                class="icon-btn tooltip-container"
-                                title="Emoji (coming soon)"
-                              >
-                                <i class="ph ph-smiley"></i>
-                              </button>
-                              <button
-                                class="icon-btn tooltip-container"
-                                title="Planen (coming soon)"
-                              >
-                                <i class="ph ph-calendar-blank"></i>
-                              </button>
-
                               <!-- Attach Trade Button -->
                               <button
                                 id="composer-attach-trade-btn"
