@@ -771,6 +771,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const savedTheme = localStorage.getItem("tm_theme") || "neo-retro";
   document.documentElement.setAttribute("data-theme", savedTheme);
 
+  window.renderCalendarWidget = function () {
+    const container = document.getElementById("tv-calendar-container");
+    if (!container) return;
+
+    container.innerHTML =
+      '<div class="tradingview-widget-container__widget"></div>';
+
+    const currentTheme = localStorage.getItem("tm_theme") || "neo-retro";
+    const isLight = currentTheme === "modern-light" || currentTheme === "win95";
+    const tvTheme = isLight ? "light" : "dark";
+
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-events.js";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      colorTheme: tvTheme,
+      isTransparent: true,
+      width: "100%",
+      height: "100%",
+      locale: "de",
+      importanceFilter: "-1,0,1",
+      countryFilter: "eu,de,us,gb,jp,ch,au,ca,nz",
+    });
+
+    container.appendChild(script);
+  };
+
+  // Initial render
+  window.renderCalendarWidget();
+
   themeSelects.forEach((sel) => {
     sel.value = savedTheme;
     sel.addEventListener("change", (e) => {
@@ -778,6 +810,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.documentElement.setAttribute("data-theme", t);
       localStorage.setItem("tm_theme", t);
       themeSelects.forEach((s) => (s.value = t));
+      if (window.renderCalendarWidget) window.renderCalendarWidget();
     });
   });
 
