@@ -1199,9 +1199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("tm_global_lang", newLang);
       if (loginLang) loginLang.value = newLang;
       setLanguage(newLang);
-
-      const key = localStorage.getItem("tm_license_key");
-      if (key) loadDashboard(key);
+      window.location.reload();
     });
   }
 
@@ -1211,6 +1209,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("tm_global_lang", newLang);
       if (globalLang) globalLang.value = newLang;
       setLanguage(newLang);
+      window.location.reload();
     });
   }
 
@@ -4769,6 +4768,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Show corresponding tab content
       const tabId = item.getAttribute("data-tab");
+      localStorage.setItem("tm_active_tab", tabId);
       const targetTab = document.getElementById(tabId);
       if (targetTab) {
         targetTab.classList.add("active");
@@ -4805,6 +4805,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  // Restore active tab after page reload
+  const savedActiveTab = localStorage.getItem("tm_active_tab");
+  if (savedActiveTab) {
+    const activeNavBtn = document.querySelector(`.sidebar-nav-item[data-tab="${savedActiveTab}"]`);
+    if (activeNavBtn) activeNavBtn.click();
+  }
 
   // --- COMMUNITY FEED LOGIC ---
   const communityFeedContainer = document.getElementById(
