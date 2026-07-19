@@ -135,6 +135,39 @@ const i18n = {
     loading_feed: "Lade Feed...",
     no_posts: "Noch keine Posts. Teile als Erster einen Trade!",
     failed_feed: "Fehler beim Laden des Feeds.",
+    prop_sub:
+      "Überwache dein Konto in Echtzeit gegen Max Drawdown, Daily Loss & Profit Target Regeln.",
+    prop_rules_setup: "Challenge Regeln & Setup",
+    prop_label_account: "MT5 Konto",
+    prop_select_account_option: "Konto auswählen...",
+    prop_label_start_balance: "Startkapital ($)",
+    prop_label_target_pct: "Gewinnziel (%)",
+    prop_label_daily_loss_pct: "Max. Tagesverlust (%)",
+    prop_label_max_loss_pct: "Max. Gesamtverlust (%)",
+    prop_status_lbl: "Status:",
+    prop_status_loading: "LADEN...",
+    prop_status_fetching: "Daten werden abgerufen...",
+    prop_status_waiting: "WARTEN",
+    prop_no_account_selected: "KEIN KONTO AUSGEWÄHLT",
+    prop_no_account_sub: "Bitte wähle ein Konto zum Überwachen aus.",
+    prop_status_active: "AKTIV",
+    prop_sub_active: "Challenge läuft — Alle Limits eingehalten.",
+    prop_status_failed_max: "FEHLGESCHLAGEN (Max Drawdown)",
+    prop_sub_failed_max: "Konto hat das maximale Drawdown-Limit überschritten!",
+    prop_status_failed_daily: "FEHLGESCHLAGEN (Tages-Drawdown)",
+    prop_sub_failed_daily: "Tages-Verlustlimit wurde an einem Handelstag überschritten!",
+    prop_status_passed: "BESTANDEN 🏆",
+    prop_sub_passed: "Herzlichen Glückwunsch! Du hast das Gewinnziel erreicht!",
+    prop_kpi_target: "Gewinnziel",
+    prop_lbl_reached: "erreicht",
+    prop_kpi_daily_buffer: "Tagesverlust-Puffer",
+    prop_lbl_daily_limit: "Tages-Limit:",
+    prop_lbl_max_day_loss: "Max. Tagesverlust:",
+    prop_kpi_max_buffer: "Max Drawdown Puffer",
+    prop_lbl_floor: "Mindest-Eigenkapital:",
+    prop_kpi_current_equity: "Aktuelles Eigenkapital",
+    prop_empty_state: "Keine Challenges getrackt. Klicke oben auf +, um eine hinzuzufügen.",
+    prop_confirm_delete: "Diesen Prop Challenge Tracker wirklich löschen?",
   },
   en: {
     login_sub: "Connect your MT5 account to view AI insights.",
@@ -268,6 +301,39 @@ const i18n = {
     loading_feed: "Loading Feed...",
     no_posts: "No posts yet. Be the first to share a trade!",
     failed_feed: "Failed to load feed.",
+    prop_sub:
+      "Monitor your account in real-time against Max Drawdown, Daily Loss & Profit Target rules.",
+    prop_rules_setup: "Challenge Rules & Setup",
+    prop_label_account: "MT5 Account",
+    prop_select_account_option: "Select Account...",
+    prop_label_start_balance: "Initial Balance ($)",
+    prop_label_target_pct: "Profit Target (%)",
+    prop_label_daily_loss_pct: "Max Daily Loss (%)",
+    prop_label_max_loss_pct: "Max Total Loss (%)",
+    prop_status_lbl: "Status:",
+    prop_status_loading: "LOADING...",
+    prop_status_fetching: "Fetching data...",
+    prop_status_waiting: "WAITING",
+    prop_no_account_selected: "NO ACCOUNT SELECTED",
+    prop_no_account_sub: "Please select an account to track.",
+    prop_status_active: "ACTIVE",
+    prop_sub_active: "Challenge active — All limits maintained.",
+    prop_status_failed_max: "FAILED (Max Drawdown)",
+    prop_sub_failed_max: "Account exceeded the maximum drawdown limit!",
+    prop_status_failed_daily: "FAILED (Daily Drawdown)",
+    prop_sub_failed_daily: "Daily loss limit was exceeded on a trading day!",
+    prop_status_passed: "PASSED 🏆",
+    prop_sub_passed: "Congratulations! You reached the profit target!",
+    prop_kpi_target: "Profit Target",
+    prop_lbl_reached: "reached",
+    prop_kpi_daily_buffer: "Daily Loss Buffer",
+    prop_lbl_daily_limit: "Daily Limit:",
+    prop_lbl_max_day_loss: "Max Day Loss:",
+    prop_kpi_max_buffer: "Max Drawdown Buffer",
+    prop_lbl_floor: "Equity Floor:",
+    prop_kpi_current_equity: "Current Equity",
+    prop_empty_state: "No Challenges tracked. Click the + button above to add one.",
+    prop_confirm_delete: "Delete this Prop Challenge tracker?",
   },
   es: {
     login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -387,8 +453,50 @@ const i18n = {
     nav_tags: "Análisis de Errores",
     nav_prop: "Reto Prop",
     market_sessions: "Sesiones de Mercado",
-    prop_tracker: "Rastreador de Retos Prop",
-    nav_coach: "Coach IA",
+    prop_sub:
+      "Supervisa tu cuenta en tiempo real frente a las reglas de Drawdown Máximo, Pérdida Diaria y Objetivo de Beneficio.",
+    prop_rules_setup: "Reglas del Reto y Configuración",
+    prop_label_account: "Cuenta MT5",
+    prop_select_account_option: "Seleccionar Cuenta...",
+    prop_label_start_balance: "Balance Inicial ($)",
+    prop_label_target_pct: "Objetivo de Beneficio (%)",
+    prop_label_daily_loss_pct: "Pérdida Máx. Diaria (%)",
+    prop_label_max_loss_pct: "Pérdida Máx. Total (%)",
+    prop_status_lbl: "Estado:",
+    prop_status_loading: "CARGANDO...",
+    prop_status_fetching: "Obteniendo datos...",
+    prop_status_waiting: "ESPERANDO",
+    prop_no_account_selected: "NINGUNA CUENTA SELECCIONADA",
+    prop_no_account_sub: "Por favor selecciona una cuenta para supervisar.",
+    prop_status_active: "ACTIVO",
+    prop_sub_active: "Reto activo — Todos los límites respetados.",
+    prop_status_failed_max: "FALLIDO (Drawdown Máximo)",
+    prop_sub_failed_max: "¡La cuenta ha superado el límite de drawdown máximo!",
+    prop_status_failed_daily: "FALLIDO (Drawdown Diario)",
+    prop_sub_failed_daily: "¡Se ha superado el límite de pérdida diaria en un día de trading!",
+    prop_status_passed: "SUPERADO 🏆",
+    prop_sub_passed: "¡Felicidades! ¡Has alcanzado el objetivo de beneficio!",
+    prop_kpi_target: "Objetivo de Beneficio",
+    prop_lbl_reached: "alcanzado",
+    prop_kpi_daily_buffer: "Margen Pérdida Diaria",
+    prop_lbl_daily_limit: "Límite Diario:",
+    prop_lbl_max_day_loss: "Pérdida Máx. Día:",
+    prop_kpi_max_buffer: "Margen Drawdown Máximo",
+    prop_lbl_floor: "Límite de Capital:",
+    prop_kpi_current_equity: "Capital Actual",
+    prop_empty_state: "No hay retos registrados. Haz clic en el botón + de arriba para añadir uno.",
+    prop_confirm_delete: "¿Eliminar este rastreador de reto prop?",
+    tag_analyzer_title: "Análisis de Errores",
+    tag_analyzer_desc:
+      "Analiza tus errores y configuraciones. Selecciona una etiqueta para filtrar e inspeccionar las operaciones correspondientes.",
+    community_title: "Comunidad Rulebook",
+    community_trending: "Tendencias Ahora",
+    composer_ph: "¿Qué hay de nuevo?",
+    composer_attach_trade: "Adjuntar Operación",
+    composer_submit: "Publicar",
+    loading_feed: "Cargando Feed...",
+    no_posts: "Aún no hay publicaciones. ¡Sé el primero en compartir una operación!",
+    failed_feed: "Error al cargar el feed.",
   },
   tr: {
     login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -510,6 +618,50 @@ const i18n = {
     market_sessions: "Piyasa Saatleri",
     prop_tracker: "Prop Challenge Takipçisi",
     nav_coach: "AI Koçu",
+    prop_sub:
+      "Hesabınızı Maks. Düşüş, Günlük Kayıp ve Kâr Hedefi kurallarına karşı gerçek zamanlı izleyin.",
+    prop_rules_setup: "Mücadele Kuralları ve Kurulum",
+    prop_label_account: "MT5 Hesabı",
+    prop_select_account_option: "Hesap Seçin...",
+    prop_label_start_balance: "Başlangıç Bakiyesi ($)",
+    prop_label_target_pct: "Kâr Hedefi (%)",
+    prop_label_daily_loss_pct: "Maks. Günlük Kayıp (%)",
+    prop_label_max_loss_pct: "Maks. Toplam Kayıp (%)",
+    prop_status_lbl: "Durum:",
+    prop_status_loading: "YÜKLENİYOR...",
+    prop_status_fetching: "Veriler alınıyor...",
+    prop_status_waiting: "BEKLENİYOR",
+    prop_no_account_selected: "HESAP SEÇİLMEDİ",
+    prop_no_account_sub: "Lütfen izlemek için bir hesap seçin.",
+    prop_status_active: "AKTİF",
+    prop_sub_active: "Mücadele aktif — Tüm limitlere uyuldu.",
+    prop_status_failed_max: "BAŞARISIZ (Maks. Düşüş)",
+    prop_sub_failed_max: "Hesap maksimum düşüş limitini aştı!",
+    prop_status_failed_daily: "BAŞARISIZ (Günlük Düşüş)",
+    prop_sub_failed_daily: "Bir işlem gününde günlük kayıp limiti aşıldı!",
+    prop_status_passed: "GEÇİLDİ 🏆",
+    prop_sub_passed: "Tebrikler! Kâr hedefine ulaştınız!",
+    prop_kpi_target: "Kâr Hedefi",
+    prop_lbl_reached: "ulaşıldı",
+    prop_kpi_daily_buffer: "Günlük Kayıp Tamponu",
+    prop_lbl_daily_limit: "Günlük Limit:",
+    prop_lbl_max_day_loss: "Maks. Günlük Kayıp:",
+    prop_kpi_max_buffer: "Maks. Düşüş Tamponu",
+    prop_lbl_floor: "Varlık Tabanı:",
+    prop_kpi_current_equity: "Mevcut Varlık",
+    prop_empty_state: "İzlenen mücadele yok. Bir tane eklemek için yukarıdaki + düğmesine tıklayın.",
+    prop_confirm_delete: "Bu Prop Challenge takipçisi silinsin mi?",
+    tag_analyzer_title: "Hata Analizi",
+    tag_analyzer_desc:
+      "Hatalarınızı ve kurulumlarınızı analiz edin. İlgili işlemleri filtrelemek ve incelemek için bir hashtag seçin.",
+    community_title: "Rulebook Topluluğu",
+    community_trending: "Şimdi Popüler",
+    composer_ph: "Yeni ne var?",
+    composer_attach_trade: "İşlem Ekle",
+    composer_submit: "Paylaş",
+    loading_feed: "Akış Yükleniyor...",
+    no_posts: "Henüz paylaşım yok. İlk işlemi paylaşan siz olun!",
+    failed_feed: "Akış yüklenemedi.",
   },
 };
 
@@ -767,6 +919,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (scoreMatch) {
         discSpan.innerText = `${i18n[lang].discipline_lbl}: ${scoreMatch[1]}%`;
       }
+    }
+
+    if (typeof window.renderPropChallenges === "function") {
+      window.renderPropChallenges();
     }
   }
 
@@ -3996,6 +4152,9 @@ window.renderPropChallenges = function() {
   
   if (!window.propChallenges) window.loadPropChallenges();
 
+  const lang = localStorage.getItem("tm_global_lang") || "de";
+  const t = i18n[lang] || i18n.de;
+
   let html = "";
   const curSym = window.currentCurrencySymbol || "$";
 
@@ -4009,7 +4168,7 @@ window.renderPropChallenges = function() {
   }
 
   window.propChallenges.forEach((chal, index) => {
-    let optionsHtml = '<option value="">Select Account...</option>';
+    let optionsHtml = `<option value="">${t.prop_select_account_option || "Select Account..."}</option>`;
     availableAccounts.forEach(acc => {
       optionsHtml += `<option value="${acc}" ${chal.accountId === acc ? 'selected' : ''}>${acc}</option>`;
     });
@@ -4019,28 +4178,28 @@ window.renderPropChallenges = function() {
         <div class="glass-panel" style="margin-bottom: 20px; position: relative;">
           <button class="delete-challenge-btn icon-btn" data-id="${chal.id}" style="position: absolute; top: 15px; right: 15px; color: var(--danger); font-size: 1.2rem; cursor: pointer; border:none; background:transparent;"><i class="ph ph-trash"></i></button>
           
-          <h3 style="margin-bottom: 15px"><i class="ph ph-gear"></i> Challenge Rules & Setup</h3>
+          <h3 style="margin-bottom: 15px"><i class="ph ph-gear"></i> ${t.prop_rules_setup || "Challenge Rules & Setup"}</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
             <div>
-              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">MT5 Account</label>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">${t.prop_label_account || "MT5 Account"}</label>
               <select class="profile-select prop-acc-select" data-id="${chal.id}" style="width: 100%; padding: 8px;">
                 ${optionsHtml}
               </select>
             </div>
             <div>
-              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Initial Balance ($)</label>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">${t.prop_label_start_balance || "Initial Balance ($)"}</label>
               <input type="number" class="profile-select prop-start-balance" data-id="${chal.id}" value="${chal.startBalance}" style="width: 100%; padding: 8px;" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Profit Target (%)</label>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">${t.prop_label_target_pct || "Profit Target (%)"}</label>
               <input type="number" class="profile-select prop-target-pct" data-id="${chal.id}" value="${chal.targetPct}" step="0.5" style="width: 100%; padding: 8px;" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Max Daily Loss (%)</label>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">${t.prop_label_daily_loss_pct || "Max Daily Loss (%)"}</label>
               <input type="number" class="profile-select prop-daily-loss-pct" data-id="${chal.id}" value="${chal.dailyLossPct}" step="0.5" style="width: 100%; padding: 8px;" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Max Total Loss (%)</label>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">${t.prop_label_max_loss_pct || "Max Total Loss (%)"}</label>
               <input type="number" class="profile-select prop-max-loss-pct" data-id="${chal.id}" value="${chal.maxLossPct}" step="0.5" style="width: 100%; padding: 8px;" />
             </div>
           </div>
@@ -4049,34 +4208,34 @@ window.renderPropChallenges = function() {
         <!-- Live Monitor Cards -->
         <div class="glass-panel prop-status-card" style="margin-bottom: 20px;">
           <div>
-            <h2 style="margin: 0; font-size: 1.3rem;">Status: <span id="prop-status-text-${chal.id}">LOADING...</span></h2>
-            <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.85rem;" id="prop-status-subtext-${chal.id}">Fetching data...</p>
+            <h2 style="margin: 0; font-size: 1.3rem;">${t.prop_status_lbl || "Status:"} <span id="prop-status-text-${chal.id}">${t.prop_status_loading || "LOADING..."}</span></h2>
+            <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.85rem;" id="prop-status-subtext-${chal.id}">${t.prop_status_fetching || "Fetching data..."}</p>
           </div>
-          <div id="prop-status-badge-${chal.id}" class="prop-status-badge" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">WAITING</div>
+          <div id="prop-status-badge-${chal.id}" class="prop-status-badge" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">${t.prop_status_waiting || "WAITING"}</div>
         </div>
 
         <div class="kpi-row">
           <div class="kpi-card glass-panel">
-            <h3 style="font-size: 0.85rem;">Profit Target</h3>
+            <h3 style="font-size: 0.85rem;">${t.prop_kpi_target || "Profit Target"}</h3>
             <p id="prop-target-val-${chal.id}" class="kpi-value positive">$0.00</p>
             <div class="prop-progress-bar"><div id="prop-target-fill-${chal.id}" class="prop-progress-fill" style="width: 0%;"></div></div>
-            <span id="prop-target-pct-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">0% reached</span>
+            <span id="prop-target-pct-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">0% ${t.prop_lbl_reached || "reached"}</span>
           </div>
 
           <div class="kpi-card glass-panel">
-            <h3 style="font-size: 0.85rem;">Daily Loss Buffer</h3>
+            <h3 style="font-size: 0.85rem;">${t.prop_kpi_daily_buffer || "Daily Loss Buffer"}</h3>
             <p id="prop-daily-buffer-val-${chal.id}" class="kpi-value positive">$0.00</p>
-            <span id="prop-daily-loss-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Limit: $0.00</span>
+            <span id="prop-daily-loss-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">${t.prop_lbl_daily_limit || "Daily Limit:"} $0.00</span>
           </div>
 
           <div class="kpi-card glass-panel">
-            <h3 style="font-size: 0.85rem;">Max Drawdown Buffer</h3>
+            <h3 style="font-size: 0.85rem;">${t.prop_kpi_max_buffer || "Max Drawdown Buffer"}</h3>
             <p id="prop-max-buffer-val-${chal.id}" class="kpi-value positive">$0.00</p>
-            <span id="prop-max-loss-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Floor: $0.00</span>
+            <span id="prop-max-loss-lbl-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">${t.prop_lbl_floor || "Equity Floor:"} $0.00</span>
           </div>
 
           <div class="kpi-card glass-panel">
-            <h3 style="font-size: 0.85rem;">Current Equity</h3>
+            <h3 style="font-size: 0.85rem;">${t.prop_kpi_current_equity || "Current Equity"}</h3>
             <p id="prop-current-equity-${chal.id}" class="kpi-value">$0.00</p>
             <span id="prop-net-profit-${chal.id}" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">P&L: $0.00</span>
           </div>
@@ -4088,7 +4247,7 @@ window.renderPropChallenges = function() {
   if (window.propChallenges.length === 0) {
     html = `<div style="text-align: center; padding: 40px; color: var(--text-muted);">
       <i class="ph ph-trophy" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i>
-      <p>No Challenges tracked. Click the + button above to add one.</p>
+      <p>${t.prop_empty_state || "No Challenges tracked. Click the + button above to add one."}</p>
     </div>`;
   }
 
@@ -4116,7 +4275,7 @@ window.renderPropChallenges = function() {
   container.querySelectorAll('.delete-challenge-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = e.target.closest('button').getAttribute('data-id');
-      if (confirm('Delete this challenge?')) {
+      if (confirm(t.prop_confirm_delete || 'Delete this challenge?')) {
         window.propChallenges = window.propChallenges.filter(c => c.id != id);
         window.savePropChallenges();
         window.renderPropChallenges();
@@ -4131,8 +4290,8 @@ window.renderPropChallenges = function() {
     } else {
       const statusElem = document.getElementById(`prop-status-text-${chal.id}`);
       const statusSubElem = document.getElementById(`prop-status-subtext-${chal.id}`);
-      if (statusElem) statusElem.textContent = "NO ACCOUNT SELECTED";
-      if (statusSubElem) statusSubElem.textContent = "Please select an account to track.";
+      if (statusElem) statusElem.textContent = t.prop_no_account_selected || "NO ACCOUNT SELECTED";
+      if (statusSubElem) statusSubElem.textContent = t.prop_no_account_sub || "Please select an account to track.";
     }
   });
 };
@@ -4140,6 +4299,8 @@ window.renderPropChallenges = function() {
 window.updatePropChallengeStats = async function(chal) {
   if (!chal.accountId) return;
 
+  const lang = localStorage.getItem("tm_global_lang") || "de";
+  const t = i18n[lang] || i18n.de;
   const curSym = window.currentCurrencySymbol || "$";
   
   try {
@@ -4185,21 +4346,21 @@ window.updatePropChallengeStats = async function(chal) {
     const maxLossBuffer = currentEquity - maxLossFloor;
     const dailyLossBuffer = dailyLossLimitAmount - worstDayLoss;
 
-    let statusText = "ACTIVE";
-    let statusSubtext = "Challenge läuft — Alle Limits eingehalten.";
+    let statusText = t.prop_status_active || "ACTIVE";
+    let statusSubtext = t.prop_sub_active || "Challenge läuft — Alle Limits eingehalten.";
     let statusClass = "active";
 
     if (currentEquity <= maxLossFloor) {
-      statusText = "FAILED (Max Drawdown)";
-      statusSubtext = "Account hat das maximale Drawdown-Limit überschritten!";
+      statusText = t.prop_status_failed_max || "FAILED (Max Drawdown)";
+      statusSubtext = t.prop_sub_failed_max || "Account hat das maximale Drawdown-Limit überschritten!";
       statusClass = "failed";
     } else if (dailyLossBuffer <= 0) {
-      statusText = "FAILED (Daily Drawdown)";
-      statusSubtext = "Tages-Verlustlimit wurde an einem Handelstag überschritten!";
+      statusText = t.prop_status_failed_daily || "FAILED (Daily Drawdown)";
+      statusSubtext = t.prop_sub_failed_daily || "Tages-Verlustlimit wurde an einem Handelstag überschritten!";
       statusClass = "failed";
     } else if (totalNetP >= targetProfitAmount) {
-      statusText = "PASSED 🏆";
-      statusSubtext = "Herzlichen Glückwunsch! Du hast das Profit-Ziel erreicht!";
+      statusText = t.prop_status_passed || "PASSED 🏆";
+      statusSubtext = t.prop_sub_passed || "Herzlichen Glückwunsch! Du hast das Profit-Ziel erreicht!";
       statusClass = "passed";
     }
 
@@ -4222,7 +4383,7 @@ window.updatePropChallengeStats = async function(chal) {
 
     if (targetValElem) targetValElem.textContent = `${curSym}${targetProfitAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
     if (targetFillElem) targetFillElem.style.width = `${targetReachedPct}%`;
-    if (targetPctLbl) targetPctLbl.textContent = `${targetReachedPct.toFixed(1)}% reached (${curSym}${totalNetP.toFixed(2)} / ${curSym}${targetProfitAmount.toFixed(2)})`;
+    if (targetPctLbl) targetPctLbl.textContent = `${targetReachedPct.toFixed(1)}% ${t.prop_lbl_reached || "reached"} (${curSym}${totalNetP.toFixed(2)} / ${curSym}${targetProfitAmount.toFixed(2)})`;
 
     const dailyBufferVal = document.getElementById(`prop-daily-buffer-val-${chal.id}`);
     const dailyLossLbl = document.getElementById(`prop-daily-loss-lbl-${chal.id}`);
@@ -4230,7 +4391,7 @@ window.updatePropChallengeStats = async function(chal) {
       dailyBufferVal.textContent = `${curSym}${dailyLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
       dailyBufferVal.className = `kpi-value ${dailyLossBuffer < 1000 ? "negative" : "positive"}`;
     }
-    if (dailyLossLbl) dailyLossLbl.textContent = `Daily Limit: ${curSym}${dailyLossLimitAmount.toFixed(2)} (Max Tag Loss: ${curSym}${worstDayLoss.toFixed(2)})`;
+    if (dailyLossLbl) dailyLossLbl.textContent = `${t.prop_lbl_daily_limit || "Daily Limit:"} ${curSym}${dailyLossLimitAmount.toFixed(2)} (${t.prop_lbl_max_day_loss || "Max Day Loss:"} ${curSym}${worstDayLoss.toFixed(2)})`;
 
     const maxBufferVal = document.getElementById(`prop-max-buffer-val-${chal.id}`);
     const maxLossLbl = document.getElementById(`prop-max-loss-lbl-${chal.id}`);
@@ -4238,7 +4399,7 @@ window.updatePropChallengeStats = async function(chal) {
       maxBufferVal.textContent = `${curSym}${maxLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
       maxBufferVal.className = `kpi-value ${maxLossBuffer < 2000 ? "negative" : "positive"}`;
     }
-    if (maxLossLbl) maxLossLbl.textContent = `Equity Floor: ${curSym}${maxLossFloor.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    if (maxLossLbl) maxLossLbl.textContent = `${t.prop_lbl_floor || "Equity Floor:"} ${curSym}${maxLossFloor.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 
     const currentEquityElem = document.getElementById(`prop-current-equity-${chal.id}`);
     const netProfitElem = document.getElementById(`prop-net-profit-${chal.id}`);
