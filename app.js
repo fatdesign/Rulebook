@@ -3971,7 +3971,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function loadCommunityFeed() {
     if (!communityFeedContainer) return;
-    communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].loading_feed}</p>`;
+    const currentLang = document.getElementById("global-lang")?.value || "de";
+    communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].loading_feed}</p>`;
     const token = localStorage.getItem("tm_master_token");
     fetch(`${API_URL}?action=community_feed&t=${Date.now()}`, {
       headers: { Authorization: token },
@@ -3979,18 +3980,21 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((posts) => {
         if (!Array.isArray(posts)) {
-          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].failed_feed}</p>`;
+          const currentLang = document.getElementById("global-lang")?.value || "de";
+          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].failed_feed}</p>`;
           return;
         }
         if (posts.length === 0) {
-          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].no_posts}</p>`;
+          const currentLang = document.getElementById("global-lang")?.value || "de";
+          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].no_posts}</p>`;
           return;
         }
         renderCommunityFeed(posts);
       })
       .catch((e) => {
         console.error(e);
-        communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[globalLang?.value || "de"].failed_feed}</p>`;
+        const currentLang = document.getElementById("global-lang")?.value || "de";
+        communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].failed_feed}</p>`;
       });
   }
 
