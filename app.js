@@ -1736,13 +1736,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function formatHoldTime(sec) {
+  window.formatHoldTime = function (sec) {
     if (sec < 60) return `${Math.round(sec)}s`;
     const m = Math.floor(sec / 60);
     if (m < 60) return `${m}m`;
     const h = Math.floor(m / 60);
     const rm = m % 60;
     return `${h}h ${rm}m`;
+  };
+  function formatHoldTime(sec) {
+    return window.formatHoldTime(sec);
   }
 
   function saveTradeNote(inputEl) {
@@ -4152,7 +4155,7 @@ document.addEventListener("DOMContentLoaded", () => {
               symbol: t.symbol,
               side: t.side,
               profit: netProfitNum.toFixed(2),
-              duration: formatHoldTime(holdSec),
+              duration: window.formatHoldTime(holdSec),
             };
             document.getElementById("composer-attached-trade-text").innerHTML =
               `<i class="ph ph-paperclip"></i> Anhang: ${t.symbol} ${t.side} <span style="color:${profitColor}; margin-left: 5px;">${netProfitNum >= 0 ? "+" : ""}${netProfitNum.toFixed(2)}</span>`;

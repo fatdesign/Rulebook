@@ -1113,9 +1113,11 @@ th {
 
 .logo-expanded {
   display: block;
-  max-height: 38px;
+  max-height: 42px;
   max-width: 100%;
+  width: 160px;
   object-fit: contain;
+  object-position: left center;
   transition: opacity 0.2s ease;
 }
 
