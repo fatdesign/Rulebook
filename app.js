@@ -5790,26 +5790,14 @@ function renderPsychologyLessons() {
         </p>
         <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 15px;">${summaryText}</p>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-dark); padding-top: 14px;">
-        <button class="secondary-btn read-lesson-btn" style="padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; color: var(--accent-color); border-color: rgba(0, 242, 254, 0.3);">
+      <div style="display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid var(--border-dark); padding-top: 14px;">
+        <button class="secondary-btn read-lesson-btn" style="padding: 6px 14px; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; color: var(--accent-color); border-color: rgba(0, 242, 254, 0.3); background: rgba(0, 242, 254, 0.05);">
           <i class="ph ph-book-open"></i> ${readLessonLabel}
-        </button>
-        <button class="secondary-btn ask-psych-ai-btn" data-lesson-id="${item.id}" style="padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
-          <i class="ph ph-sparkle" style="color: #a855f7;"></i> ${askAiLabel}
         </button>
       </div>
     `;
 
     container.appendChild(card);
-  });
-
-  // Attach event listener for Ask AI buttons
-  container.querySelectorAll(".ask-psych-ai-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const lessonId = btn.getAttribute("data-lesson-id");
-      triggerPsychologyAICoach(lessonId);
-    });
   });
 }
 
@@ -5826,7 +5814,6 @@ function openPsychologyModal(lessonId) {
   const quoteEl = document.getElementById("psych-modal-quote");
   const bodyEl = document.getElementById("psych-modal-body");
   const timeEl = document.getElementById("psych-modal-time");
-  const askAiBtn = document.getElementById("psych-modal-ask-ai");
 
   if (catEl) catEl.innerText = dict[`cat_${lesson.cat}`] || lesson.cat.toUpperCase();
   if (titleEl) titleEl.innerText = lesson.title[currentLang] || lesson.title["de"];
@@ -5843,13 +5830,6 @@ function openPsychologyModal(lessonId) {
 
   if (bodyEl) bodyEl.innerHTML = bodyHtml + pointsHtml;
   if (timeEl) timeEl.innerHTML = `<i class="ph ph-clock"></i> ${lesson.readTime} ${dict.read_time || "Min. Lesezeit"}`;
-
-  if (askAiBtn) {
-    askAiBtn.onclick = () => {
-      modal.classList.add("hidden");
-      triggerPsychologyAICoach(lesson.id);
-    };
-  }
 
   if (modal) modal.classList.remove("hidden");
 }
