@@ -2245,9 +2245,15 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
 
       const slWidenedCount = parseInt(t.sl_widened || 0);
+      const currentLang = localStorage.getItem("tm_global_lang") || "de";
+      const tooltipTpl =
+        (i18n[currentLang] || i18n["de"]).sl_widened_tooltip ||
+        "Stop Loss {x}x in Verlustrichtung verschoben";
+      const slTitle = tooltipTpl.replace("{x}", slWidenedCount);
+
       const slBadgeHtml =
         slWidenedCount > 0
-          ? `<span class="sl-widened-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 3px; margin-left: 6px;" title="Stop-Loss ${slWidenedCount}x ins Negative verschoben"><i class="ph ph-warning-circle"></i> SL +${slWidenedCount}x</span>`
+          ? `<span class="sl-widened-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 3px; margin-left: 6px;" title="${slTitle}"><i class="ph ph-warning-circle"></i> SL +${slWidenedCount}x</span>`
           : "";
 
       tr.innerHTML = `
