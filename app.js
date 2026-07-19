@@ -803,6 +803,38 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial render
   window.renderCalendarWidget();
 
+  function updateSidebarLogo(theme) {
+    const expandedImg = document.querySelector(".logo-expanded");
+    const collapsedImg = document.querySelector(".logo-collapsed");
+    if (!expandedImg || !collapsedImg) return;
+
+    let expandedSrc = "assets/rulebook_logo_neo.png";
+    let collapsedSrc = "assets/rulebook_logo_neo_small.png";
+
+    switch (theme) {
+      case "win95":
+        expandedSrc = "assets/rulebook_logo_win95.png";
+        collapsedSrc = "assets/rulebook_logo_win95_small.png";
+        break;
+      case "modern-dark":
+        expandedSrc = "assets/rulebook_logo_moderndark.png";
+        collapsedSrc = "assets/rulebook_logo_moderndark_small.png";
+        break;
+      case "modern-light":
+        expandedSrc = "assets/rulebook_logo_modernlight.png";
+        collapsedSrc = "assets/rulebook_logo_modernlight_small.png";
+        break;
+      case "quantum":
+        expandedSrc = "assets/rulebook_logo_quantum.png";
+        collapsedSrc = "assets/rulebook_logo_quantum_small.png";
+        break;
+    }
+    expandedImg.src = expandedSrc;
+    collapsedImg.src = collapsedSrc;
+  }
+
+  updateSidebarLogo(savedTheme);
+
   themeSelects.forEach((sel) => {
     sel.value = savedTheme;
     sel.addEventListener("change", (e) => {
@@ -810,6 +842,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.documentElement.setAttribute("data-theme", t);
       localStorage.setItem("tm_theme", t);
       themeSelects.forEach((s) => (s.value = t));
+      updateSidebarLogo(t);
       if (window.renderCalendarWidget) window.renderCalendarWidget();
     });
   });
