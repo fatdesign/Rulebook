@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "rade-aster",
+  "name": "rulebook",
+  "main": "worker.js",
   "compatibility_date": "2026-07-18",
   "observability": {
     "enabled": true
@@ -10,5 +11,12 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "trademaster-db",
+      "database_id": "1b6bb46c-566c-4a0d-af7d-74270b707536"
+    }
   ]
 }

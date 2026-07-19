@@ -1,4 +1,4 @@
-const API_URL = "https://Rulebook.f-klavun.workers.dev/";
+const API_URL = "https://Rulebook.f-klavun.workers.dev/api";
 let equityChartInstance = null;
 let currentFilteredTrades = [];
 
@@ -3918,7 +3918,7 @@ document.addEventListener("DOMContentLoaded", () => {
     communityFeedContainer.innerHTML = "";
 
     posts.forEach((post) => {
-      const date = new Date(post.created_at);
+      const date = new Date(post.created_at * 1000);
       const timeStr = date.toLocaleString();
 
       const p = document.createElement("div");
@@ -3933,18 +3933,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="post-content">${escapeHTML(post.content || "")}</div>
                 ${
-                  post.trade_ticket
+                  post.trade_data
                     ? `
                 <div class="post-trade-card">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <span style="font-weight: bold; font-size: 1.05rem; color: var(--text-main);">${post.trade_symbol || "-"}</span>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">${post.trade_side || "-"}</span>
+                        <span style="font-weight: bold; font-size: 1.05rem; color: var(--text-main);">${post.trade_data.symbol || "-"}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${post.trade_data.side || "-"}</span>
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                        <span style="font-weight: bold; font-size: 1.05rem; color: ${parseFloat(post.trade_profit) >= 0 ? "var(--success)" : "var(--danger)"}">
-                            ${parseFloat(post.trade_profit) >= 0 ? "+" : ""}${parseFloat(post.trade_profit || 0).toFixed(2)}
+                        <span style="font-weight: bold; font-size: 1.05rem; color: ${parseFloat(post.trade_data.profit) >= 0 ? "var(--success)" : "var(--danger)"}">
+                            ${parseFloat(post.trade_data.profit) >= 0 ? "+" : ""}${parseFloat(post.trade_data.profit || 0).toFixed(2)}
                         </span>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">${post.trade_duration || "-"}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${post.trade_data.duration || "-"}</span>
                     </div>
                 </div>
                 `
@@ -4037,9 +4037,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openShareModal(ticket) {
     const trade = window.currentAllTrades
-      ? window.currentAllTrades.find((t) => t.ticket == ticket)
+      ? window.currentAllTrades.find((t) => String(t.ticket) === String(ticket))
       : null;
-    if (!trade) return;
+    if (!trade) {
+      alert("Trade details could not be found.");
+      return;
+    }
 
     shareModalTicket.value = ticket;
     shareModalText.value = "";
@@ -4083,11 +4086,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const payload = {
         content: content,
-        trade_ticket: String(trade.ticket),
-        trade_symbol: trade.symbol,
-        trade_side: trade.side,
-        trade_profit: parseFloat(trade.net_profit).toFixed(2),
-        trade_duration: formatHoldTime(holdSec),
+        trade_data: {
+          ticket: String(trade.ticket),
+          symbol: trade.symbol,
+          side: trade.side,
+          profit: parseFloat(trade.net_profit).toFixed(2),
+          duration: formatHoldTime(holdSec),
+        },
       };
 
       const origBtnText = shareModalSubmit.innerHTML;
