@@ -3958,7 +3958,7 @@ document.addEventListener("DOMContentLoaded", () => {
     communityFeedContainer.innerHTML =
       '<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">Loading Feed...</p>';
     const token = localStorage.getItem("tm_master_token");
-    fetch(`${API_URL}?action=community_feed`, {
+    fetch(`${API_URL}?action=community_feed&t=${Date.now()}`, {
       headers: { Authorization: token },
     })
       .then((r) => r.json())
@@ -4294,7 +4294,12 @@ document.addEventListener("DOMContentLoaded", () => {
               side: t.side,
               profit: netProfitNum.toFixed(2),
               duration: window.formatHoldTime(holdSec),
-              screenshot: t.screenshot_url || null,
+              screenshot:
+                t.images && t.images.after
+                  ? t.images.after
+                  : t.images && t.images.before
+                    ? t.images.before
+                    : null,
               note: t.note || "",
             };
             document.getElementById("composer-attached-trade-text").innerHTML =
