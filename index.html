@@ -294,7 +294,7 @@
                 <span class="nav-text" data-i18n="nav_trades">Trades</span>
               </a>
               <a href="#" class="sidebar-nav-item" data-tab="tab-tags">
-                <i class="ph ph-tag"></i>
+                <i class="ph ph-warning-octagon"></i>
                 <span class="nav-text" data-i18n="nav_tags">Fehleranalyse</span>
               </a>
               <a href="#" class="sidebar-nav-item" data-tab="tab-calendar">
@@ -310,6 +310,10 @@
               <a href="#" class="sidebar-nav-item" data-tab="tab-coach">
                 <i class="ph ph-brain"></i>
                 <span class="nav-text" data-i18n="nav_coach">AI Coach</span>
+              </a>
+              <a href="#" class="sidebar-nav-item" data-tab="tab-prop">
+                <i class="ph ph-trophy"></i>
+                <span class="nav-text">Prop Challenge</span>
               </a>
             </nav>
 
@@ -709,6 +713,46 @@
                       </p>
                     </div>
                   </div>
+                  <!-- Market Time Zone View -->
+                  <div class="glass-panel" style="margin-bottom: 20px">
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 12px;
+                      "
+                    >
+                      <h3
+                        style="
+                          margin: 0;
+                          font-size: 0.95rem;
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                        "
+                      >
+                        <i class="ph ph-clock"></i>
+                        <span>Market Sessions & Timezones</span>
+                      </h3>
+                      <span
+                        id="utc-clock-label"
+                        style="
+                          font-size: 0.8rem;
+                          color: var(--text-muted);
+                          font-family: monospace;
+                        "
+                        >UTC: --:--:--</span
+                      >
+                    </div>
+                    <div
+                      class="market-sessions-grid"
+                      id="market-sessions-container"
+                    >
+                      <!-- Populated dynamically by JS -->
+                    </div>
+                  </div>
+
                   <!-- Data Row 1 (Charts) -->
                   <div
                     id="equity-curve-row"
@@ -1854,6 +1898,77 @@
                         Coming soon: Top Traders, Best Setups, and Community
                         Challenges.
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB: PROP CHALLENGE -->
+              <div id="tab-prop" class="tab-content">
+                <div class="content-header" style="margin-bottom: 20px">
+                  <h2 style="margin: 0; font-size: 1.5rem">Prop Firm Challenge Tracker</h2>
+                  <p style="margin: 5px 0 0 0; color: var(--text-muted)">
+                    Überwache dein Konto in Echtzeit gegen Max Drawdown, Daily Loss & Profit Target Regeln.
+                  </p>
+                </div>
+
+                <div class="dashboard-grid">
+                  <!-- Configuration Panel -->
+                  <div class="glass-panel" style="margin-bottom: 20px">
+                    <h3 style="margin-bottom: 15px"><i class="ph ph-gear"></i> Challenge Rules & Setup</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                      <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Initial Balance ($)</label>
+                        <input type="number" id="prop-start-balance" class="profile-select" value="100000" style="width: 100%; padding: 8px;" />
+                      </div>
+                      <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Profit Target (%)</label>
+                        <input type="number" id="prop-target-pct" class="profile-select" value="10" step="0.5" style="width: 100%; padding: 8px;" />
+                      </div>
+                      <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Max Daily Loss (%)</label>
+                        <input type="number" id="prop-daily-loss-pct" class="profile-select" value="5" step="0.5" style="width: 100%; padding: 8px;" />
+                      </div>
+                      <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Max Total Loss (%)</label>
+                        <input type="number" id="prop-max-loss-pct" class="profile-select" value="10" step="0.5" style="width: 100%; padding: 8px;" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Live Monitor Cards -->
+                  <div class="glass-panel prop-status-card">
+                    <div>
+                      <h2 style="margin: 0; font-size: 1.3rem;">Status: <span id="prop-status-text">ACTIVE</span></h2>
+                      <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.85rem;" id="prop-status-subtext">Challenge läuft — Alle Limits eingehalten.</p>
+                    </div>
+                    <div id="prop-status-badge" class="prop-status-badge active">ACTIVE</div>
+                  </div>
+
+                  <div class="kpi-row" style="margin-bottom: 20px;">
+                    <div class="kpi-card glass-panel">
+                      <h3 style="font-size: 0.85rem;">Profit Target</h3>
+                      <p id="prop-target-val" class="kpi-value positive">$10,000.00</p>
+                      <div class="prop-progress-bar"><div id="prop-target-fill" class="prop-progress-fill" style="width: 0%;"></div></div>
+                      <span id="prop-target-pct-lbl" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">0% reached</span>
+                    </div>
+
+                    <div class="kpi-card glass-panel">
+                      <h3 style="font-size: 0.85rem;">Daily Loss Buffer</h3>
+                      <p id="prop-daily-buffer-val" class="kpi-value positive">$5,000.00</p>
+                      <span id="prop-daily-loss-lbl" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Limit: $5,000.00</span>
+                    </div>
+
+                    <div class="kpi-card glass-panel">
+                      <h3 style="font-size: 0.85rem;">Max Drawdown Buffer</h3>
+                      <p id="prop-max-buffer-val" class="kpi-value positive">$10,000.00</p>
+                      <span id="prop-max-loss-lbl" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Floor: $90,000.00</span>
+                    </div>
+
+                    <div class="kpi-card glass-panel">
+                      <h3 style="font-size: 0.85rem;">Current Equity</h3>
+                      <p id="prop-current-equity" class="kpi-value">$100,000.00</p>
+                      <span id="prop-net-profit" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">P&L: $0.00</span>
                     </div>
                   </div>
                 </div>

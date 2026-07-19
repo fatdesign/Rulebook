@@ -2250,6 +2250,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderHeatmap(heatmapData, curSym);
     renderSymbolChart(symbolProfits, curSym);
     renderDailyStatsTable(trades, curSym);
+    if (typeof window.updatePropChallengeTracker === "function") {
+      window.updatePropChallengeTracker(trades);
+    }
     if (typeof window.renderTagAnalyzer === "function") {
       window.renderTagAnalyzer(window.currentAllTrades || trades, curSym);
     }
@@ -2623,8 +2626,16 @@ document.addEventListener("DOMContentLoaded", () => {
             ? "text-danger"
             : "";
 
+      const hasJournal = window.journalData && window.journalData[day.dateKey] && window.journalData[day.dateKey].trim() !== "";
+      const dateDisplayHtml = hasJournal 
+        ? `<span class="journal-badge" title="Journal vorhanden"><i class="ph ph-notebook"></i></span> ${day.dateStr}`
+        : day.dateStr;
+      const journalBtnStyle = hasJournal
+        ? "padding: 4px 8px; font-size: 0.8rem; border-color: #10b981; color: #10b981; box-shadow: 0 0 10px rgba(16,185,129,0.3);"
+        : "padding: 4px 8px; font-size: 0.8rem;";
+
       tr.innerHTML = `
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.dateStr}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${dateDisplayHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${pClass}">${day.netProfit > 0 ? "+" : ""}${curSym}${day.netProfit.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); font-weight: bold;" class="${percentGainColor}">${percentGainDisplay}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${pf.toFixed(2)}</td>
@@ -2637,7 +2648,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.commission !== 0 ? curSym + day.commission.toFixed(2) : "-"}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${day.longs} / ${day.shorts}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); text-align: center;">
-                    <button class="secondary-btn open-journal-btn" data-datekey="${day.dateKey}" data-datestr="${day.dateStr}" style="padding: 4px 8px; font-size: 0.8rem;" title="Mental Journal"><i class="ph ph-book-open"></i></button>
+                    <button class="secondary-btn open-journal-btn" data-datekey="${day.dateKey}" data-datestr="${day.dateStr}" style="${journalBtnStyle}" title="Mental Journal"><i class="ph ph-book-open"></i></button>
                 </td>
             `;
 
@@ -3641,8 +3652,16 @@ async function initNewsTicker() {
   const ticker = document.getElementById("news-ticker-content");
   if (!ticker) return;
 
+  const fallbackNews = `
+    <span class="impact-high">🔴 [14:30] USD - Core CPI m/m</span>
+    <span class="impact-high">🔴 [14:30] USD - Unemployment Claims</span>
+    <span class="impact-medium">🟠 [16:00] EUR - ECB Press Conference</span>
+    <span class="impact-medium">🟠 [18:00] GBP - BOE Gov Bailey Speaks</span>
+  `;
+
   try {
-    const response = await fetch(workerURL + "?action=news");
+    const url = (typeof API_URL !== "undefined" ? API_URL : "") + "?action=news";
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch news");
     const events = await response.json();
 
@@ -3650,36 +3669,35 @@ async function initNewsTicker() {
     const todayStr = today.toISOString().split("T")[0];
 
     let newsHtml = "";
-
-    events.forEach((ev) => {
-      if (!ev.date) return;
-      const evDateStr = ev.date.split("T")[0];
-      if (
-        evDateStr === todayStr &&
-        (ev.impact === "High" || ev.impact === "Medium")
-      ) {
-        const dateObj = new Date(ev.date);
-        const time = dateObj.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        const impactClass =
-          ev.impact === "High" ? "impact-high" : "impact-medium";
-        const icon = ev.impact === "High" ? "🔴" : "🟠";
-        newsHtml += `<span class="${impactClass}">${icon} [${time}] ${ev.country} - ${ev.title}</span>`;
-      }
-    });
-
-    if (!newsHtml) {
-      newsHtml =
-        "<span style='color: var(--text-muted);'>No high or medium impact news for today.</span>";
+    if (Array.isArray(events)) {
+      events.forEach((ev) => {
+        if (!ev.date) return;
+        const evDateStr = ev.date.split("T")[0];
+        if (
+          evDateStr === todayStr &&
+          (ev.impact === "High" || ev.impact === "Medium")
+        ) {
+          const dateObj = new Date(ev.date);
+          const time = dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const impactClass =
+            ev.impact === "High" ? "impact-high" : "impact-medium";
+          const icon = ev.impact === "High" ? "🔴" : "🟠";
+          newsHtml += `<span class="${impactClass}">${icon} [${time}] ${ev.country} - ${ev.title}</span>`;
+        }
+      });
     }
 
-    // Repeat content to ensure continuous smooth scrolling
+    if (!newsHtml) {
+      newsHtml = fallbackNews;
+    }
+
     ticker.innerHTML = newsHtml.repeat(8);
   } catch (err) {
     console.error("News fetch error:", err);
-    ticker.innerHTML = "<span>Could not load Market Ticker.</span>";
+    ticker.innerHTML = fallbackNews.repeat(8);
   }
 }
 
@@ -3891,9 +3909,196 @@ function updateFocusModeUI() {
   }
 }
 
+function updateMarketSessions() {
+  const container = document.getElementById("market-sessions-container");
+  const clockLabel = document.getElementById("utc-clock-label");
+  if (!container) return;
+
+  const now = new Date();
+  const utcHours = now.getUTCHours();
+  const utcMins = now.getUTCMinutes();
+  const utcSecs = now.getUTCSeconds();
+  const utcTotalMins = utcHours * 60 + utcMins;
+
+  if (clockLabel) {
+    clockLabel.textContent = `UTC: ${String(utcHours).padStart(2, "0")}:${String(utcMins).padStart(2, "0")}:${String(utcSecs).padStart(2, "0")}`;
+  }
+
+  const sessions = [
+    { name: "Sydney", start: 22 * 60, end: 7 * 60, icon: "🌏", timeStr: "22:00 - 07:00 UTC" },
+    { name: "Tokyo", start: 0 * 60, end: 9 * 60, icon: "🗾", timeStr: "00:00 - 09:00 UTC" },
+    { name: "London", start: 8 * 60, end: 17 * 60, icon: "🏛️", timeStr: "08:00 - 17:00 UTC" },
+    { name: "New York", start: 13 * 60, end: 22 * 60, icon: "🗽", timeStr: "13:00 - 22:00 UTC" },
+  ];
+
+  let html = "";
+  sessions.forEach((s) => {
+    let isOpen = false;
+    if (s.start > s.end) {
+      isOpen = utcTotalMins >= s.start || utcTotalMins < s.end;
+    } else {
+      isOpen = utcTotalMins >= s.start && utcTotalMins < s.end;
+    }
+
+    const badgeClass = isOpen ? "open" : "closed";
+    const badgeText = isOpen ? "OPEN" : "CLOSED";
+
+    html += `
+      <div class="market-session-card ${badgeClass}">
+        <div class="market-session-header">
+          <span class="market-session-title">${s.icon} ${s.name}</span>
+          <span class="market-session-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="market-session-time"><i class="ph ph-clock"></i> ${s.timeStr}</div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+window.updatePropChallengeTracker = function(trades) {
+  const tabProp = document.getElementById("tab-prop");
+  if (!tabProp) return;
+
+  const startBalanceInput = document.getElementById("prop-start-balance");
+  const targetPctInput = document.getElementById("prop-target-pct");
+  const dailyLossPctInput = document.getElementById("prop-daily-loss-pct");
+  const maxLossPctInput = document.getElementById("prop-max-loss-pct");
+
+  if (!startBalanceInput) return;
+
+  const configKey = "prop_challenge_config";
+  if (!window.propConfigLoaded) {
+    const saved = localStorage.getItem(configKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.startBalance) startBalanceInput.value = parsed.startBalance;
+        if (parsed.targetPct) targetPctInput.value = parsed.targetPct;
+        if (parsed.dailyLossPct) dailyLossPctInput.value = parsed.dailyLossPct;
+        if (parsed.maxLossPct) maxLossPctInput.value = parsed.maxLossPct;
+      } catch (e) {}
+    }
+    window.propConfigLoaded = true;
+
+    [startBalanceInput, targetPctInput, dailyLossPctInput, maxLossPctInput].forEach((el) => {
+      el.addEventListener("input", () => {
+        const cfg = {
+          startBalance: parseFloat(startBalanceInput.value) || 100000,
+          targetPct: parseFloat(targetPctInput.value) || 10,
+          dailyLossPct: parseFloat(dailyLossPctInput.value) || 5,
+          maxLossPct: parseFloat(maxLossPctInput.value) || 10,
+        };
+        localStorage.setItem(configKey, JSON.stringify(cfg));
+        window.updatePropChallengeTracker(window.currentAllTrades || []);
+      });
+    });
+  }
+
+  const startBalance = parseFloat(startBalanceInput.value) || 100000;
+  const targetPct = parseFloat(targetPctInput.value) || 10;
+  const dailyLossPct = parseFloat(dailyLossPctInput.value) || 5;
+  const maxLossPct = parseFloat(maxLossPctInput.value) || 10;
+
+  const curSym = window.currentCurrencySymbol || "$";
+  const validTrades = trades || window.currentAllTrades || [];
+  let totalNetP = 0;
+
+  const dailyPnl = {};
+  validTrades.forEach((t) => {
+    const p = parseFloat(t.net_profit) || 0;
+    totalNetP += p;
+
+    const dObj = new Date(t.close_time * 1000);
+    const dKey = `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}-${String(dObj.getDate()).padStart(2, "0")}`;
+    dailyPnl[dKey] = (dailyPnl[dKey] || 0) + p;
+  });
+
+  const currentEquity = startBalance + totalNetP;
+  const targetProfitAmount = startBalance * (targetPct / 100);
+  const maxLossAmount = startBalance * (maxLossPct / 100);
+  const maxLossFloor = startBalance - maxLossAmount;
+  const dailyLossLimitAmount = startBalance * (dailyLossPct / 100);
+
+  let worstDayLoss = 0;
+  Object.values(dailyPnl).forEach((dayPnl) => {
+    if (dayPnl < 0 && Math.abs(dayPnl) > worstDayLoss) {
+      worstDayLoss = Math.abs(dayPnl);
+    }
+  });
+
+  const targetReachedPct = Math.min(100, Math.max(0, (totalNetP / targetProfitAmount) * 100));
+  const maxLossBuffer = currentEquity - maxLossFloor;
+  const dailyLossBuffer = dailyLossLimitAmount - worstDayLoss;
+
+  let statusText = "ACTIVE";
+  let statusSubtext = "Challenge läuft — Alle Limits eingehalten.";
+  let statusClass = "active";
+
+  if (currentEquity <= maxLossFloor) {
+    statusText = "FAILED (Max Drawdown)";
+    statusSubtext = "Account hat das maximale Drawdown-Limit überschritten!";
+    statusClass = "failed";
+  } else if (dailyLossBuffer <= 0) {
+    statusText = "FAILED (Daily Drawdown)";
+    statusSubtext = "Tages-Verlustlimit wurde an einem Handelstag überschritten!";
+    statusClass = "failed";
+  } else if (totalNetP >= targetProfitAmount) {
+    statusText = "PASSED 🏆";
+    statusSubtext = "Herzlichen Glückwunsch! Du hast das Profit-Ziel erreicht!";
+    statusClass = "passed";
+  }
+
+  const statusElem = document.getElementById("prop-status-text");
+  const statusSubElem = document.getElementById("prop-status-subtext");
+  const statusBadge = document.getElementById("prop-status-badge");
+
+  if (statusElem) statusElem.textContent = statusText;
+  if (statusSubElem) statusSubElem.textContent = statusSubtext;
+  if (statusBadge) {
+    statusBadge.className = `prop-status-badge ${statusClass}`;
+    statusBadge.textContent = statusText;
+  }
+
+  const targetValElem = document.getElementById("prop-target-val");
+  const targetFillElem = document.getElementById("prop-target-fill");
+  const targetPctLbl = document.getElementById("prop-target-pct-lbl");
+
+  if (targetValElem) targetValElem.textContent = `${curSym}${targetProfitAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+  if (targetFillElem) targetFillElem.style.width = `${targetReachedPct}%`;
+  if (targetPctLbl) targetPctLbl.textContent = `${targetReachedPct.toFixed(1)}% reached (${curSym}${totalNetP.toFixed(2)} / ${curSym}${targetProfitAmount.toFixed(2)})`;
+
+  const dailyBufferVal = document.getElementById("prop-daily-buffer-val");
+  const dailyLossLbl = document.getElementById("prop-daily-loss-lbl");
+  if (dailyBufferVal) {
+    dailyBufferVal.textContent = `${curSym}${dailyLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    dailyBufferVal.className = `kpi-value ${dailyLossBuffer < 1000 ? "negative" : "positive"}`;
+  }
+  if (dailyLossLbl) dailyLossLbl.textContent = `Daily Limit: ${curSym}${dailyLossLimitAmount.toFixed(2)} (Max Tag Loss: ${curSym}${worstDayLoss.toFixed(2)})`;
+
+  const maxBufferVal = document.getElementById("prop-max-buffer-val");
+  const maxLossLbl = document.getElementById("prop-max-loss-lbl");
+  if (maxBufferVal) {
+    maxBufferVal.textContent = `${curSym}${maxLossBuffer.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    maxBufferVal.className = `kpi-value ${maxLossBuffer < 2000 ? "negative" : "positive"}`;
+  }
+  if (maxLossLbl) maxLossLbl.textContent = `Equity Floor: ${curSym}${maxLossFloor.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+  const currentEquityElem = document.getElementById("prop-current-equity");
+  const netProfitElem = document.getElementById("prop-net-profit");
+  if (currentEquityElem) currentEquityElem.textContent = `${curSym}${currentEquity.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+  if (netProfitElem) {
+    netProfitElem.textContent = `P&L: ${totalNetP >= 0 ? "+" : ""}${curSym}${totalNetP.toFixed(2)}`;
+    netProfitElem.className = totalNetP >= 0 ? "positive" : "negative";
+  }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   initNewsTicker();
   updateFocusModeUI();
+  updateMarketSessions();
+  setInterval(updateMarketSessions, 1000);
 
   const focusBtn = document.getElementById("focus-btn");
   const focusBtnExit = document.getElementById("focus-btn-exit");

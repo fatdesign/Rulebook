@@ -1418,6 +1418,9 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         });
       }
 
+      if (env.ASSETS) {
+        return env.ASSETS.fetch(request);
+      }
       return new Response("Not found", { status: 404, headers: corsHeaders });
     } catch (err) {
       return new Response(JSON.stringify({ error: err.message }), {

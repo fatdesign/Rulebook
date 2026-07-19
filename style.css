@@ -146,6 +146,9 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   overflow: hidden;
 }
+:root[data-theme="quantum"] .sidebar {
+  overflow: visible !important;
+}
 :root[data-theme="quantum"] .glass-panel::before {
   content: "";
   position: absolute;
@@ -1047,8 +1050,132 @@ th {
 .focus-mode-active #strategy-performance-panel,
 .focus-mode-active #recent-trades-panel,
 .focus-mode-active #strategy-definitions-panel,
-.focus-mode-active #ai-coach-row {
+.focus-mode-active #ai-coach-row,
+.focus-mode-active #equity-curve-row {
   display: none !important;
+}
+
+/* Journal Indicator Badge */
+.journal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid #10b981;
+  font-size: 0.75rem;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  animation: journal-pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes journal-pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 14px rgba(16, 185, 129, 0.85); }
+}
+
+/* Market Time Zone View */
+.market-sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.market-session-card {
+  background: var(--panel-bg);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.market-session-card.open {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.12);
+}
+
+.market-session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.market-session-title {
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.market-session-badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.market-session-badge.open {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.market-session-badge.closed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.market-session-time {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Prop Challenge Dashboard */
+.prop-status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.prop-status-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.prop-status-badge.active {
+  background: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.prop-status-badge.passed {
+  background: rgba(16, 185, 129, 0.25);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.prop-status-badge.failed {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
 }
 
 /* ── SIDEBAR & MAIN LAYOUT ────────────────────────────────────── */
