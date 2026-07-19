@@ -3980,12 +3980,14 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((posts) => {
         if (!Array.isArray(posts)) {
-          const currentLang = document.getElementById("global-lang")?.value || "de";
+          const currentLang =
+            document.getElementById("global-lang")?.value || "de";
           communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].failed_feed}</p>`;
           return;
         }
         if (posts.length === 0) {
-          const currentLang = document.getElementById("global-lang")?.value || "de";
+          const currentLang =
+            document.getElementById("global-lang")?.value || "de";
           communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].no_posts}</p>`;
           return;
         }
@@ -3993,7 +3995,8 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((e) => {
         console.error(e);
-        const currentLang = document.getElementById("global-lang")?.value || "de";
+        const currentLang =
+          document.getElementById("global-lang")?.value || "de";
         communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].failed_feed}</p>`;
       });
   }
