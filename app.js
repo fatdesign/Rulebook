@@ -192,6 +192,18 @@ const i18n = {
     strategy_name_ph: "z.B. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Trage hier deine Einstiegsregeln, Konditionen und Notizen ein...",
     journal_modal_ph: "Wie fühlst du dich heute bei deinen Trades? Hast du deinen Plan befolgt?",
+    delete_post: "Löschen",
+    confirm_delete_post: "Bist du sicher, dass du diesen Beitrag löschen möchtest?",
+    deleting_post: "Lösche...",
+    delete_error: "Fehler beim Löschen des Beitrags.",
+    comment_ph: "Kommentieren...",
+    max_comments_reached: "Maximum von 5 Kommentaren erreicht.",
+    composer_select_trade: "Wähle einen Trade",
+    no_trades_found: "Keine Trades gefunden.",
+    composer_empty_warn: "Bitte gib einen Text ein oder wähle einen Trade!",
+    loading: "Lädt...",
+    community_coming_soon: "Demnächst verfügbar: Top Trader, beste Setups und Community Challenges.",
+    trade_screenshot: "Trade Screenshot",
   },
   en: {
     login_sub: "Connect your MT5 account to view AI insights.",
@@ -382,6 +394,18 @@ const i18n = {
     strategy_name_ph: "e.g. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "List your entry rules, conditions and notes here...",
     journal_modal_ph: "How are you feeling about your trades today? Did you follow your plan?",
+    delete_post: "Delete",
+    confirm_delete_post: "Are you sure you want to delete this post?",
+    deleting_post: "Deleting...",
+    delete_error: "Error deleting post.",
+    comment_ph: "Add a comment...",
+    max_comments_reached: "Maximum limit of 5 comments reached.",
+    composer_select_trade: "Select a Trade",
+    no_trades_found: "No trades found.",
+    composer_empty_warn: "Please enter text or select a trade!",
+    loading: "Loading...",
+    community_coming_soon: "Coming soon: Top Traders, Best Setups, and Community Challenges.",
+    trade_screenshot: "Trade Screenshot",
   },
   es: {
     login_sub: "Conecta tu cuenta MT5 para análisis de IA.",
@@ -571,6 +595,18 @@ const i18n = {
     strategy_name_ph: "ej. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Escribe aquí tus reglas de entrada, condiciones y notas...",
     journal_modal_ph: "¿Cómo te sientes con tus operaciones hoy? ¿Seguiste tu plan?",
+    delete_post: "Eliminar",
+    confirm_delete_post: "¿Estás seguro de que deseas eliminar esta publicación?",
+    deleting_post: "Eliminando...",
+    delete_error: "Error al eliminar la publicación.",
+    comment_ph: "Comentar...",
+    max_comments_reached: "Límite máximo de 5 comentarios alcanzado.",
+    composer_select_trade: "Seleccionar una Operación",
+    no_trades_found: "No se encontraron operaciones.",
+    composer_empty_warn: "¡Por favor ingresa un texto o selecciona una operación!",
+    loading: "Cargando...",
+    community_coming_soon: "Próximamente: Mejores Traders, Mejores Setups y Desafíos de la Comunidad.",
+    trade_screenshot: "Captura de pantalla de la operación",
   },
   tr: {
     login_sub: "Yapay zeka analizi için MT5 hesabınızı bağlayın.",
@@ -760,6 +796,18 @@ const i18n = {
     strategy_name_ph: "ör. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Giriş kurallarınızı, koşullarınızı ve notlarınızı buraya yazın...",
     journal_modal_ph: "Bugünkü işlemleriniz hakkında nasıl hissediyorsunuz? Planınıza uydunuz mu?",
+    delete_post: "Sil",
+    confirm_delete_post: "Bu gönderiyi silmek istediğinizden emin misiniz?",
+    deleting_post: "Siliniyor...",
+    delete_error: "Gönderi silinirken hata oluştu.",
+    comment_ph: "Yorum yap...",
+    max_comments_reached: "Maksimum 5 yorum sınırına ulaşıldı.",
+    composer_select_trade: "Bir İşlem Seçin",
+    no_trades_found: "İşlem bulunamadı.",
+    composer_empty_warn: "Lütfen bir metin girin veya bir işlem seçin!",
+    loading: "Yükleniyor...",
+    community_coming_soon: "Yakında: En İyi Traderlar, En İyi Kurulumlar ve Topluluk Yarışmaları.",
+    trade_screenshot: "İşlem Ekran Görüntüsü",
   },
 };
 
@@ -4683,6 +4731,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCommunityFeed(posts) {
     communityFeedContainer.innerHTML = "";
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
 
     posts.forEach((post) => {
       const date = new Date(post.created_at * 1000);
@@ -4707,7 +4757,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let screenshotHtml = "";
         if (td.screenshot) {
-          screenshotHtml = `<div style="margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-dark);"><img src="${td.screenshot}" style="width: 100%; display: block; object-fit: contain; max-height: 400px; cursor: pointer;" alt="Trade Screenshot" onclick="window.open('${td.screenshot}', '_blank')" /></div>`;
+          const screenAlt = dict.trade_screenshot || "Trade Screenshot";
+          screenshotHtml = `<div style="margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-dark);"><img src="${td.screenshot}" style="width: 100%; display: block; object-fit: contain; max-height: 400px; cursor: pointer;" alt="${screenAlt}" onclick="window.open('${td.screenshot}', '_blank')" /></div>`;
         }
 
         tradeHtml = `
@@ -4732,11 +4783,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let optionsMenu = "";
       if (post.is_owner) {
+        const delText = dict.delete_post || "Löschen";
         optionsMenu = `
             <div class="post-options-menu">
                 <button class="post-options-btn"><i class="ph ph-dots-three"></i></button>
                 <div class="post-options-dropdown" data-post-id="${post.id}">
-                    <button class="delete-post-btn"><i class="ph ph-trash"></i> Löschen</button>
+                    <button class="delete-post-btn"><i class="ph ph-trash"></i> ${delText}</button>
                 </div>
             </div>
          `;
@@ -4760,14 +4812,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let commentInputHtml = "";
       if (!post.comments || post.comments.length < 5) {
+        const commentPh = dict.comment_ph || "Kommentieren...";
         commentInputHtml = `
              <div class="comment-input-container" style="display: flex; gap: 10px; margin-top: 10px;">
-                 <input type="text" class="profile-select comment-input" data-post-id="${post.id}" placeholder="Kommentieren..." style="flex: 1; padding: 6px 10px; font-size: 0.85rem;" />
+                 <input type="text" class="profile-select comment-input" data-post-id="${post.id}" placeholder="${commentPh}" style="flex: 1; padding: 6px 10px; font-size: 0.85rem;" />
                  <button class="secondary-btn post-comment-btn" data-post-id="${post.id}" style="padding: 6px 12px; font-size: 0.85rem;"><i class="ph ph-paper-plane-right"></i></button>
              </div>
          `;
       } else {
-        commentInputHtml = `<div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Maximum von 5 Kommentaren erreicht.</div>`;
+        const maxCommText = dict.max_comments_reached || "Maximum von 5 Kommentaren erreicht.";
+        commentInputHtml = `<div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">${maxCommText}</div>`;
       }
 
       p.innerHTML = `
@@ -4877,11 +4931,13 @@ document.addEventListener("DOMContentLoaded", () => {
           e.stopPropagation();
           const dropdown = this.closest(".post-options-dropdown");
           const postId = dropdown.getAttribute("data-post-id");
+          const currentLang = localStorage.getItem("tm_global_lang") || "de";
+          const dict = i18n[currentLang] || i18n["de"];
 
           if (
-            confirm("Bist du sicher, dass du diesen Post löschen möchtest?")
+            confirm(dict.confirm_delete_post || "Bist du sicher, dass du diesen Beitrag löschen möchtest?")
           ) {
-            this.innerHTML = "Lösche...";
+            this.innerHTML = dict.deleting_post || "Lösche...";
             this.disabled = true;
             try {
               const d = await fetch(`${API_URL}?action=community_delete_post`, {
@@ -4896,14 +4952,14 @@ document.addEventListener("DOMContentLoaded", () => {
               if (d.success) {
                 loadCommunityFeed();
               } else {
-                alert("Fehler beim Löschen: " + d.error);
-                this.innerHTML = `<i class="ph ph-trash"></i> Löschen`;
+                alert((dict.delete_error || "Fehler beim Löschen des Beitrags: ") + (d.error || ""));
+                this.innerHTML = `<i class="ph ph-trash"></i> ${dict.delete_post || "Löschen"}`;
                 this.disabled = false;
               }
             } catch (e) {
               console.error(e);
-              alert("Fehler beim Löschen des Posts.");
-              this.innerHTML = `<i class="ph ph-trash"></i> Löschen`;
+              alert(dict.delete_error || "Fehler beim Löschen des Beitrags.");
+              this.innerHTML = `<i class="ph ph-trash"></i> ${dict.delete_post || "Löschen"}`;
               this.disabled = false;
             }
           }
@@ -4983,13 +5039,16 @@ document.addEventListener("DOMContentLoaded", () => {
     composerSubmitBtn.addEventListener("click", async () => {
       const textarea = document.getElementById("composer-textarea");
       const text = textarea.value.trim();
+      const currentLang = localStorage.getItem("tm_global_lang") || "de";
+      const dict = i18n[currentLang] || i18n["de"];
+
       if (!text && !attachedTradeData) {
-        alert("Bitte gib einen Text ein oder wähle einen Trade!");
+        alert(dict.composer_empty_warn || "Bitte gib einen Text ein oder wähle einen Trade!");
         return;
       }
 
       composerSubmitBtn.disabled = true;
-      composerSubmitBtn.textContent = "Lädt...";
+      composerSubmitBtn.textContent = dict.loading || "Lädt...";
 
       const payload = { content: text };
       if (attachedTradeData) {
@@ -5025,7 +5084,7 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Error posting to community.");
       } finally {
         composerSubmitBtn.disabled = false;
-        composerSubmitBtn.textContent = "Posten";
+        composerSubmitBtn.textContent = dict.composer_submit || "Posten";
       }
     });
   }
@@ -5043,8 +5102,10 @@ document.addEventListener("DOMContentLoaded", () => {
         tradeList.innerHTML = "";
         const trades = window.currentAllTrades || [];
         if (trades.length === 0) {
+          const currentLang = localStorage.getItem("tm_global_lang") || "de";
+          const dict = i18n[currentLang] || i18n["de"];
           tradeList.innerHTML =
-            '<div style="padding: 10px; color: var(--text-muted); font-size: 0.9rem;">Keine Trades gefunden.</div>';
+            `<div style="padding: 10px; color: var(--text-muted); font-size: 0.9rem;">${dict.no_trades_found || "Keine Trades gefunden."}</div>`;
           return;
         }
 
