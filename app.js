@@ -2608,13 +2608,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const sortedFiltered = [...trades].sort((a, b) => a.close_time - b.close_time);
 
       const firstFiltered = sortedFiltered[0];
-      const firstFilteredIdx = sortedAll.findIndex(t => t.ticket === firstFiltered.ticket);
-      let startingBalance = 0;
-      if (firstFilteredIdx > 0) {
-        startingBalance = sortedAll[firstFilteredIdx - 1].balance_after;
-      } else {
-        startingBalance = firstFiltered.balance_before;
-      }
+      let startingBalance = firstFiltered.balance_before;
 
       let totalDeposits = 0;
       let totalWithdrawals = 0;
