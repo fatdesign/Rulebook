@@ -14,12 +14,14 @@ const i18n = {
     filter_today: "Heute",
     filter_yesterday: "Gestern",
     filter_week: "Diese Woche",
+    filter_month: "Diesen Monat",
     filter_all: "Alle Trades",
     kpi_profit: "Nettogewinn",
     kpi_winrate: "Gewinnrate",
     kpi_trades: "Gesamt Trades",
     kpi_pf: "Profit Faktor",
     kpi_edge: "Long vs. Short",
+    kpi_sl_shift: "SL-Verschiebung",
     kpi_hold_win: "Ø Haltezeit (Gewinner)",
     kpi_hold_loss: "Ø Haltezeit (Verlierer)",
     kpi_drawdown: "Max Drawdown",
@@ -246,12 +248,14 @@ const i18n = {
     filter_today: "Today",
     filter_yesterday: "Yesterday",
     filter_week: "This Week",
+    filter_month: "This Month",
     filter_all: "All Trades",
     kpi_profit: "Net Profit",
     kpi_winrate: "Win Rate",
     kpi_trades: "Total Trades",
     kpi_pf: "Profit Factor",
     kpi_edge: "Long vs. Short Edge",
+    kpi_sl_shift: "SL Shift",
     kpi_hold_win: "Avg Hold (Win)",
     kpi_hold_loss: "Avg Hold (Loss)",
     kpi_drawdown: "Max Drawdown",
@@ -478,12 +482,14 @@ const i18n = {
     filter_today: "Hoy",
     filter_yesterday: "Ayer",
     filter_week: "Esta Semana",
+    filter_month: "Este Mes",
     filter_all: "Todas",
     kpi_profit: "Beneficio Neto",
     kpi_winrate: "Tasa de Acierto",
     kpi_trades: "Total",
     kpi_pf: "Factor de Beneficio",
     kpi_edge: "Long vs. Short",
+    kpi_sl_shift: "Ajuste SL",
     kpi_hold_win: "Duración Media (Gana)",
     kpi_hold_loss: "Duración Media (Pierde)",
     kpi_drawdown: "Drawdown Máximo",
@@ -709,12 +715,14 @@ const i18n = {
     filter_today: "Bugün",
     filter_yesterday: "Dün",
     filter_week: "Bu Hafta",
+    filter_month: "Bu Ay",
     filter_all: "Tüm İşlemler",
     kpi_profit: "Net Kar",
     kpi_winrate: "Kazanma Oranı",
     kpi_trades: "Toplam İşlem",
     kpi_pf: "Kar Faktörü",
     kpi_edge: "Long vs. Short",
+    kpi_sl_shift: "SL Kaydırma",
     kpi_hold_win: "Ort. Süre (Kazanç)",
     kpi_hold_loss: "Ort. Süre (Kayıp)",
     kpi_drawdown: "Maks. Düşüş",
@@ -1113,7 +1121,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const profSessionCheckboxes = document.querySelectorAll(".session-cb");
 
   // Timeframe state
-  let currentTimeframe = "current_month";
+  let currentTimeframe = "month";
   let currentAllTrades = [];
   const filterBtns = document.querySelectorAll(".filter-btn");
   filterBtns.forEach((btn) => {
@@ -1999,11 +2007,14 @@ document.addEventListener("DOMContentLoaded", () => {
           Math.floor(
             Date.UTC(now.getFullYear(), now.getMonth(), sundayDate + 1) / 1000,
           ) - 1;
-      } else if (currentTimeframe === "current_month") {
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        startTime = Math.floor(new Date(y, m, 1).getTime() / 1000);
-        endTime = Math.floor(new Date(y, m + 1, 1).getTime() / 1000) - 1;
+      } else if (currentTimeframe === "month" || currentTimeframe === "current_month") {
+        startTime = Math.floor(
+          Date.UTC(now.getFullYear(), now.getMonth(), 1) / 1000,
+        );
+        endTime =
+          Math.floor(
+            Date.UTC(now.getFullYear(), now.getMonth() + 1, 1) / 1000,
+          ) - 1;
       } else if (currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
         const [y, m] = currentTimeframe.split("-").map(Number);
         startTime = Math.floor(new Date(y, m, 1).getTime() / 1000);
@@ -2599,6 +2610,27 @@ document.addEventListener("DOMContentLoaded", () => {
     updateKPI("kpi-hold-win", formatHoldTime(avgHoldWin), true);
     updateKPI("kpi-hold-loss", formatHoldTime(avgHoldLoss), false);
     updateKPI("kpi-drawdown", `-${curSym}${maxDrawdown.toFixed(2)}`, false);
+
+    // SL Shift / SL Widening KPI
+    let totalSlShifts = 0;
+    let tradesWithSlShift = 0;
+    trades.forEach((t) => {
+      const cnt = parseInt(t.sl_widened || 0);
+      if (cnt > 0) {
+        totalSlShifts += cnt;
+        tradesWithSlShift++;
+      }
+    });
+    const kpiSlShiftEl = document.getElementById("kpi-sl-shift");
+    if (kpiSlShiftEl) {
+      if (totalSlShifts > 0) {
+        kpiSlShiftEl.innerText = `${totalSlShifts}x (${tradesWithSlShift})`;
+        kpiSlShiftEl.style.color = "var(--danger)";
+      } else {
+        kpiSlShiftEl.innerText = "0";
+        kpiSlShiftEl.style.color = "var(--text-main)";
+      }
+    }
 
     // Revenge Trades & Discipline
     const discScore =
@@ -4365,14 +4397,23 @@ function updateMarketSessions() {
   if (!container) return;
 
   const now = new Date();
-  const utcHours = now.getUTCHours();
-  const utcMins = now.getUTCMinutes();
-  const utcSecs = now.getUTCSeconds();
-  const utcTotalMins = utcHours * 60 + utcMins;
+  const localHours = String(now.getHours()).padStart(2, "0");
+  const localMins = String(now.getMinutes()).padStart(2, "0");
+  const localSecs = String(now.getSeconds()).padStart(2, "0");
+
+  const offsetMinutes = -now.getTimezoneOffset();
+  const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+  const offsetMins = Math.abs(offsetMinutes) % 60;
+  const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+  const offsetStr = `UTC${offsetSign}${offsetHours}${offsetMins ? ":" + String(offsetMins).padStart(2, "0") : ""}`;
 
   if (clockLabel) {
-    clockLabel.textContent = `UTC: ${String(utcHours).padStart(2, "0")}:${String(utcMins).padStart(2, "0")}:${String(utcSecs).padStart(2, "0")}`;
+    clockLabel.textContent = `Local: ${localHours}:${localMins}:${localSecs} (${offsetStr})`;
   }
+
+  const utcHours = now.getUTCHours();
+  const utcMins = now.getUTCMinutes();
+  const utcTotalMins = utcHours * 60 + utcMins;
 
   const sessions = [
     { name: "Sydney", start: 22 * 60, end: 7 * 60, icon: "🌏", timeStr: "22:00 - 07:00 UTC" },

@@ -450,7 +450,7 @@
                   style="margin-bottom: 0"
                 >
                   <button
-                    class="filter-btn active"
+                    class="filter-btn"
                     data-timeframe="today"
                     data-i18n="filter_today"
                   >
@@ -469,6 +469,13 @@
                     data-i18n="filter_week"
                   >
                     Diese Woche
+                  </button>
+                  <button
+                    class="filter-btn active"
+                    data-timeframe="month"
+                    data-i18n="filter_month"
+                  >
+                    Diesen Monat
                   </button>
                 </div>
 
@@ -716,6 +723,18 @@
                         -
                       </p>
                     </div>
+                    <div class="kpi-card glass-panel">
+                      <h3 data-i18n="kpi_sl_shift" style="font-size: 0.85rem">
+                        SL-Verschiebung
+                      </h3>
+                      <p
+                        id="kpi-sl-shift"
+                        class="kpi-value"
+                        style="font-size: 1.2rem"
+                      >
+                        0
+                      </p>
+                    </div>
                   </div>
                   <!-- Market Time Zone View -->
                   <div class="glass-panel" style="margin-bottom: 20px">
@@ -746,7 +765,7 @@
                           color: var(--text-muted);
                           font-family: monospace;
                         "
-                        >UTC: --:--:--</span
+                        >Local: --:--:--</span
                       >
                     </div>
                     <div
