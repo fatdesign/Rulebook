@@ -4397,9 +4397,12 @@ function updateMarketSessions() {
   if (!container) return;
 
   const now = new Date();
-  const localHours = String(now.getHours()).padStart(2, "0");
-  const localMins = String(now.getMinutes()).padStart(2, "0");
-  const localSecs = String(now.getSeconds()).padStart(2, "0");
+  const hrs = now.getHours();
+  const mins = now.getMinutes();
+  const secs = now.getSeconds();
+  const localHoursStr = String(hrs).padStart(2, "0");
+  const localMinsStr = String(mins).padStart(2, "0");
+  const localSecsStr = String(secs).padStart(2, "0");
 
   const offsetMinutes = -now.getTimezoneOffset();
   const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
@@ -4408,27 +4411,25 @@ function updateMarketSessions() {
   const offsetStr = `UTC${offsetSign}${offsetHours}${offsetMins ? ":" + String(offsetMins).padStart(2, "0") : ""}`;
 
   if (clockLabel) {
-    clockLabel.textContent = `Local: ${localHours}:${localMins}:${localSecs} (${offsetStr})`;
+    clockLabel.textContent = `Local: ${localHoursStr}:${localMinsStr}:${localSecsStr} (${offsetStr})`;
   }
 
-  const utcHours = now.getUTCHours();
-  const utcMins = now.getUTCMinutes();
-  const utcTotalMins = utcHours * 60 + utcMins;
+  const localTotalMins = hrs * 60 + mins;
 
   const sessions = [
-    { name: "Sydney", start: 22 * 60, end: 7 * 60, icon: "🌏", timeStr: "22:00 - 07:00 UTC" },
-    { name: "Tokyo", start: 0 * 60, end: 9 * 60, icon: "🗾", timeStr: "00:00 - 09:00 UTC" },
-    { name: "London", start: 8 * 60, end: 17 * 60, icon: "🏛️", timeStr: "08:00 - 17:00 UTC" },
-    { name: "New York", start: 13 * 60, end: 22 * 60, icon: "🗽", timeStr: "13:00 - 22:00 UTC" },
+    { name: "Sydney", start: 23 * 60, end: 8 * 60, icon: "🌏", timeStr: "23:00 - 08:00" },
+    { name: "Tokyo", start: 2 * 60, end: 11 * 60, icon: "🗾", timeStr: "02:00 - 11:00" },
+    { name: "London", start: 9 * 60, end: 18 * 60, icon: "🏛️", timeStr: "09:00 - 18:00" },
+    { name: "New York", start: 15 * 60 + 30, end: 22 * 60, icon: "🗽", timeStr: "15:30 - 22:00" },
   ];
 
   let html = "";
   sessions.forEach((s) => {
     let isOpen = false;
     if (s.start > s.end) {
-      isOpen = utcTotalMins >= s.start || utcTotalMins < s.end;
+      isOpen = localTotalMins >= s.start || localTotalMins < s.end;
     } else {
-      isOpen = utcTotalMins >= s.start && utcTotalMins < s.end;
+      isOpen = localTotalMins >= s.start && localTotalMins < s.end;
     }
 
     const badgeClass = isOpen ? "open" : "closed";
