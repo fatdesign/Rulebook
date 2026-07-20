@@ -2635,6 +2635,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const denominator = startingBalance + totalDeposits;
       if (denominator > 0) {
         gainPct = (totalNetProfit / denominator) * 100;
+        updateKPI(
+          "kpi-gain",
+          `${gainPct >= 0 ? "+" : ""}${gainPct.toFixed(2)}%`,
+          gainPct >= 0,
+        );
+      } else {
+        // Fallback if balance data is missing from old exporter
+        const gainEl = document.getElementById("kpi-gain");
+        if (gainEl) {
+          gainEl.innerText = "-%";
+          gainEl.className = "kpi-value";
+          gainEl.style.color = "var(--text-muted)";
+        }
       }
     }
 
@@ -2643,11 +2656,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "kpi-profit",
       `${curSym}${totalProfit.toFixed(2)}`,
       totalProfit >= 0,
-    );
-    updateKPI(
-      "kpi-gain",
-      `${gainPct >= 0 ? "+" : ""}${gainPct.toFixed(2)}%`,
-      gainPct >= 0,
     );
     updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
     document.getElementById("kpi-trades").innerText = trades.length;
