@@ -1294,6 +1294,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     expandedImg.src = expandedSrc;
     collapsedImg.src = collapsedSrc;
+    const loginLogo = document.getElementById("login-logo");
+    if (loginLogo) loginLogo.src = expandedSrc;
   }
 
   updateSidebarLogo(savedTheme);
