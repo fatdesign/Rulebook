@@ -1841,6 +1841,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (t.gross_profit === undefined) {
           t.gross_profit = parseFloat(t.net_profit);
         }
+        
+        t.commission = parseFloat((parseFloat(t.net_profit) - parseFloat(t.gross_profit)).toFixed(2));
 
         // Calculate balances
         const netP = parseFloat(t.net_profit);
@@ -3184,7 +3186,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--danger);">${avgLoss === 0 ? "" : "-"}${curSym}${avgLoss.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--success);">${curSym}${day.maxWin.toFixed(2)}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--danger);">${day.maxLoss < 0 ? "-" : ""}${curSym}${Math.abs(day.maxLoss).toFixed(2)}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${day.commission !== 0 ? curSym + day.commission.toFixed(2) : "-"}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${Math.abs(day.commission) > 0.001 ? (day.commission < 0 ? "-" : "") + curSym + Math.abs(day.commission).toFixed(2) : "-"}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${day.longs} / ${day.shorts}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); text-align: center;">
                     <button class="secondary-btn open-journal-btn" data-datekey="${day.dateKey}" data-datestr="${day.dateStr}" style="${journalBtnStyle}" title="Mental Journal"><i class="ph ph-book-open"></i></button>
