@@ -1811,6 +1811,11 @@ document.addEventListener("DOMContentLoaded", () => {
       let runningBalance = parseFloat(currentBalance);
       window.accCurrency = "USD";
       trades.forEach((t) => {
+        // Offset timestamps so local browser time exactly matches MT5 Server time
+        const offsetSecs = new Date(t.close_time * 1000).getTimezoneOffset() * 60;
+        if (t.open_time) t.open_time = t.open_time + offsetSecs;
+        if (t.close_time) t.close_time = t.close_time + offsetSecs;
+
         // Parse side
         if (t.side.includes("_")) {
           const sideParts = t.side.split("_");
