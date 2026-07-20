@@ -3437,14 +3437,49 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
 
+        // Calculate basic stats for the exact trades to be analyzed
+        let aiWins = 0, aiLosses = 0;
+        let aiGrossWin = 0, aiGrossLoss = 0;
+        let aiTotalHoldWins = 0, aiTotalHoldLosses = 0;
+        let aiGrossP = 0;
+        
+        tradesToAnalyze.forEach(t => {
+          const netP = parseFloat(t.net_profit);
+          const grossP = t.gross_profit !== undefined ? parseFloat(t.gross_profit) : netP;
+          const holdSec = t.close_time - t.open_time;
+          if (grossP > 0) {
+            aiWins++;
+            aiGrossWin += grossP;
+            aiTotalHoldWins += holdSec;
+          } else if (grossP <= 0) {
+            aiLosses++;
+            aiGrossLoss += Math.abs(grossP);
+            aiTotalHoldLosses += Math.max(0, holdSec);
+          }
+        });
+        
+        const aiTotalWinLoss = aiWins + aiLosses;
+        const aiWinrate = aiTotalWinLoss > 0 ? (aiWins / aiTotalWinLoss) * 100 : 0;
+        const aiProfitFactor = aiGrossLoss === 0 ? aiGrossWin : aiGrossWin / aiGrossLoss;
+        const aiAvgHoldWin = aiWins > 0 ? aiTotalHoldWins / aiWins : 0;
+        const aiAvgHoldLoss = aiLosses > 0 ? aiTotalHoldLosses / aiLosses : 0;
+
+        const scopedStats = {
+          totalTrades: tradesToAnalyze.length,
+          winrate: parseFloat(aiWinrate.toFixed(1)),
+          profitFactor: parseFloat(aiProfitFactor.toFixed(2)),
+          avgHoldWin: window.formatHoldTime ? window.formatHoldTime(aiAvgHoldWin) : aiAvgHoldWin,
+          avgHoldLoss: window.formatHoldTime ? window.formatHoldTime(aiAvgHoldLoss) : aiAvgHoldLoss,
+        };
+
         const profileData = {
           style: profStyle ? profStyle.value : "Unknown",
           session:
             selectedSessions.length > 0 ? selectedSessions.join(", ") : "Any",
           risk: profRisk ? profRisk.value : "Unknown",
           language: globalLang ? globalLang.value : "de",
-          timeframe: currentTimeframe,
-          stats: window.coachStats || {},
+          timeframe: aiScopeVal || currentTimeframe,
+          stats: scopedStats,
           trades: tradesToAnalyze.map((t) => {
             const isToday = t.close_time >= todayStartTime;
             const note =
