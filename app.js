@@ -17,6 +17,7 @@ const i18n = {
     filter_month: "Diesen Monat",
     filter_all: "Alle Trades",
     kpi_profit: "Nettogewinn",
+    kpi_gain: "Gewinn %",
     kpi_winrate: "Gewinnrate",
     kpi_trades: "Gesamt Trades",
     kpi_pf: "Profit Faktor",
@@ -251,6 +252,7 @@ const i18n = {
     filter_month: "This Month",
     filter_all: "All Trades",
     kpi_profit: "Net Profit",
+    kpi_gain: "Gain %",
     kpi_winrate: "Win Rate",
     kpi_trades: "Total Trades",
     kpi_pf: "Profit Factor",
@@ -485,6 +487,7 @@ const i18n = {
     filter_month: "Este Mes",
     filter_all: "Todas",
     kpi_profit: "Beneficio Neto",
+    kpi_gain: "Ganancia %",
     kpi_winrate: "Tasa de Acierto",
     kpi_trades: "Total",
     kpi_pf: "Factor de Beneficio",
@@ -718,6 +721,7 @@ const i18n = {
     filter_month: "Bu Ay",
     filter_all: "Tüm İşlemler",
     kpi_profit: "Net Kar",
+    kpi_gain: "Getiri %",
     kpi_winrate: "Kazanma Oranı",
     kpi_trades: "Toplam İşlem",
     kpi_pf: "Kar Faktörü",
@@ -2595,11 +2599,55 @@ document.addEventListener("DOMContentLoaded", () => {
     const avgHoldWin = wins > 0 ? totalHoldWins / wins : 0;
     const avgHoldLoss = losses > 0 ? totalHoldLosses / losses : 0;
 
+    // Calculate Gain % taking into account deposits/withdrawals
+    let gainPct = 0;
+    const allTrades = window.currentAllTrades || trades;
+    if (trades.length > 0 && allTrades.length > 0) {
+      // Sort both arrays chronologically ascending
+      const sortedAll = [...allTrades].sort((a, b) => a.close_time - b.close_time);
+      const sortedFiltered = [...trades].sort((a, b) => a.close_time - b.close_time);
+
+      const firstFiltered = sortedFiltered[0];
+      const firstFilteredIdx = sortedAll.findIndex(t => t.ticket === firstFiltered.ticket);
+      let startingBalance = 0;
+      if (firstFilteredIdx > 0) {
+        startingBalance = sortedAll[firstFilteredIdx - 1].balance_after;
+      } else {
+        startingBalance = firstFiltered.balance_before;
+      }
+
+      let totalDeposits = 0;
+      let totalWithdrawals = 0;
+      let prevBalanceAfter = startingBalance;
+      let totalNetProfit = 0;
+
+      sortedFiltered.forEach(t => {
+        const diff = t.balance_before - prevBalanceAfter;
+        if (diff > 0.01) {
+          totalDeposits += diff;
+        } else if (diff < -0.01) {
+          totalWithdrawals += Math.abs(diff);
+        }
+        totalNetProfit += parseFloat(t.net_profit || 0);
+        prevBalanceAfter = t.balance_after;
+      });
+
+      const denominator = startingBalance + totalDeposits;
+      if (denominator > 0) {
+        gainPct = (totalNetProfit / denominator) * 100;
+      }
+    }
+
     // Update UI
     updateKPI(
       "kpi-profit",
       `${curSym}${totalProfit.toFixed(2)}`,
       totalProfit >= 0,
+    );
+    updateKPI(
+      "kpi-gain",
+      `${gainPct >= 0 ? "+" : ""}${gainPct.toFixed(2)}%`,
+      gainPct >= 0,
     );
     updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
     document.getElementById("kpi-trades").innerText = trades.length;
