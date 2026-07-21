@@ -2381,9 +2381,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const sideColor = sideStr.startsWith("Buy")
         ? "var(--success)"
         : "var(--danger)";
-      const netProfitNum = parseFloat(t.net_profit || 0);
-      const profitColor =
-        netProfitNum >= 0 ? "var(--success)" : "var(--danger)";
+      const profitNum = parseFloat(t.gross_profit !== undefined ? t.gross_profit : t.net_profit || 0);
+      const profitColor = profitNum >= 0 ? "var(--success)" : "var(--danger)";
+      const commissionNum = parseFloat(t.commission || 0);
+      const commissionStr = Math.abs(commissionNum) > 0.001 ? (commissionNum < 0 ? "-" : "") + curSym + Math.abs(commissionNum).toFixed(2) : "-";
       const holdSec = (t.close_time || 0) - (t.open_time || 0);
       const durationStr = formatHoldTime(holdSec);
 
@@ -2452,7 +2453,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
                 <td style="padding: 8px 6px; border-bottom: 1px solid var(--border-dark); text-align: center; width: 100px; white-space: nowrap;">${slBadgeHtml}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${curSym}${netProfitNum.toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${profitNum < 0 ? "-" : ""}${curSym}${Math.abs(profitNum).toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${commissionStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${chartHtml}</td>
@@ -4439,8 +4441,10 @@ window.renderTagAnalyzer = function (trades, curSym) {
     const sideColor = sideStr.startsWith("Buy")
       ? "var(--success)"
       : "var(--danger)";
-    const profitVal = parseFloat(t.net_profit || 0);
+    const profitVal = parseFloat(t.gross_profit !== undefined ? t.gross_profit : t.net_profit || 0);
     const profitColor = profitVal >= 0 ? "var(--success)" : "var(--danger)";
+    const commissionNum = parseFloat(t.commission || 0);
+    const commissionStr = Math.abs(commissionNum) > 0.001 ? (commissionNum < 0 ? "-" : "") + curSym + Math.abs(commissionNum).toFixed(2) : "-";
 
     // Images
     const imgData = window.tradeImagesMap
@@ -4505,9 +4509,9 @@ window.renderTagAnalyzer = function (trades, curSym) {
                     <span style="margin-left: 8px; font-size: 0.8rem; color: ${sideColor}; font-weight: 500;">${sideStr}</span>
                     ${stratHtml}
                 </div>
-                <span style="font-weight: bold; color: ${profitColor};">${profitVal >= 0 ? "+" : ""}${curSym}${profitVal.toFixed(2)}</span>
+                <span style="font-weight: bold; color: ${profitColor};">${profitVal < 0 ? "-" : ""}${curSym}${Math.abs(profitVal).toFixed(2)}</span>
             </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: -8px;">Ticket: ${t.ticket} &nbsp;|&nbsp; Close: ${dateStr}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: -8px;">Ticket: ${t.ticket} &nbsp;|&nbsp; Close: ${dateStr} &nbsp;|&nbsp; Comm: <span style="color: var(--text-main);">${commissionStr}</span></div>
             <div style="font-size: 0.85rem; color: var(--text-main); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; line-height: 1.4;">
                 ${highlightedNote}
             </div>
