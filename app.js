@@ -4229,10 +4229,8 @@ async function initNewsTicker() {
   if (!ticker) return;
 
   const fallbackNews = `
-    <span class="impact-high">🔴 [14:30] USD - Core CPI m/m</span>
-    <span class="impact-high">🔴 [14:30] USD - Unemployment Claims</span>
-    <span class="impact-medium">🟠 [16:00] EUR - ECB Press Conference</span>
-    <span class="impact-medium">🟠 [18:00] GBP - BOE Gov Bailey Speaks</span>
+    <span class="impact-high">🔴 Market Ticker Offline</span>
+    <span class="impact-medium">🟠 No News Available</span>
   `;
 
   try {

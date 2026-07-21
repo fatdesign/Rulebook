@@ -228,6 +228,12 @@ export default {
         try {
           const ffResponse = await fetch(
             "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+            {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Accept": "application/json"
+              }
+            }
           );
           const data = await ffResponse.json();
           return new Response(JSON.stringify(data), { headers: corsHeaders });
