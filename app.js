@@ -6012,6 +6012,7 @@ function openPsychologyModal(lessonId) {
   const titleEl = document.getElementById("psych-modal-title");
   const quoteEl = document.getElementById("psych-modal-quote");
   const bodyEl = document.getElementById("psych-modal-body");
+  const timeEl = document.getElementById("psych-modal-time");
 
   if (catEl) catEl.innerText = dict[`cat_${lesson.cat}`] || lesson.cat.toUpperCase();
   if (titleEl) titleEl.innerText = lesson.title[currentLang] || lesson.title["de"];
