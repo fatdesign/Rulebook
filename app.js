@@ -4242,23 +4242,34 @@ async function initNewsTicker() {
     const today = new Date();
     const todayStr = today.toISOString().split("T")[0];
 
+    const fallbackNews = `
+    <span class="impact-low">⚪ No News Today</span>
+  `;
+
     let newsHtml = "";
     if (Array.isArray(events)) {
       events.forEach((ev) => {
         if (!ev.date) return;
         const evDateStr = ev.date.split("T")[0];
-        if (
-          evDateStr === todayStr &&
-          (ev.impact === "High" || ev.impact === "Medium")
-        ) {
+        if (evDateStr === todayStr) {
           const dateObj = new Date(ev.date);
           const time = dateObj.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
           });
-          const impactClass =
-            ev.impact === "High" ? "impact-high" : "impact-medium";
-          const icon = ev.impact === "High" ? "🔴" : "🟠";
+          
+          let impactClass = "impact-low";
+          let icon = "🟡";
+          if (ev.impact === "High") {
+            impactClass = "impact-high";
+            icon = "🔴";
+          } else if (ev.impact === "Medium") {
+            impactClass = "impact-medium";
+            icon = "🟠";
+          } else if (ev.impact === "Holiday") {
+            icon = "⚪";
+          }
+          
           newsHtml += `<span class="${impactClass}">${icon} [${time}] ${ev.country} - ${ev.title}</span>`;
         }
       });

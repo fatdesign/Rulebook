@@ -514,6 +514,10 @@ button:active,
   color: #f97316; /* Orange */
   font-weight: bold;
 }
+.impact-low {
+  color: #eab308; /* Yellow */
+  font-weight: bold;
+}
 
 /* Switch (Kill-Switch Toggle) */
 .switch {
