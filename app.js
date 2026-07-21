@@ -5285,7 +5285,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     communityFeedContainer
-      .querySelectorAll(".post-action-btn")
+      .querySelectorAll(".like-btn")
       .forEach((btn) => {
         btn.addEventListener("click", function () {
           const postId = this.getAttribute("data-post-id");
@@ -5402,6 +5402,91 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       });
+  }
+
+  // --- COMMUNITY LEADERBOARD LOGIC ---
+  const leaderboardList = document.getElementById("leaderboard-list");
+  const leaderboardTabsEl = document.getElementById("leaderboard-tabs");
+  let activeLeaderboardCat = "commissions";
+  let leaderboardData = null;
+
+  if (leaderboardTabsEl) {
+    leaderboardTabsEl.querySelectorAll(".leaderboard-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        leaderboardTabsEl
+          .querySelectorAll(".leaderboard-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeLeaderboardCat = btn.getAttribute("data-cat");
+        if (leaderboardData) renderLeaderboard(leaderboardData);
+      });
+    });
+  }
+
+  function loadCommunityLeaderboard() {
+    if (!leaderboardList) return;
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
+    leaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${dict.lb_loading || "Loading leaderboard..."}</p>`;
+    const token = localStorage.getItem("tm_master_token");
+    fetch(`${API_URL}?action=community_leaderboard&t=${Date.now()}`, {
+      headers: { Authorization: token },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        leaderboardData = data;
+        renderLeaderboard(data);
+      })
+      .catch((e) => {
+        console.error(e);
+        leaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${dict.failed_feed || "Failed to load."}</p>`;
+      });
+  }
+
+  function renderLeaderboard(data) {
+    if (!leaderboardList) return;
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
+    const curSym = window.currentCurSym || "$";
+
+    const entries = (data && data[activeLeaderboardCat]) || [];
+
+    if (entries.length === 0) {
+      leaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${dict.lb_no_data || "No data for this week yet."}</p>`;
+      return;
+    }
+
+    leaderboardList.innerHTML = entries
+      .map((entry, idx) => {
+        const rank = idx + 1;
+        let valueHtml = "";
+        let subHtml = "";
+        if (activeLeaderboardCat === "commissions") {
+          valueHtml = `<span style="color: var(--text-main);">${curSym}${entry.value.toFixed(2)}</span>`;
+        } else if (activeLeaderboardCat === "gain_pct") {
+          const isPos = entry.value >= 0;
+          valueHtml = `<span style="color: ${isPos ? "var(--success)" : "var(--danger)"};">${isPos ? "+" : ""}${entry.value.toFixed(2)}%</span>`;
+        } else if (activeLeaderboardCat === "biggest_win") {
+          valueHtml = `<span style="color: var(--success);">+${curSym}${entry.value.toFixed(2)}</span>`;
+          subHtml = entry.symbol || "";
+        } else if (activeLeaderboardCat === "most_trades") {
+          valueHtml = `<span style="color: var(--text-main);">${entry.value}</span>`;
+          subHtml = dict.lb_trades_suffix || "Trades";
+        }
+
+        return `
+          <div class="leaderboard-item">
+            <div class="leaderboard-rank rank-${rank}">${rank}</div>
+            <div class="leaderboard-avatar" style="background: ${avatarColor(entry.username)};">${entry.username ? entry.username.substring(0, 1).toUpperCase() : "U"}</div>
+            <div class="leaderboard-info">
+              <span class="leaderboard-username">${entry.username}</span>
+              ${subHtml ? `<span class="leaderboard-sub">${subHtml}</span>` : ""}
+            </div>
+            <div class="leaderboard-value">${valueHtml}</div>
+          </div>
+        `;
+      })
+      .join("");
   }
 
   function toggleLike(postId, btnEl) {
