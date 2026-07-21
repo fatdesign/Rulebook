@@ -4224,6 +4224,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ── News Ticker & Focus Mode Logic ───────────────────────────────────────────────────
 
+let tickerFilters = JSON.parse(localStorage.getItem("tm_ticker_filters")) || {
+  impacts: ["High", "Medium"],
+  currencies: ["EUR", "USD"]
+};
+
+function initTickerFilterUI() {
+  const modal = document.getElementById("ticker-filter-modal");
+  const openBtn = document.getElementById("ticker-filter-btn");
+  const closeBtn = document.getElementById("ticker-filter-close");
+  const saveBtn = document.getElementById("ticker-filter-save");
+  if (!modal || !openBtn) return;
+
+  const currencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "CNY"];
+  const currContainer = document.getElementById("ticker-currency-container");
+  
+  if (currContainer && currContainer.innerHTML.trim() === "") {
+    let currHtml = "";
+    currencies.forEach(c => {
+      const isChecked = tickerFilters.currencies.includes(c) ? "checked" : "";
+      currHtml += `
+        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: var(--text-main);">
+          <input type="checkbox" class="ticker-currency-cb" value="${c}" ${isChecked}> ${c}
+        </label>
+      `;
+    });
+    currContainer.innerHTML = currHtml;
+  }
+
+  // Set impact checkboxes
+  const impactCbs = document.querySelectorAll(".ticker-impact-cb");
+  impactCbs.forEach(cb => {
+    cb.checked = tickerFilters.impacts.includes(cb.value);
+  });
+
+  openBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+  if (closeBtn) closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+  
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      const selectedImpacts = Array.from(document.querySelectorAll(".ticker-impact-cb:checked")).map(cb => cb.value);
+      const selectedCurrencies = Array.from(document.querySelectorAll(".ticker-currency-cb:checked")).map(cb => cb.value);
+      
+      tickerFilters = { impacts: selectedImpacts, currencies: selectedCurrencies };
+      localStorage.setItem("tm_ticker_filters", JSON.stringify(tickerFilters));
+      
+      modal.classList.add("hidden");
+      initNewsTicker(); // re-fetch and render
+    });
+  }
+}
+
 async function initNewsTicker() {
   const ticker = document.getElementById("news-ticker-content");
   if (!ticker) return;
@@ -4252,6 +4303,9 @@ async function initNewsTicker() {
         if (!ev.date) return;
         const evDateStr = ev.date.split("T")[0];
         if (evDateStr === todayStr) {
+          if (!tickerFilters.impacts.includes(ev.impact)) return;
+          if (!tickerFilters.currencies.includes(ev.country)) return;
+          
           const dateObj = new Date(ev.date);
           const time = dateObj.toLocaleTimeString([], {
             hour: "2-digit",
@@ -4843,6 +4897,7 @@ window.updatePropChallengeTracker = function(trades) {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  initTickerFilterUI();
   initNewsTicker();
   updateFocusModeUI();
   updateMarketSessions();

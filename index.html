@@ -507,9 +507,12 @@
 
             <!-- News Ticker (Focus Mode) -->
             <div id="news-ticker-panel" class="news-ticker-panel">
-              <div class="news-ticker-title">
-                <i class="ph ph-globe-hemisphere-west"></i>
-                <span data-i18n="ticker_title">Market Ticker</span>
+              <div class="news-ticker-title" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <i class="ph ph-globe-hemisphere-west"></i>
+                  <span data-i18n="ticker_title">Market Ticker</span>
+                </div>
+                <i class="ph ph-faders" id="ticker-filter-btn" style="cursor: pointer; font-size: 1.1rem; color: var(--text-muted); transition: color 0.3s;" title="Ticker Settings" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'"></i>
               </div>
               <div
                 style="
@@ -2420,6 +2423,61 @@
             </button>
           </div>
           <div id="trades-cal-grid-container"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Ticker Settings Modal -->
+    <div id="ticker-filter-modal" class="modal-overlay hidden">
+      <div
+        class="modal-content glass-panel"
+        style="
+          width: 100%;
+          max-width: 480px;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <div class="modal-header" style="justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; margin-bottom: 20px;">
+          <h2 style="font-size: 1.2rem; margin: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="ph ph-faders"></i> Ticker Settings
+          </h2>
+          <button id="ticker-filter-close" class="modal-close-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Impact Filter -->
+          <div>
+            <h3 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-muted);">Impact</h3>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+              <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: #ef4444; font-weight: bold;">
+                <input type="checkbox" class="ticker-impact-cb" value="High" checked> 🔴 High
+              </label>
+              <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: #f97316; font-weight: bold;">
+                <input type="checkbox" class="ticker-impact-cb" value="Medium" checked> 🟠 Medium
+              </label>
+              <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: #eab308; font-weight: bold;">
+                <input type="checkbox" class="ticker-impact-cb" value="Low"> 🟡 Low
+              </label>
+              <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; color: #a1a1aa; font-weight: bold;">
+                <input type="checkbox" class="ticker-impact-cb" value="Holiday"> ⚪ Holiday
+              </label>
+            </div>
+          </div>
+          
+          <!-- Currency Filter -->
+          <div>
+            <h3 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-muted);">Currencies</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;" id="ticker-currency-container">
+              <!-- Checkboxes will be rendered by JS -->
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer" style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 15px;">
+          <button id="ticker-filter-save" class="primary-btn" style="padding: 10px 20px;">Save & Apply</button>
         </div>
       </div>
     </div>
