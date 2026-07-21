@@ -5064,13 +5064,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Restore active tab after page reload
-  const savedActiveTab = localStorage.getItem("tm_active_tab");
-  if (savedActiveTab) {
-    const activeNavBtn = document.querySelector(`.sidebar-nav-item[data-tab="${savedActiveTab}"]`);
-    if (activeNavBtn) activeNavBtn.click();
-  }
-
   // --- COMMUNITY FEED LOGIC ---
   const communityFeedContainer = document.getElementById(
     "community-feed-container",
@@ -5704,6 +5697,14 @@ document.addEventListener("DOMContentLoaded", () => {
         tradeDropdown.style.display = "none";
       }
     });
+  }
+
+  // Restore active tab after page reload (must run after all tab-specific
+  // handlers above are defined, since it synchronously fires a click)
+  const savedActiveTab = localStorage.getItem("tm_active_tab");
+  if (savedActiveTab) {
+    const activeNavBtn = document.querySelector(`.sidebar-nav-item[data-tab="${savedActiveTab}"]`);
+    if (activeNavBtn) activeNavBtn.click();
   }
 });
 
