@@ -2080,8 +2080,10 @@ th {
 .post-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  justify-content: flex-start;
+  gap: 32px;
   margin-top: 5px;
+  max-width: 320px;
 }
 .post-action-btn {
   background: transparent;
@@ -2104,6 +2106,12 @@ th {
 .post-action-btn.liked i {
   font-weight: bold;
 }
+.post-action-btn.reply-btn:hover {
+  color: #1d9bf0;
+}
+.post-action-btn.like-btn:hover {
+  color: #ef4444;
+}
 .share-trade-btn {
   background: transparent;
   border: 1px solid var(--border-light);
@@ -2120,4 +2128,111 @@ th {
 .share-trade-btn:hover {
   border-color: #a855f7;
   color: #a855f7;
+}
+
+/* --- Post avatar (color assigned per-user via inline style) --- */
+.post-avatar,
+.composer-avatar.user-colored {
+  color: #fff;
+}
+
+/* --- LEADERBOARD SIDEBAR --- */
+.leaderboard-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.leaderboard-tab {
+  background: var(--bg-panel-hover);
+  border: 1px solid var(--border-dark);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderboard-tab i {
+  font-size: 0.95rem;
+}
+.leaderboard-tab:hover {
+  color: var(--text-main);
+  border-color: var(--accent-color);
+}
+.leaderboard-tab.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border-dark);
+}
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+.leaderboard-rank {
+  width: 22px;
+  flex-shrink: 0;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.leaderboard-rank.rank-1 {
+  color: #facc15;
+}
+.leaderboard-rank.rank-2 {
+  color: #cbd5e1;
+}
+.leaderboard-rank.rank-3 {
+  color: #d97706;
+}
+.leaderboard-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.leaderboard-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.leaderboard-username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderboard-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.leaderboard-value {
+  font-weight: bold;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  text-align: right;
 }

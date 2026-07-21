@@ -295,7 +295,7 @@
               </a>
               <a href="#" class="sidebar-nav-item" data-tab="tab-tags">
                 <i class="ph ph-warning-octagon"></i>
-                <span class="nav-text" data-i18n="nav_tags">Fehleranalyse</span>
+                <span class="nav-text" data-i18n="nav_tags">Trading-Analyse</span>
               </a>
               <a href="#" class="sidebar-nav-item" data-tab="tab-calendar">
                 <i class="ph ph-calendar-blank"></i>
@@ -1299,7 +1299,7 @@
               <!-- TAB: FEHLERANALYSE -->
               <div id="tab-tags" class="tab-content">
                 <div class="content-header" style="margin-bottom: 20px">
-                  <h2 style="margin: 0; font-size: 1.5rem">Fehleranalyse</h2>
+                  <h2 style="margin: 0; font-size: 1.5rem" data-i18n="tag_analyzer_title">Trading-Analyse</h2>
                   <p style="margin: 5px 0 0 0; color: var(--text-muted)">
                     Kritischer Blick auf deine Trades und Muster.
                   </p>
@@ -1861,7 +1861,7 @@
                   <!-- Sidebar Stats Column -->
                   <div
                     class="glass-panel desktop-only-sidebar"
-                    style="width: 350px; height: fit-content; padding: 25px"
+                    style="width: 350px; height: fit-content; padding: 20px; position: sticky; top: 15px;"
                   >
                     <h3
                       style="
@@ -1871,25 +1871,34 @@
                         gap: 8px;
                       "
                     >
-                      <i class="ph ph-trend-up"></i>
-                      <span data-i18n="community_trending">Trending Now</span>
+                      <i class="ph ph-trophy"></i>
+                      <span data-i18n="community_leaderboard_title">Wochen-Leaderboard</span>
                     </h3>
+
+                    <div id="leaderboard-tabs" class="leaderboard-tabs">
+                      <button class="leaderboard-tab active" data-cat="commissions">
+                        <i class="ph ph-coins"></i> <span data-i18n="lb_tab_commissions">Commissions</span>
+                      </button>
+                      <button class="leaderboard-tab" data-cat="gain_pct">
+                        <i class="ph ph-percent"></i> <span data-i18n="lb_tab_gain">Gain %</span>
+                      </button>
+                      <button class="leaderboard-tab" data-cat="biggest_win">
+                        <i class="ph ph-target"></i> <span data-i18n="lb_tab_biggest_win">Bester Trade</span>
+                      </button>
+                      <button class="leaderboard-tab" data-cat="most_trades">
+                        <i class="ph ph-lightning"></i> <span data-i18n="lb_tab_most_trades">Meiste Trades</span>
+                      </button>
+                    </div>
+
                     <div
+                      id="leaderboard-list"
                       style="
                         border-top: 1px solid var(--border-dark);
-                        padding-top: 15px;
-                        margin-top: 10px;
+                        padding-top: 5px;
+                        margin-top: 5px;
                       "
                     >
-                      <p
-                        style="
-                          font-size: 0.85rem;
-                          color: var(--text-muted);
-                          line-height: 1.5;
-                        "
-                      >
-                        <span data-i18n="community_coming_soon">Coming soon: Top Traders, Best Setups, and Community Challenges.</span>
-                      </p>
+                      <p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;" data-i18n="lb_loading">Lade Rangliste...</p>
                     </div>
                   </div>
                 </div>

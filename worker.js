@@ -493,6 +493,193 @@ export default {
         }
       }
 
+      // --- COMMUNITY LEADERBOARD (weekly, Mon 00:00 UTC - now) ---
+      if (request.method === "GET" && action === "community_leaderboard") {
+        try {
+          const user_id = await authenticateUser(request, env);
+          if (!user_id)
+            return new Response("Unauthorized", {
+              status: 401,
+              headers: corsHeaders,
+            });
+
+          const now = new Date();
+          const day = now.getUTCDay(); // 0=Sun .. 6=Sat
+          const daysToMonday = day === 0 ? -6 : 1 - day;
+          const weekStart = Math.floor(
+            Date.UTC(
+              now.getUTCFullYear(),
+              now.getUTCMonth(),
+              now.getUTCDate() + daysToMonday,
+            ) / 1000,
+          );
+
+          const { results: rows } = await env.DB.prepare(
+            "SELECT license_key, symbol, side, net_profit FROM trades WHERE close_time >= ?",
+          )
+            .bind(weekStart)
+            .all();
+
+          if (!rows.length) {
+            return new Response(
+              JSON.stringify({
+                commissions: [],
+                gain_pct: [],
+                biggest_win: [],
+                most_trades: [],
+                week_start: weekStart,
+              }),
+              { headers: corsHeaders },
+            );
+          }
+
+          // Same encoding scheme the MT5 EA/client use: side may be
+          // "BUY_USD_<gross_profit>_<balance_after>" — commission = net - gross.
+          function parseTrade(t) {
+            const netProfit = parseFloat(t.net_profit) || 0;
+            let grossProfit = netProfit;
+            const side = t.side || "";
+            if (side.includes("_")) {
+              const parts = side.split("_");
+              if (parts.length > 2 && !isNaN(parseFloat(parts[2]))) {
+                grossProfit = parseFloat(parts[2]);
+              }
+            }
+            return { netProfit, commission: netProfit - grossProfit };
+          }
+
+          const perAccount = {};
+          for (const t of rows) {
+            const { netProfit, commission } = parseTrade(t);
+            if (!perAccount[t.license_key]) {
+              perAccount[t.license_key] = {
+                netSum: 0,
+                commSum: 0,
+                count: 0,
+                maxWin: -Infinity,
+                maxWinSymbol: "",
+              };
+            }
+            const a = perAccount[t.license_key];
+            a.netSum += netProfit;
+            a.commSum += Math.abs(commission);
+            a.count += 1;
+            if (netProfit > a.maxWin) {
+              a.maxWin = netProfit;
+              a.maxWinSymbol = t.symbol || "";
+            }
+          }
+
+          const licenseKeys = Object.keys(perAccount);
+
+          const balMap = {};
+          try {
+            const placeholders = licenseKeys.map(() => "?").join(",");
+            const balRows = await env.DB
+              .prepare(
+                `SELECT license_key, balance FROM account_balances WHERE license_key IN (${placeholders})`,
+              )
+              .bind(...licenseKeys)
+              .all();
+            (balRows.results || []).forEach((r) => {
+              balMap[r.license_key] = r.balance;
+            });
+          } catch (e) {}
+
+          const userIds = [...new Set(licenseKeys.map((lk) => lk.split(":")[0]))];
+          const userMap = {};
+          if (userIds.length) {
+            const placeholders = userIds.map(() => "?").join(",");
+            const uRows = await env.DB
+              .prepare(`SELECT id, username FROM users WHERE id IN (${placeholders})`)
+              .bind(...userIds)
+              .all();
+            (uRows.results || []).forEach((u) => {
+              userMap[u.id] = u.username || "Trader";
+            });
+          }
+
+          const perUser = {};
+          for (const lk of licenseKeys) {
+            const uid = lk.split(":")[0];
+            const a = perAccount[lk];
+            if (!perUser[uid]) {
+              perUser[uid] = {
+                username: userMap[uid] || "Trader",
+                commSum: 0,
+                count: 0,
+                netSum: 0,
+                balanceStart: 0,
+                hasBalance: false,
+                maxWin: -Infinity,
+                maxWinSymbol: "",
+              };
+            }
+            const u = perUser[uid];
+            u.commSum += a.commSum;
+            u.count += a.count;
+            u.netSum += a.netSum;
+            const currentBal = balMap[lk];
+            if (currentBal !== undefined && currentBal !== null) {
+              u.balanceStart += currentBal - a.netSum;
+              u.hasBalance = true;
+            }
+            if (a.maxWin > u.maxWin) {
+              u.maxWin = a.maxWin;
+              u.maxWinSymbol = a.maxWinSymbol;
+            }
+          }
+
+          const users = Object.values(perUser);
+
+          const commissions = users
+            .filter((u) => u.commSum > 0.001)
+            .sort((a, b) => b.commSum - a.commSum)
+            .slice(0, 5)
+            .map((u) => ({
+              username: u.username,
+              value: parseFloat(u.commSum.toFixed(2)),
+            }));
+
+          const gainPct = users
+            .filter((u) => u.hasBalance && u.balanceStart > 0)
+            .map((u) => ({
+              username: u.username,
+              value: parseFloat(((u.netSum / u.balanceStart) * 100).toFixed(2)),
+            }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+
+          const biggestWin = users
+            .filter((u) => u.maxWin > 0)
+            .sort((a, b) => b.maxWin - a.maxWin)
+            .slice(0, 5)
+            .map((u) => ({
+              username: u.username,
+              value: parseFloat(u.maxWin.toFixed(2)),
+              symbol: u.maxWinSymbol,
+            }));
+
+          const mostTrades = users
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
+            .map((u) => ({ username: u.username, value: u.count }));
+
+          return new Response(
+            JSON.stringify({
+              commissions,
+              gain_pct: gainPct,
+              biggest_win: biggestWin,
+              most_trades: mostTrades,
+              week_start: weekStart,
+            }),
+            { headers: corsHeaders },
+          );
+        } catch (e) {
+          return new Response(e.message, { status: 500, headers: corsHeaders });
+        }
+      }
+
       if (request.method === "POST" && action === "community_comment") {
         try {
           const user_id = await authenticateUser(request, env);

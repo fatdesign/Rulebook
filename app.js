@@ -123,16 +123,28 @@ const i18n = {
     nav_dashboard: "Dashboard",
     nav_journal: "Journal",
     nav_trades: "Trades",
-    nav_tags: "Fehleranalyse",
+    nav_tags: "Trading-Analyse",
     nav_prop: "Prop Challenge",
     market_sessions: "Market Sessions & Timezones",
     prop_tracker: "Prop Firm Challenge Tracker",
     nav_coach: "AI Coach",
-    tag_analyzer_title: "Fehleranalyse",
+    tag_analyzer_title: "Trading-Analyse",
     tag_analyzer_desc:
       "Analysiere deine Fehler und Setups. Wähle einen Hashtag aus, um die entsprechenden Trades zu filtern und zu überprüfen.",
     community_title: "Rulebook Community",
     community_trending: "Trending Now",
+    community_leaderboard_title: "Wochen-Leaderboard",
+    lb_tab_commissions: "Commissions",
+    lb_tab_gain: "Gain %",
+    lb_tab_biggest_win: "Bester Trade",
+    lb_tab_most_trades: "Meiste Trades",
+    lb_loading: "Lade Rangliste...",
+    lb_no_data: "Noch keine Daten für diese Woche.",
+    lb_trades_suffix: "Trades",
+    time_just_now: "gerade eben",
+    time_fmt_min: "vor {n} Min.",
+    time_fmt_hr: "vor {n} Std.",
+    time_fmt_day: "vor {n} Tg.",
     composer_ph: "Was gibt's Neues?",
     composer_attach_trade: "Trade anhängen",
     composer_submit: "Posten",
@@ -368,6 +380,18 @@ const i18n = {
       "Analyze your mistakes and setups. Select a hashtag to filter and inspect the corresponding trades.",
     community_title: "Rulebook Community",
     community_trending: "Trending Now",
+    community_leaderboard_title: "Weekly Leaderboard",
+    lb_tab_commissions: "Commissions",
+    lb_tab_gain: "Gain %",
+    lb_tab_biggest_win: "Best Trade",
+    lb_tab_most_trades: "Most Trades",
+    lb_loading: "Loading leaderboard...",
+    lb_no_data: "No data for this week yet.",
+    lb_trades_suffix: "Trades",
+    time_just_now: "just now",
+    time_fmt_min: "{n}m",
+    time_fmt_hr: "{n}h",
+    time_fmt_day: "{n}d",
     composer_ph: "What's new?",
     composer_attach_trade: "Attach Trade",
     composer_submit: "Post",
@@ -633,6 +657,18 @@ const i18n = {
       "Analiza tus errores y configuraciones. Selecciona una etiqueta para filtrar e inspeccionar las operaciones correspondientes.",
     community_title: "Comunidad Rulebook",
     community_trending: "Tendencias Ahora",
+    community_leaderboard_title: "Ranking Semanal",
+    lb_tab_commissions: "Comisiones",
+    lb_tab_gain: "Ganancia %",
+    lb_tab_biggest_win: "Mejor Trade",
+    lb_tab_most_trades: "Más Trades",
+    lb_loading: "Cargando ranking...",
+    lb_no_data: "Aún no hay datos para esta semana.",
+    lb_trades_suffix: "Trades",
+    time_just_now: "justo ahora",
+    time_fmt_min: "hace {n} min",
+    time_fmt_hr: "hace {n} h",
+    time_fmt_day: "hace {n} d",
     composer_ph: "¿Qué hay de nuevo?",
     composer_attach_trade: "Adjuntar Operación",
     composer_submit: "Publicar",
@@ -869,6 +905,18 @@ const i18n = {
       "Hatalarınızı ve kurulumlarınızı analiz edin. İlgili işlemleri filtrelemek ve incelemek için bir hashtag seçin.",
     community_title: "Rulebook Topluluğu",
     community_trending: "Şimdi Popüler",
+    community_leaderboard_title: "Haftalık Lider Tablosu",
+    lb_tab_commissions: "Komisyonlar",
+    lb_tab_gain: "Kazanç %",
+    lb_tab_biggest_win: "En İyi İşlem",
+    lb_tab_most_trades: "En Çok İşlem",
+    lb_loading: "Lider tablosu yükleniyor...",
+    lb_no_data: "Bu hafta için henüz veri yok.",
+    lb_trades_suffix: "İşlem",
+    time_just_now: "az önce",
+    time_fmt_min: "{n} dk önce",
+    time_fmt_hr: "{n} sa önce",
+    time_fmt_day: "{n} g önce",
     composer_ph: "Yeni ne var?",
     composer_attach_trade: "İşlem Ekle",
     composer_submit: "Paylaş",
@@ -5008,6 +5056,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (tabId === "tab-community") {
         loadCommunityFeed();
+        loadCommunityLeaderboard();
       }
       if (tabId === "tab-psychology") {
         renderPsychologyLessons();
@@ -5029,7 +5078,43 @@ document.addEventListener("DOMContentLoaded", () => {
   const refreshFeedBtn = document.getElementById("refresh-feed-btn");
 
   if (refreshFeedBtn) {
-    refreshFeedBtn.addEventListener("click", loadCommunityFeed);
+    refreshFeedBtn.addEventListener("click", () => {
+      loadCommunityFeed();
+      loadCommunityLeaderboard();
+    });
+  }
+
+  // Deterministic per-user avatar gradient (X/Twitter-style colored initials)
+  const AVATAR_PALETTES = [
+    ["#a855f7", "#6366f1"],
+    ["#f97316", "#ef4444"],
+    ["#10b981", "#06b6d4"],
+    ["#3b82f6", "#8b5cf6"],
+    ["#ec4899", "#f43f5e"],
+    ["#22c55e", "#84cc16"],
+    ["#eab308", "#f97316"],
+    ["#06b6d4", "#3b82f6"],
+  ];
+  function avatarColor(name) {
+    const str = name || "U";
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const [c1, c2] = AVATAR_PALETTES[Math.abs(hash) % AVATAR_PALETTES.length];
+    return `linear-gradient(135deg, ${c1}, ${c2})`;
+  }
+
+  function formatRelativeTime(unixSeconds, dict) {
+    const diffSec = Math.max(0, Math.floor(Date.now() / 1000) - unixSeconds);
+    if (diffSec < 60) return dict.time_just_now || "just now";
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return (dict.time_fmt_min || "{n}m").replace("{n}", diffMin);
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return (dict.time_fmt_hr || "{n}h").replace("{n}", diffHr);
+    const diffDay = Math.floor(diffHr / 24);
+    if (diffDay < 7) return (dict.time_fmt_day || "{n}d").replace("{n}", diffDay);
+    return new Date(unixSeconds * 1000).toLocaleDateString();
   }
 
   function loadCommunityFeed() {
@@ -5070,8 +5155,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const dict = i18n[currentLang] || i18n["de"];
 
     posts.forEach((post) => {
-      const date = new Date(post.created_at * 1000);
-      const timeStr = date.toLocaleString();
+      const timeStr = formatRelativeTime(post.created_at, dict);
+      const fullTimeStr = new Date(post.created_at * 1000).toLocaleString();
 
       const p = document.createElement("div");
       p.className = "community-post";
@@ -5159,20 +5244,26 @@ document.addEventListener("DOMContentLoaded", () => {
         commentInputHtml = `<div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">${maxCommText}</div>`;
       }
 
+      const commentCount = post.comments ? post.comments.length : 0;
+
       p.innerHTML = `
                 ${optionsMenu}
                 <div class="post-header">
-                    <div class="post-avatar">${post.username ? post.username.substring(0, 1).toUpperCase() : "U"}</div>
+                    <div class="post-avatar" style="background: ${avatarColor(post.username)};">${post.username ? post.username.substring(0, 1).toUpperCase() : "U"}</div>
                     <div class="post-author-info">
                         <span class="post-username">${post.username || "Unknown Trader"}</span>
-                        <span class="post-time">${timeStr}</span>
+                        <span class="post-time" title="${fullTimeStr}">${timeStr}</span>
                     </div>
                 </div>
                 <div class="post-content">${escapeHTML(post.content || "")}</div>
                 ${tradeHtml}
                 <div class="post-actions" style="margin-bottom: 10px;">
-                    <button class="post-action-btn ${post.user_liked ? "liked" : ""}" data-post-id="${post.id}">
-                        <i class="${post.user_liked ? "ph-fill ph-heart" : "ph ph-heart"}"></i>
+                    <button class="post-action-btn reply-btn" data-post-id="${post.id}">
+                        <i class="ph ph-chat-circle"></i>
+                        <span class="reply-count">${commentCount}</span>
+                    </button>
+                    <button class="post-action-btn like-btn ${post.has_liked ? "liked" : ""}" data-post-id="${post.id}">
+                        <i class="${post.has_liked ? "ph-fill ph-heart" : "ph ph-heart"}"></i>
                         <span class="like-count">${post.likes || 0}</span>
                     </button>
                 </div>
@@ -5180,6 +5271,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${commentInputHtml}
             `;
       communityFeedContainer.appendChild(p);
+    });
+
+    // Reply button focuses this post's comment input (functional, not decorative)
+    communityFeedContainer.querySelectorAll(".reply-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const postId = btn.getAttribute("data-post-id");
+        const input = communityFeedContainer.querySelector(
+          `.comment-input[data-post-id="${postId}"]`,
+        );
+        if (input) input.focus();
+      });
     });
 
     communityFeedContainer
