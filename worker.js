@@ -1163,6 +1163,60 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         });
       }
 
+      // --- COOLDOWN VIOLATION ROUTE (POST) ---
+      // Called by the EA every time it force-closes a trade that was
+      // opened while the cooldown window was still active.
+      if (request.method === "POST" && action === "cooldown_violation") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id)
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response("Invalid JSON", {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+
+        const account_id =
+          body.account_id || url.searchParams.get("account_id") || "default";
+        const db_key = `${user_id}:${account_id}`;
+
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS cooldown_violations (
+            id TEXT PRIMARY KEY,
+            license_key TEXT,
+            ticket TEXT,
+            symbol TEXT,
+            created_at INTEGER
+          )
+        `,
+        ).run();
+
+        await env.DB.prepare(
+          "INSERT INTO cooldown_violations (id, license_key, ticket, symbol, created_at) VALUES (?, ?, ?, ?, ?)",
+        )
+          .bind(
+            crypto.randomUUID(),
+            db_key,
+            String(body.ticket || ""),
+            body.symbol || "",
+            Math.floor(Date.now() / 1000),
+          )
+          .run();
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: corsHeaders,
+        });
+      }
+
       // --- JOURNAL ROUTE (POST) ---
       if (request.method === "POST" && action === "journal") {
         const user_id = await authenticateUser(request, env);
@@ -1465,6 +1519,56 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
                 cooldown_minutes: 15,
               },
             ),
+            { headers: corsHeaders },
+          );
+        }
+
+        if (action === "cooldown_violations") {
+          await env.DB.prepare(
+            `
+              CREATE TABLE IF NOT EXISTS cooldown_violations (
+                id TEXT PRIMARY KEY,
+                license_key TEXT,
+                ticket TEXT,
+                symbol TEXT,
+                created_at INTEGER
+              )
+            `,
+          ).run();
+
+          const now = new Date();
+          const day = now.getUTCDay(); // 0=Sun .. 6=Sat
+          const daysToMonday = day === 0 ? -6 : 1 - day;
+          const weekStart = Math.floor(
+            Date.UTC(
+              now.getUTCFullYear(),
+              now.getUTCMonth(),
+              now.getUTCDate() + daysToMonday,
+            ) / 1000,
+          );
+
+          const weekRes = await env.DB.prepare(
+            "SELECT COUNT(*) as count FROM cooldown_violations WHERE license_key = ? AND created_at >= ?",
+          )
+            .bind(db_key, weekStart)
+            .first();
+          const totalRes = await env.DB.prepare(
+            "SELECT COUNT(*) as count FROM cooldown_violations WHERE license_key = ?",
+          )
+            .bind(db_key)
+            .first();
+          const recentRes = await env.DB.prepare(
+            "SELECT ticket, symbol, created_at FROM cooldown_violations WHERE license_key = ? ORDER BY created_at DESC LIMIT 10",
+          )
+            .bind(db_key)
+            .all();
+
+          return new Response(
+            JSON.stringify({
+              week_count: (weekRes && weekRes.count) || 0,
+              total_count: (totalRes && totalRes.count) || 0,
+              recent: recentRes.results || [],
+            }),
             { headers: corsHeaders },
           );
         }
