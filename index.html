@@ -1180,6 +1180,23 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- Mood vs Performance -->
+                  <div
+                    id="mood-perf-panel"
+                    class="glass-panel"
+                    style="margin-bottom: 20px; display: none;"
+                  >
+                    <h3 style="margin-bottom: 15px;">
+                      <i class="ph ph-brain"></i>
+                      <span data-i18n="mood_perf_title">Stimmung &amp; Performance</span>
+                    </h3>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;" data-i18n="mood_perf_sub">
+                      Durchschnittliches Tagesergebnis, aufgeschlüsselt nach der Stimmung, die du im Mental Journal eingetragen hast.
+                    </p>
+                    <div id="mood-perf-list"></div>
+                  </div>
+
                   <!-- Daily Stats Table -->
                   <div
                     id="daily-stats-panel"
@@ -2169,7 +2186,9 @@
           class="modal-content glass-panel"
           style="
             width: 100%;
-            max-width: 600px;
+            max-width: 640px;
+            max-height: 88vh;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
           "
@@ -2209,11 +2228,54 @@
               &times;
             </button>
           </div>
+
+          <!-- Trades of the day, so you don't have to remember what happened -->
+          <div id="journal-modal-trades" style="margin-bottom: 18px;"></div>
+
+          <!-- Did you follow your plan? -->
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;" data-i18n="journal_plan_q">
+              Hast du deinen Plan befolgt?
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="secondary-btn journal-choice-btn journal-plan-btn" data-value="1" data-i18n="journal_plan_yes">Ja</button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-plan-btn" data-value="0" data-i18n="journal_plan_no">Nein</button>
+            </div>
+          </div>
+
+          <!-- Emotional state 1-5 -->
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;" data-i18n="journal_state_q">
+              Wie war dein emotionaler Zustand?
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="secondary-btn journal-choice-btn journal-state-btn" data-value="1">1</button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-state-btn" data-value="2">2</button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-state-btn" data-value="3">3</button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-state-btn" data-value="4">4</button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-state-btn" data-value="5">5</button>
+            </div>
+          </div>
+
+          <!-- Mood tag -->
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;" data-i18n="journal_mood_q">
+              Wie fühlst du dich gerade?
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="secondary-btn journal-choice-btn journal-mood-btn" data-value="calm">😌 <span data-i18n="mood_calm">Ruhig</span></button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-mood-btn" data-value="frustrated">😤 <span data-i18n="mood_frustrated">Frustriert</span></button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-mood-btn" data-value="overconfident">🚀 <span data-i18n="mood_overconfident">Übermütig</span></button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-mood-btn" data-value="anxious">😰 <span data-i18n="mood_anxious">Ängstlich</span></button>
+              <button type="button" class="secondary-btn journal-choice-btn journal-mood-btn" data-value="neutral">😐 <span data-i18n="mood_neutral">Neutral</span></button>
+            </div>
+          </div>
+
           <textarea
             id="journal-modal-text"
             style="
               width: 100%;
-              min-height: 200px;
+              min-height: 160px;
               background: var(--input-bg);
               color: var(--input-text);
               border: 2px solid var(--border-darker);

@@ -2236,3 +2236,73 @@ th {
   flex-shrink: 0;
   text-align: right;
 }
+
+/* --- JOURNAL MODAL: structured quick-fields --- */
+.journal-choice-btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+.journal-choice-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  font-weight: bold;
+}
+.journal-state-btn {
+  padding: 6px 12px;
+  min-width: 36px;
+}
+
+.journal-trade-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-dark);
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+.journal-trade-card .jtc-symbol {
+  font-weight: bold;
+  color: var(--text-main);
+}
+.journal-trade-card .jtc-side {
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+/* --- JOURNAL TAB: Mood vs Performance panel --- */
+.mood-perf-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-dark);
+  font-size: 0.85rem;
+}
+.mood-perf-row:last-child {
+  border-bottom: none;
+}
+.mood-perf-emoji {
+  font-size: 1.2rem;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.mood-perf-label {
+  flex: 1;
+  color: var(--text-main);
+}
+.mood-perf-count {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+.mood-perf-value {
+  font-weight: bold;
+  flex-shrink: 0;
+  min-width: 90px;
+  text-align: right;
+}

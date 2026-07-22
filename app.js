@@ -212,6 +212,21 @@ const i18n = {
     strategy_name_ph: "z.B. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Trage hier deine Einstiegsregeln, Konditionen und Notizen ein...",
     journal_modal_ph: "Wie fühlst du dich heute bei deinen Trades? Hast du deinen Plan befolgt?",
+    journal_plan_q: "Hast du deinen Plan befolgt?",
+    journal_plan_yes: "Ja",
+    journal_plan_no: "Nein",
+    journal_state_q: "Wie war dein emotionaler Zustand?",
+    journal_mood_q: "Wie fühlst du dich gerade?",
+    mood_calm: "Ruhig",
+    mood_frustrated: "Frustriert",
+    mood_overconfident: "Übermütig",
+    mood_anxious: "Ängstlich",
+    mood_neutral: "Neutral",
+    journal_trades_none: "Keine Trades an diesem Tag.",
+    mood_perf_title: "Stimmung & Performance",
+    mood_perf_sub: "Durchschnittliches Tagesergebnis, aufgeschlüsselt nach der Stimmung, die du im Mental Journal eingetragen hast.",
+    mood_perf_no_data: "Noch keine Stimmungs-Daten. Trag ein paar Journal-Einträge mit Stimmung ein, um hier deine Muster zu sehen.",
+    mood_perf_days_suffix: "Tage",
     delete_post: "Löschen",
     confirm_delete_post: "Bist du sicher, dass du diesen Beitrag löschen möchtest?",
     deleting_post: "Lösche...",
@@ -463,6 +478,21 @@ const i18n = {
     strategy_name_ph: "e.g. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "List your entry rules, conditions and notes here...",
     journal_modal_ph: "How are you feeling about your trades today? Did you follow your plan?",
+    journal_plan_q: "Did you follow your plan?",
+    journal_plan_yes: "Yes",
+    journal_plan_no: "No",
+    journal_state_q: "How was your emotional state?",
+    journal_mood_q: "How are you feeling right now?",
+    mood_calm: "Calm",
+    mood_frustrated: "Frustrated",
+    mood_overconfident: "Overconfident",
+    mood_anxious: "Anxious",
+    mood_neutral: "Neutral",
+    journal_trades_none: "No trades on this day.",
+    mood_perf_title: "Mood & Performance",
+    mood_perf_sub: "Average daily result, broken down by the mood you logged in the Mental Journal.",
+    mood_perf_no_data: "No mood data yet. Log a few journal entries with a mood to see your patterns here.",
+    mood_perf_days_suffix: "days",
     delete_post: "Delete",
     confirm_delete_post: "Are you sure you want to delete this post?",
     deleting_post: "Deleting...",
@@ -713,6 +743,21 @@ const i18n = {
     strategy_name_ph: "ej. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Escribe aquí tus reglas de entrada, condiciones y notas...",
     journal_modal_ph: "¿Cómo te sientes con tus operaciones hoy? ¿Seguiste tu plan?",
+    journal_plan_q: "¿Seguiste tu plan?",
+    journal_plan_yes: "Sí",
+    journal_plan_no: "No",
+    journal_state_q: "¿Cómo estuvo tu estado emocional?",
+    journal_mood_q: "¿Cómo te sientes ahora?",
+    mood_calm: "Tranquilo",
+    mood_frustrated: "Frustrado",
+    mood_overconfident: "Sobreconfiado",
+    mood_anxious: "Ansioso",
+    mood_neutral: "Neutral",
+    journal_trades_none: "No hay operaciones este día.",
+    mood_perf_title: "Estado de Ánimo y Rendimiento",
+    mood_perf_sub: "Resultado diario promedio, desglosado por el estado de ánimo que registraste en el Diario Mental.",
+    mood_perf_no_data: "Aún no hay datos de estado de ánimo. Registra algunas entradas con estado de ánimo para ver tus patrones aquí.",
+    mood_perf_days_suffix: "días",
     delete_post: "Eliminar",
     confirm_delete_post: "¿Estás seguro de que deseas eliminar esta publicación?",
     deleting_post: "Eliminando...",
@@ -963,6 +1008,21 @@ const i18n = {
     strategy_name_ph: "ör. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Giriş kurallarınızı, koşullarınızı ve notlarınızı buraya yazın...",
     journal_modal_ph: "Bugünkü işlemleriniz hakkında nasıl hissediyorsunuz? Planınıza uydunuz mu?",
+    journal_plan_q: "Planına uydun mu?",
+    journal_plan_yes: "Evet",
+    journal_plan_no: "Hayır",
+    journal_state_q: "Duygusal durumun nasıldı?",
+    journal_mood_q: "Şu an nasıl hissediyorsun?",
+    mood_calm: "Sakin",
+    mood_frustrated: "Sinirli",
+    mood_overconfident: "Aşırı Özgüvenli",
+    mood_anxious: "Endişeli",
+    mood_neutral: "Nötr",
+    journal_trades_none: "Bu gün işlem yok.",
+    mood_perf_title: "Ruh Hali ve Performans",
+    mood_perf_sub: "Mental Günlüğe kaydettiğin ruh haline göre ayrılmış ortalama günlük sonuç.",
+    mood_perf_no_data: "Henüz ruh hali verisi yok. Kalıplarını burada görmek için birkaç günlük kaydına ruh hali ekle.",
+    mood_perf_days_suffix: "gün",
     delete_post: "Sil",
     confirm_delete_post: "Bu gönderiyi silmek istediğinizden emin misiniz?",
     deleting_post: "Siliniyor...",
@@ -2178,6 +2238,12 @@ document.addEventListener("DOMContentLoaded", () => {
       window.currentFilteredTrades = filteredTrades;
       currentAllTrades = trades;
       window.currentAllTrades = trades;
+
+      // If the Journal tab was restored on reload before trades finished
+      // loading, its mood/performance correlation needs a re-run now.
+      if (document.getElementById("tab-journal")?.classList.contains("active")) {
+        loadMoodPerformance(key);
+      }
 
       processData(filteredTrades, curSym);
     } catch (err) {
@@ -3720,6 +3786,98 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  const MOOD_META = {
+    calm: { emoji: "😌", labelKey: "mood_calm" },
+    frustrated: { emoji: "😤", labelKey: "mood_frustrated" },
+    overconfident: { emoji: "🚀", labelKey: "mood_overconfident" },
+    anxious: { emoji: "😰", labelKey: "mood_anxious" },
+    neutral: { emoji: "😐", labelKey: "mood_neutral" },
+  };
+
+  async function loadMoodPerformance(key) {
+    const panel = document.getElementById("mood-perf-panel");
+    const list = document.getElementById("mood-perf-list");
+    if (!panel || !list) return;
+
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
+
+    try {
+      const response = await fetch(
+        `${API_URL}?action=journal_history&account_id=${encodeURIComponent(key)}`,
+        {
+          method: "GET",
+          headers: { Authorization: localStorage.getItem("tm_master_token") },
+        },
+      );
+      if (!response.ok) return;
+      const entries = await response.json();
+      panel.style.display = "block";
+
+      if (!Array.isArray(entries) || entries.length === 0) {
+        list.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-muted);">${dict.mood_perf_no_data || "No mood data yet."}</div>`;
+        return;
+      }
+
+      const curSym = window.currentCurSym || "$";
+      const trades = window.currentAllTrades || [];
+
+      // Sum net P&L per local date-key, matching the day-grouping used
+      // everywhere else (calendar, daily stats, journal trade list).
+      const dailyPnl = {};
+      trades.forEach((t) => {
+        const d = new Date(t.close_time * 1000);
+        const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        dailyPnl[dKey] = (dailyPnl[dKey] || 0) + parseFloat(t.net_profit || 0);
+      });
+
+      const moodStats = {};
+      entries.forEach((e) => {
+        if (!e.mood) return;
+        const pnl = dailyPnl[e.date];
+        if (pnl === undefined) return; // no trades that day - nothing to correlate
+        if (!moodStats[e.mood]) moodStats[e.mood] = { sum: 0, count: 0 };
+        moodStats[e.mood].sum += pnl;
+        moodStats[e.mood].count += 1;
+      });
+
+      const rows = Object.keys(moodStats)
+        .map((mood) => ({
+          mood,
+          avg: moodStats[mood].sum / moodStats[mood].count,
+          count: moodStats[mood].count,
+        }))
+        .sort((a, b) => b.avg - a.avg);
+
+      if (rows.length === 0) {
+        list.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-muted);">${dict.mood_perf_no_data || "No mood data yet."}</div>`;
+        return;
+      }
+
+      list.innerHTML = rows
+        .map((r) => {
+          const meta = MOOD_META[r.mood] || { emoji: "❔", labelKey: null };
+          const label = meta.labelKey ? dict[meta.labelKey] || r.mood : r.mood;
+          const color = r.avg >= 0 ? "var(--success)" : "var(--danger)";
+          const sign = r.avg >= 0 ? "+" : "-";
+          return `
+            <div class="mood-perf-row">
+              <div class="mood-perf-emoji">${meta.emoji}</div>
+              <div class="mood-perf-label">${label} <span class="mood-perf-count">(${r.count} ${dict.mood_perf_days_suffix || "days"})</span></div>
+              <div class="mood-perf-value" style="color: ${color};">${sign}${curSym}${Math.abs(r.avg).toFixed(2)}</div>
+            </div>
+          `;
+        })
+        .join("");
+    } catch (e) {
+      console.error("Failed to load mood performance", e);
+    }
+  }
+  // Exposed on window: this file has several separate DOMContentLoaded
+  // blocks (each its own closure), and the tab-switch handler that needs
+  // to call this on tab-journal activation lives in a different one.
+  window.loadMoodPerformance = loadMoodPerformance;
+
   async function saveSettings(key) {
     try {
       await fetch(`${API_URL}?action=settings`, {
@@ -3789,6 +3947,71 @@ document.addEventListener("DOMContentLoaded", () => {
   window.loadSettings = loadSettings;
 
   // --- Journal Modal Logic ---
+  // Same local-date grouping used by renderDailyStatsTable, so the trades
+  // shown here always match the day the "open-journal-btn" was clicked for.
+  function getTradesForDateKey(dateKey) {
+    const trades = window.currentAllTrades || [];
+    return trades.filter((t) => {
+      const d = new Date(t.close_time * 1000);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return key === dateKey;
+    });
+  }
+
+  function renderJournalModalTrades(dateKey) {
+    const container = document.getElementById("journal-modal-trades");
+    if (!container) return;
+    const dict = i18n[localStorage.getItem("tm_global_lang") || "de"] || i18n["de"];
+    const curSym = window.currentCurSym || "$";
+    const dayTrades = getTradesForDateKey(dateKey);
+
+    if (dayTrades.length === 0) {
+      container.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-muted);">${dict.journal_trades_none || "No trades on this day."}</div>`;
+      return;
+    }
+
+    container.innerHTML = dayTrades
+      .map((t) => {
+        const netP = parseFloat(t.net_profit);
+        const color = netP >= 0 ? "var(--success)" : "var(--danger)";
+        const sign = netP >= 0 ? "+" : "-";
+        return `
+          <div class="journal-trade-card">
+            <div><span class="jtc-symbol">${t.symbol || "-"}</span><span class="jtc-side">${(t.side || "-").split("_")[0]}</span></div>
+            <div style="color: ${color}; font-weight: bold;">${sign}${curSym}${Math.abs(netP).toFixed(2)}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Wires a group of single-select toggle buttons (plan / state / mood).
+  // Returns a getter for the currently selected data-value (or null).
+  function wireChoiceGroup(buttons) {
+    let selected = null;
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const alreadyActive = btn.classList.contains("active");
+        buttons.forEach((b) => b.classList.remove("active"));
+        if (!alreadyActive) {
+          btn.classList.add("active");
+          selected = btn.getAttribute("data-value");
+        } else {
+          selected = null; // clicking the active choice again clears it
+        }
+      });
+    });
+    return {
+      get: () => selected,
+      set: (value) => {
+        selected = value === null || value === undefined ? null : String(value);
+        buttons.forEach((b) => {
+          b.classList.toggle("active", b.getAttribute("data-value") === selected);
+        });
+      },
+    };
+  }
+
   window.openJournalModal = async function (dateKey, dateStr) {
     const modal = document.getElementById("journal-modal");
     const title = document.getElementById("journal-modal-title");
@@ -3807,6 +4030,18 @@ document.addEventListener("DOMContentLoaded", () => {
     status.innerText = "";
     modal.classList.remove("hidden");
 
+    renderJournalModalTrades(dateKey);
+
+    const planGroup = wireChoiceGroup(
+      Array.from(document.querySelectorAll(".journal-plan-btn")),
+    );
+    const stateGroup = wireChoiceGroup(
+      Array.from(document.querySelectorAll(".journal-state-btn")),
+    );
+    const moodGroup = wireChoiceGroup(
+      Array.from(document.querySelectorAll(".journal-mood-btn")),
+    );
+
     // Fetch journal for this specific day
     try {
       const res = await fetch(
@@ -3817,6 +4052,13 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       const data = await res.json();
       textObj.value = data.content || "";
+      planGroup.set(
+        data.plan_followed === null || data.plan_followed === undefined
+          ? null
+          : data.plan_followed,
+      );
+      stateGroup.set(data.emotional_state);
+      moodGroup.set(data.mood);
     } catch (e) {
       console.error("Failed to load journal", e);
       textObj.value = "";
@@ -3844,11 +4086,15 @@ document.addEventListener("DOMContentLoaded", () => {
             account_id: key,
             date: dateKey,
             content: textObj.value,
+            plan_followed: planGroup.get(),
+            emotional_state: stateGroup.get(),
+            mood: moodGroup.get(),
           }),
         });
         status.innerText = "Saved successfully!";
         setTimeout(() => {
           modal.classList.add("hidden");
+          loadMoodPerformance(key);
         }, 1000);
       } catch (err) {
         console.error("Journal save error", err);
@@ -5126,6 +5372,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (tabId === "tab-psychology") {
         renderPsychologyLessons();
+      }
+      if (tabId === "tab-journal") {
+        const key = localStorage.getItem("tm_license_key");
+        if (key && typeof window.loadMoodPerformance === "function") {
+          window.loadMoodPerformance(key);
+        }
       }
     });
   });

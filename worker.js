@@ -936,6 +936,32 @@ export default {
           trades = tradesRes.results;
         }
 
+        // Pull in recent Mental Journal entries so the coach can connect
+        // mindset/mood with what actually happened in the trades.
+        let journalContext = "Keine Journal-Einträge vorhanden.";
+        try {
+          const journalRes = await env.DB.prepare(
+            "SELECT date, content, plan_followed, emotional_state, mood FROM journal WHERE license_key = ? ORDER BY date DESC LIMIT 14",
+          )
+            .bind(db_key)
+            .all();
+          const entries = journalRes.results || [];
+          if (entries.length > 0) {
+            journalContext = entries
+              .map((e) => {
+                const parts = [`Datum: ${e.date}`];
+                if (e.mood) parts.push(`Stimmung: ${e.mood}`);
+                if (e.emotional_state !== null && e.emotional_state !== undefined)
+                  parts.push(`Emotionaler Zustand (1-5): ${e.emotional_state}`);
+                if (e.plan_followed !== null && e.plan_followed !== undefined)
+                  parts.push(`Plan befolgt: ${e.plan_followed ? "Ja" : "Nein"}`);
+                if (e.content) parts.push(`Notiz: "${e.content}"`);
+                return parts.join(", ");
+              })
+              .join("\n");
+          }
+        } catch (e) {}
+
         const statsStr = body.stats ? JSON.stringify(body.stats) : "{}";
         const langMap = {
           de: "Deutsch",
@@ -945,10 +971,12 @@ export default {
         };
         const promptLang = langMap[body.language] || "English";
 
-        const prompt = `Du bist ein erfahrener, direkter und emotional intelligenter Trading-Mentor. 
+        const prompt = `Du bist ein erfahrener, direkter und emotional intelligenter Trading-Mentor.
 Analysiere die folgenden Trades und aggregierten Statistiken.
 Profil des Traders: ${JSON.stringify({ style: body.style, session: body.session, risk: body.risk })}
 Aggregierte Statistiken: ${statsStr}
+Mental Journal Einträge der letzten Tage (chronologisch absteigend):
+${journalContext}
 WICHTIGE REGELN:
 1. Sprich den Trader IMMER direkt mit "Du" an.
 2. KEINE EINLEITUNG! Starte direkt mit dem ersten Punkt der Analyse. Phrasen wie "Ich werde nun deine Trades analysieren" oder "Deine Statistiken zeigen, dass..." sind STRIKT VERBOTEN. Komm sofort zur Sache.
@@ -957,8 +985,9 @@ WICHTIGE REGELN:
 5. Berechne und empfehle EINEN konkreten "Kill Switch" (Daily Loss Limit) basierend auf dem durchschnittlichen Verlust (z.B. 2-3x Avg Loss oder max Drawdown). Erkläre kurz, warum dieser Wert sinnvoll ist.
 6. KONTROLLIERE DAS PROFIL: Passt das angegebene Profil (Style, Session, Risk) zum tatsächlichen Verhalten?
 7. Gib hartes, ehrliches Feedback. Lobe bei Disziplin, kritisiere bei Fehlern. Wenn bei Trades "sl_widened" > 0 ist, weise den Trader STRENG darauf hin, dass das Verschieben des Stop Loss in den Verlustbereich ein gefährlicher Disziplinverstoß (Hoffnungstrading) ist! Achte auch auf Tags/Notizen der Trades.
-8. Gib am Ende EINEN starken Ratschlag zur Verbesserung.
-9. SPRACHE EXTREM WICHTIG: Antworte NUR auf ${promptLang}! Übersetze deine gesamte finale Antwort in ${promptLang}.
+8. VERKNÜPFE MENTAL JOURNAL MIT TRADES: Wenn Journal-Einträge vorhanden sind, stelle explizit einen Zusammenhang zwischen Stimmung/emotionalem Zustand/Plan-Treue und der tatsächlichen Trading-Performance an diesen Tagen her (z.B. "an Tagen mit Stimmung X liefst du schlechter"). Wenn keine Einträge vorhanden sind, ignoriere diesen Punkt einfach.
+9. Gib am Ende EINEN starken Ratschlag zur Verbesserung.
+10. SPRACHE EXTREM WICHTIG: Antworte NUR auf ${promptLang}! Übersetze deine gesamte finale Antwort in ${promptLang}.
 Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla, nur echter Mehrwert!`;
 
         if (!env.AI)
@@ -1245,19 +1274,50 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         await env.DB.prepare(
           `
           CREATE TABLE IF NOT EXISTS journal (
-            license_key TEXT, date TEXT, content TEXT, PRIMARY KEY (license_key, date)
+            license_key TEXT, date TEXT, content TEXT,
+            plan_followed INTEGER, emotional_state INTEGER, mood TEXT,
+            PRIMARY KEY (license_key, date)
           )
         `,
         ).run();
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE journal ADD COLUMN plan_followed INTEGER",
+          ).run();
+        } catch (e) {}
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE journal ADD COLUMN emotional_state INTEGER",
+          ).run();
+        } catch (e) {}
+        try {
+          await env.DB.prepare("ALTER TABLE journal ADD COLUMN mood TEXT").run();
+        } catch (e) {}
+
+        const planFollowed =
+          body.plan_followed === null || body.plan_followed === undefined
+            ? null
+            : body.plan_followed
+              ? 1
+              : 0;
+        const emotionalState =
+          body.emotional_state === null || body.emotional_state === undefined
+            ? null
+            : parseInt(body.emotional_state);
+        const mood = body.mood || null;
 
         await env.DB.prepare(
           `
-          INSERT INTO journal (license_key, date, content)
-          VALUES (?, ?, ?)
-          ON CONFLICT(license_key, date) DO UPDATE SET content=excluded.content
+          INSERT INTO journal (license_key, date, content, plan_followed, emotional_state, mood)
+          VALUES (?, ?, ?, ?, ?, ?)
+          ON CONFLICT(license_key, date) DO UPDATE SET
+            content=excluded.content,
+            plan_followed=excluded.plan_followed,
+            emotional_state=excluded.emotional_state,
+            mood=excluded.mood
         `,
         )
-          .bind(db_key, dateStr, body.content || "")
+          .bind(db_key, dateStr, body.content || "", planFollowed, emotionalState, mood)
           .run();
 
         return new Response(JSON.stringify({ success: true }), {
@@ -1580,16 +1640,59 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           await env.DB.prepare(
             `
               CREATE TABLE IF NOT EXISTS journal (
-                license_key TEXT, date TEXT, content TEXT, PRIMARY KEY (license_key, date)
+                license_key TEXT, date TEXT, content TEXT,
+                plan_followed INTEGER, emotional_state INTEGER, mood TEXT,
+                PRIMARY KEY (license_key, date)
               )
             `,
           ).run();
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE journal ADD COLUMN plan_followed INTEGER",
+            ).run();
+          } catch (e) {}
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE journal ADD COLUMN emotional_state INTEGER",
+            ).run();
+          } catch (e) {}
+          try {
+            await env.DB.prepare("ALTER TABLE journal ADD COLUMN mood TEXT").run();
+          } catch (e) {}
           const res = await env.DB.prepare(
-            "SELECT content FROM journal WHERE license_key = ? AND date = ?",
+            "SELECT content, plan_followed, emotional_state, mood FROM journal WHERE license_key = ? AND date = ?",
           )
             .bind(db_key, dateStr)
             .first();
-          return new Response(JSON.stringify(res || { content: "" }), {
+          return new Response(
+            JSON.stringify(
+              res || {
+                content: "",
+                plan_followed: null,
+                emotional_state: null,
+                mood: null,
+              },
+            ),
+            { headers: corsHeaders },
+          );
+        }
+
+        if (action === "journal_history") {
+          await env.DB.prepare(
+            `
+              CREATE TABLE IF NOT EXISTS journal (
+                license_key TEXT, date TEXT, content TEXT,
+                plan_followed INTEGER, emotional_state INTEGER, mood TEXT,
+                PRIMARY KEY (license_key, date)
+              )
+            `,
+          ).run();
+          const { results } = await env.DB.prepare(
+            "SELECT date, plan_followed, emotional_state, mood FROM journal WHERE license_key = ? AND mood IS NOT NULL ORDER BY date DESC LIMIT 180",
+          )
+            .bind(db_key)
+            .all();
+          return new Response(JSON.stringify(results || []), {
             headers: corsHeaders,
           });
         }
