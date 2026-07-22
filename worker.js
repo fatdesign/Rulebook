@@ -1121,24 +1121,40 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           CREATE TABLE IF NOT EXISTS user_settings (
             license_key TEXT PRIMARY KEY,
             kill_switch_active INTEGER DEFAULT 0,
-            max_daily_loss REAL DEFAULT 0
+            max_daily_loss REAL DEFAULT 0,
+            cooldown_active INTEGER DEFAULT 0,
+            cooldown_minutes REAL DEFAULT 15
           )
         `,
         ).run();
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE user_settings ADD COLUMN cooldown_active INTEGER DEFAULT 0",
+          ).run();
+        } catch (e) {}
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE user_settings ADD COLUMN cooldown_minutes REAL DEFAULT 15",
+          ).run();
+        } catch (e) {}
 
         await env.DB.prepare(
           `
-          INSERT INTO user_settings (license_key, kill_switch_active, max_daily_loss)
-          VALUES (?, ?, ?)
-          ON CONFLICT(license_key) DO UPDATE SET 
+          INSERT INTO user_settings (license_key, kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes)
+          VALUES (?, ?, ?, ?, ?)
+          ON CONFLICT(license_key) DO UPDATE SET
             kill_switch_active=excluded.kill_switch_active,
-            max_daily_loss=excluded.max_daily_loss
+            max_daily_loss=excluded.max_daily_loss,
+            cooldown_active=excluded.cooldown_active,
+            cooldown_minutes=excluded.cooldown_minutes
         `,
         )
           .bind(
             db_key,
             body.kill_switch_active ? 1 : 0,
             body.max_daily_loss || 0,
+            body.cooldown_active ? 1 : 0,
+            body.cooldown_minutes || 15,
           )
           .run();
 
@@ -1417,17 +1433,38 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           await env.DB.prepare(
             `
               CREATE TABLE IF NOT EXISTS user_settings (
-                license_key TEXT PRIMARY KEY, kill_switch_active INTEGER DEFAULT 0, max_daily_loss REAL DEFAULT 0
+                license_key TEXT PRIMARY KEY,
+                kill_switch_active INTEGER DEFAULT 0,
+                max_daily_loss REAL DEFAULT 0,
+                cooldown_active INTEGER DEFAULT 0,
+                cooldown_minutes REAL DEFAULT 15
               )
             `,
           ).run();
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE user_settings ADD COLUMN cooldown_active INTEGER DEFAULT 0",
+            ).run();
+          } catch (e) {}
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE user_settings ADD COLUMN cooldown_minutes REAL DEFAULT 15",
+            ).run();
+          } catch (e) {}
           const res = await env.DB.prepare(
-            "SELECT kill_switch_active, max_daily_loss FROM user_settings WHERE license_key = ?",
+            "SELECT kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes FROM user_settings WHERE license_key = ?",
           )
             .bind(db_key)
             .first();
           return new Response(
-            JSON.stringify(res || { kill_switch_active: 0, max_daily_loss: 0 }),
+            JSON.stringify(
+              res || {
+                kill_switch_active: 0,
+                max_daily_loss: 0,
+                cooldown_active: 0,
+                cooldown_minutes: 15,
+              },
+            ),
             { headers: corsHeaders },
           );
         }

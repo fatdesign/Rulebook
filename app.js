@@ -44,6 +44,9 @@ const i18n = {
     ai_loading: "Konsultiere den KI Coach...",
     tilt_sub: "Revenge Trades (< 15 mins nach Verlust)",
     killswitch_sub: "EA blockiert Trades bei Tagesverlust-Limit",
+    cooldown_sub: "EA blockiert neue Trades für X Minuten nach Trade-Schluss",
+    cooldown_lbl: "Cooldown: ",
+    cooldown_min_suffix: "Min.",
     heatmap_sub: "Wann verdienst du am meisten?",
     save_btn: "Speichern",
     limit_lbl: "Limit: ",
@@ -291,6 +294,9 @@ const i18n = {
     ai_loading: "Consulting the AI Coach...",
     tilt_sub: "Revenge Trades (< 15 mins after loss)",
     killswitch_sub: "EA blocks trades at daily loss limit",
+    cooldown_sub: "EA blocks new trades for X minutes after a trade closes",
+    cooldown_lbl: "Cooldown: ",
+    cooldown_min_suffix: "min",
     heatmap_sub: "When do you earn the most?",
     save_btn: "Save",
     limit_lbl: "Limit: ",
@@ -538,6 +544,9 @@ const i18n = {
     ai_loading: "Consultando al Coach IA...",
     tilt_sub: "Operaciones de Revancha (< 15 mins post-pérdida)",
     killswitch_sub: "El EA bloquea trades al llegar al límite diario",
+    cooldown_sub: "El EA bloquea nuevos trades durante X minutos tras cerrar un trade",
+    cooldown_lbl: "Enfriamiento: ",
+    cooldown_min_suffix: "min",
     heatmap_sub: "¿Cuándo ganas más?",
     save_btn: "Guardar",
     limit_lbl: "Límite: ",
@@ -784,6 +793,9 @@ const i18n = {
     ai_loading: "Yapay Zeka Koçuna Danışılıyor...",
     tilt_sub: "İntikam İşlemleri (Kayıptan < 15 dk sonra)",
     killswitch_sub: "Günlük kayıp limitinde işlemleri durdurur",
+    cooldown_sub: "EA, bir işlem kapandıktan sonra X dakika boyunca yeni işlemleri engeller",
+    cooldown_lbl: "Bekleme Süresi: ",
+    cooldown_min_suffix: "dk",
     heatmap_sub: "En çok ne zaman kazanıyorsun?",
     save_btn: "Kaydet",
     limit_lbl: "Limit: ",
@@ -3657,8 +3669,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const settings = await response.json();
         const ksToggle = document.getElementById("kill-switch-toggle");
         const ksLimit = document.getElementById("kill-switch-limit");
+        const cdToggle = document.getElementById("cooldown-toggle");
+        const cdMinutes = document.getElementById("cooldown-minutes");
         if (ksToggle) ksToggle.checked = settings.kill_switch_active === 1;
         if (ksLimit) ksLimit.value = settings.max_daily_loss;
+        if (cdToggle) cdToggle.checked = settings.cooldown_active === 1;
+        if (cdMinutes) cdMinutes.value = settings.cooldown_minutes || 15;
       }
     } catch (e) {
       console.error("Failed to load settings", e);
@@ -3679,6 +3695,10 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("kill-switch-toggle").checked,
           max_daily_loss:
             parseFloat(document.getElementById("kill-switch-limit").value) || 0,
+          cooldown_active:
+            document.getElementById("cooldown-toggle")?.checked || false,
+          cooldown_minutes:
+            parseFloat(document.getElementById("cooldown-minutes")?.value) || 15,
         }),
       });
     } catch (e) {
@@ -3691,6 +3711,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const ksModal = document.getElementById("kill-switch-modal");
   const ksCancel = document.getElementById("modal-cancel-btn");
   const ksConfirm = document.getElementById("modal-confirm-btn");
+  const cdToggle = document.getElementById("cooldown-toggle");
+
+  if (cdToggle) {
+    cdToggle.addEventListener("change", () => {
+      saveSettings(localStorage.getItem("tm_license_key"));
+    });
+  }
 
   if (ksToggle && ksSaveBtn) {
     ksToggle.addEventListener("change", (e) => {

@@ -932,6 +932,54 @@
                               min="0"
                             />
                           </div>
+                        </div>
+
+                        <div
+                          style="
+                            border-top: 1px solid var(--border-dark);
+                            margin-top: 15px;
+                            padding-top: 15px;
+                          "
+                        >
+                          <p
+                            style="
+                              font-size: 0.85rem;
+                              color: var(--text-muted);
+                              margin-bottom: 10px;
+                            "
+                            data-i18n="cooldown_sub"
+                          >
+                            EA blockiert neue Trades für X Minuten nach Trade-Schluss
+                          </p>
+                          <div
+                            style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;"
+                          >
+                            <label class="switch">
+                              <input type="checkbox" id="cooldown-toggle" />
+                              <span class="slider round"></span>
+                            </label>
+                            <div
+                              style="display: flex; align-items: center; gap: 5px"
+                            >
+                              <span
+                                style="font-size: 0.9rem"
+                                data-i18n="cooldown_lbl"
+                                >Cooldown: </span
+                              >
+                              <input
+                                type="number"
+                                id="cooldown-minutes"
+                                class="profile-select"
+                                style="width: 70px; padding: 5px"
+                                value="15"
+                                min="1"
+                              />
+                              <span style="font-size: 0.9rem" data-i18n="cooldown_min_suffix">Min.</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style="margin-top: 15px;">
                           <button
                             id="kill-switch-save"
                             class="secondary-btn"
