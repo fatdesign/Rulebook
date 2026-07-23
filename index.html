@@ -654,6 +654,18 @@
                   </div>
                   <!-- KPIs Row 2 -->
                   <div class="kpi-row">
+                    <div class="kpi-card glass-panel" title="Erwartungswert pro Trade in R (net_profit / Risiko-Betrag), gemittelt über alle bewerteten Trades">
+                      <h3 data-i18n="kpi_avg_r" style="font-size: 0.85rem">
+                        Ø R (Erwartungswert)
+                      </h3>
+                      <p
+                        id="kpi-avg-r"
+                        class="kpi-value"
+                        style="font-size: 1.2rem"
+                      >
+                        -
+                      </p>
+                    </div>
                     <div class="kpi-card glass-panel">
                       <h3 data-i18n="kpi_edge" style="font-size: 0.85rem">
                         Long vs. Short
@@ -995,6 +1007,43 @@
                           >
                             <i class="ph ph-shield-check" style="color: #f59e0b;"></i>
                             <span id="cooldown-violation-text"></span>
+                          </div>
+                        </div>
+
+                        <div
+                          style="
+                            border-top: 1px solid var(--border-dark);
+                            margin-top: 15px;
+                            padding-top: 15px;
+                          "
+                        >
+                          <p
+                            style="
+                              font-size: 0.85rem;
+                              color: var(--text-muted);
+                              margin-bottom: 10px;
+                            "
+                            data-i18n="risk_per_trade_sub"
+                          >
+                            Standard-Risiko pro Trade, um deine Trades in R-Multiples auszuwerten
+                          </p>
+                          <div
+                            style="display: flex; align-items: center; gap: 5px"
+                          >
+                            <span
+                              style="font-size: 0.9rem"
+                              data-i18n="risk_per_trade_lbl"
+                              >Risiko: €</span
+                            >
+                            <input
+                              type="number"
+                              id="default-risk-amount"
+                              class="profile-select"
+                              style="width: 80px; padding: 5px"
+                              value="0"
+                              min="0"
+                            />
+                            <span style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="risk_per_trade_hint">(0 = deaktiviert)</span>
                           </div>
                         </div>
 
@@ -1365,6 +1414,7 @@
                           <th style="padding: 10px 8px; text-align: left; font-weight: bold;" data-i18n="th_side">Side</th>
                           <th style="padding: 10px 6px; text-align: center; font-weight: bold; width: 100px; white-space: nowrap;" data-i18n="th_sl_widening">SL-Verschiebung</th>
                           <th style="padding: 10px 8px; text-align: left; font-weight: bold;" data-i18n="th_profit">Profit</th>
+                          <th style="padding: 10px 6px; text-align: left; font-weight: bold; width: 110px;" data-i18n="th_r_multiple" title="Risiko-Betrag eintragen, R wird automatisch berechnet">R-Multiple</th>
                           <th style="padding: 10px 8px; text-align: left; font-weight: bold;" data-i18n="th_commission">Commission</th>
                           <th style="padding: 10px 8px; text-align: left; font-weight: bold;" data-i18n="th_close">Close Time</th>
                           <th style="padding: 10px 8px; text-align: left; font-weight: bold;" data-i18n="th_strategy">Strategy</th>
@@ -2158,6 +2208,28 @@
                 placeholder="List your entry rules, conditions and notes here..."
                 data-i18n-placeholder="strategy_desc_ph"
               ></textarea>
+            </div>
+            <div>
+              <label
+                style="
+                  font-size: 0.8rem;
+                  color: var(--text-muted);
+                  margin-bottom: 4px;
+                  display: block;
+                "
+                data-i18n="strategy_checklist_lbl"
+                >Playbook-Checkliste (Regeln, gegen die Trades bewertet werden)</label
+              >
+              <div id="strategy-checklist-editor" style="display: flex; flex-direction: column; gap: 6px;"></div>
+              <button
+                type="button"
+                id="strategy-checklist-add-btn"
+                class="secondary-btn"
+                style="margin-top: 8px; padding: 5px 12px; font-size: 0.8rem;"
+                data-i18n="strategy_checklist_add"
+              >
+                + Regel hinzufügen
+              </button>
             </div>
           </div>
           <div

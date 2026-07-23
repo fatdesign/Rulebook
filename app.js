@@ -48,6 +48,11 @@ const i18n = {
     cooldown_lbl: "Cooldown: ",
     cooldown_min_suffix: "Min.",
     cooldown_violations_stat: "{week}x diese Woche vom Cooldown gestoppt ({total}x insgesamt)",
+    risk_per_trade_sub: "Standard-Risiko pro Trade, um deine Trades in R-Multiples auszuwerten",
+    risk_per_trade_lbl: "Risiko: €",
+    risk_per_trade_hint: "(0 = deaktiviert)",
+    kpi_avg_r: "Ø R (Erwartungswert)",
+    th_r_multiple: "R-Multiple",
     heatmap_sub: "Wann verdienst du am meisten?",
     save_btn: "Speichern",
     limit_lbl: "Limit: ",
@@ -211,6 +216,8 @@ const i18n = {
     sl_widened_tooltip: "Stop Loss {x}x in Verlustrichtung verschoben",
     strategy_name_ph: "z.B. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Trage hier deine Einstiegsregeln, Konditionen und Notizen ein...",
+    strategy_checklist_lbl: "Playbook-Checkliste (Regeln, gegen die Trades bewertet werden)",
+    strategy_checklist_add: "+ Regel hinzufügen",
     journal_modal_ph: "Wie fühlst du dich heute bei deinen Trades? Hast du deinen Plan befolgt?",
     journal_plan_q: "Hast du deinen Plan befolgt?",
     journal_plan_yes: "Ja",
@@ -314,6 +321,11 @@ const i18n = {
     cooldown_lbl: "Cooldown: ",
     cooldown_min_suffix: "min",
     cooldown_violations_stat: "{week}x stopped by Cooldown this week ({total}x total)",
+    risk_per_trade_sub: "Default risk per trade, used to evaluate your trades in R-multiples",
+    risk_per_trade_lbl: "Risk: $",
+    risk_per_trade_hint: "(0 = disabled)",
+    kpi_avg_r: "Avg R (Expectancy)",
+    th_r_multiple: "R-Multiple",
     heatmap_sub: "When do you earn the most?",
     save_btn: "Save",
     limit_lbl: "Limit: ",
@@ -477,6 +489,8 @@ const i18n = {
     sl_widened_tooltip: "Stop Loss moved {x}x into loss direction",
     strategy_name_ph: "e.g. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "List your entry rules, conditions and notes here...",
+    strategy_checklist_lbl: "Playbook Checklist (rules trades get graded against)",
+    strategy_checklist_add: "+ Add Rule",
     journal_modal_ph: "How are you feeling about your trades today? Did you follow your plan?",
     journal_plan_q: "Did you follow your plan?",
     journal_plan_yes: "Yes",
@@ -580,6 +594,11 @@ const i18n = {
     cooldown_lbl: "Enfriamiento: ",
     cooldown_min_suffix: "min",
     cooldown_violations_stat: "{week}x detenido por el Enfriamiento esta semana ({total}x en total)",
+    risk_per_trade_sub: "Riesgo por defecto por operación, para evaluar tus trades en R-múltiplos",
+    risk_per_trade_lbl: "Riesgo: €",
+    risk_per_trade_hint: "(0 = desactivado)",
+    kpi_avg_r: "Ø R (Esperanza)",
+    th_r_multiple: "R-Múltiplo",
     heatmap_sub: "¿Cuándo ganas más?",
     save_btn: "Guardar",
     limit_lbl: "Límite: ",
@@ -742,6 +761,8 @@ const i18n = {
     sl_widened_tooltip: "Stop Loss movido {x}x hacia pérdidas",
     strategy_name_ph: "ej. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Escribe aquí tus reglas de entrada, condiciones y notas...",
+    strategy_checklist_lbl: "Lista de verificación del Playbook (reglas contra las que se califican los trades)",
+    strategy_checklist_add: "+ Añadir regla",
     journal_modal_ph: "¿Cómo te sientes con tus operaciones hoy? ¿Seguiste tu plan?",
     journal_plan_q: "¿Seguiste tu plan?",
     journal_plan_yes: "Sí",
@@ -845,6 +866,11 @@ const i18n = {
     cooldown_lbl: "Bekleme Süresi: ",
     cooldown_min_suffix: "dk",
     cooldown_violations_stat: "Bu hafta {week}x Bekleme Süresi tarafından durduruldu (toplam {total}x)",
+    risk_per_trade_sub: "İşlemlerini R-Multiple olarak değerlendirmek için varsayılan işlem başına risk",
+    risk_per_trade_lbl: "Risk: ₺",
+    risk_per_trade_hint: "(0 = kapalı)",
+    kpi_avg_r: "Ø R (Beklenti)",
+    th_r_multiple: "R-Multiple",
     heatmap_sub: "En çok ne zaman kazanıyorsun?",
     save_btn: "Kaydet",
     limit_lbl: "Limit: ",
@@ -1007,6 +1033,8 @@ const i18n = {
     sl_widened_tooltip: "Stop Loss {x}x kayıp yönüne kaydırıldı",
     strategy_name_ph: "ör. M30 Pullback, Break of Structure...",
     strategy_desc_ph: "Giriş kurallarınızı, koşullarınızı ve notlarınızı buraya yazın...",
+    strategy_checklist_lbl: "Playbook Kontrol Listesi (işlemlerin değerlendirileceği kurallar)",
+    strategy_checklist_add: "+ Kural Ekle",
     journal_modal_ph: "Bugünkü işlemleriniz hakkında nasıl hissediyorsunuz? Planınıza uydunuz mu?",
     journal_plan_q: "Planına uydun mu?",
     journal_plan_yes: "Evet",
@@ -2030,6 +2058,26 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch((e) => console.error(e));
 
+      // Load per-trade Risk overrides (for R-Multiple)
+      fetch(`${API_URL}?action=trade_risk&account_id=${encodeURIComponent(key)}`, {
+        headers: { Authorization: localStorage.getItem("tm_master_token") },
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          window.tradeRiskMap = {};
+          (d || []).forEach((n) => {
+            window.tradeRiskMap[n.ticket] = parseFloat(n.risk_amount);
+          });
+          if (currentFilteredTrades && currentFilteredTrades.length > 0) {
+            if (typeof renderTradesTable === "function") {
+              renderTradesTable(currentFilteredTrades, window.currentCurSym);
+            } else {
+              processData(currentFilteredTrades, window.currentCurSym);
+            }
+          }
+        })
+        .catch((e) => console.error(e));
+
       // Load Trade Images
       fetch(`${API_URL}?action=images&account_id=${encodeURIComponent(key)}`, {
         headers: { Authorization: localStorage.getItem("tm_master_token") },
@@ -2084,6 +2132,25 @@ document.addEventListener("DOMContentLoaded", () => {
               window.currentAllTrades,
               window.currentCurSym || "$",
             );
+          }
+        })
+        .catch((e) => console.error(e));
+
+      // Load Trade Checklist Grading Results (playbook compliance)
+      fetch(
+        `${API_URL}?action=trade_checklist&account_id=${encodeURIComponent(key)}`,
+        { headers: { Authorization: localStorage.getItem("tm_master_token") } },
+      )
+        .then((r) => r.json())
+        .then((d) => {
+          window.tradeChecklistMap = {};
+          (d || []).forEach((r) => {
+            if (!window.tradeChecklistMap[r.ticket]) window.tradeChecklistMap[r.ticket] = {};
+            window.tradeChecklistMap[r.ticket][r.item_id] = r.passed === 1;
+          });
+          if (currentFilteredTrades && currentFilteredTrades.length > 0) {
+            if (typeof renderTradesTable === "function")
+              renderTradesTable(currentFilteredTrades, window.currentCurSym);
           }
         })
         .catch((e) => console.error(e));
@@ -2439,6 +2506,180 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  function saveTradeRisk(inputEl) {
+    const ticket = inputEl.getAttribute("data-ticket");
+    const riskAmount = parseFloat(inputEl.value);
+    const key = localStorage.getItem("tm_license_key");
+    if (!key) return;
+
+    const origBorder = inputEl.style.borderColor;
+    inputEl.style.borderColor = "#f59e0b"; // Yellow = saving
+
+    fetch(`${API_URL}?action=trade_risk`, {
+      method: "POST",
+      headers: {
+        Authorization: localStorage.getItem("tm_master_token"),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        account_id: key,
+        ticket: String(ticket),
+        risk_amount: isNaN(riskAmount) ? null : riskAmount,
+      }),
+    })
+      .then((res) => {
+        if (res.ok) {
+          if (!window.tradeRiskMap) window.tradeRiskMap = {};
+          if (isNaN(riskAmount) || riskAmount <= 0) {
+            delete window.tradeRiskMap[ticket];
+          } else {
+            window.tradeRiskMap[ticket] = riskAmount;
+          }
+          inputEl.style.borderColor = "#10b981"; // Green = saved
+          setTimeout(() => {
+            inputEl.style.borderColor = origBorder;
+          }, 1500);
+
+          // Live-update the R display next to the input, and the Ø R KPI,
+          // without needing a full page reload.
+          const row = inputEl.closest("tr");
+          const rSpan = row ? row.querySelector("td:nth-child(6) span") : null;
+          if (rSpan && window.currentAllTrades) {
+            const trade = window.currentAllTrades.find(
+              (t) => String(t.ticket) === String(ticket),
+            );
+            if (trade) {
+              const effectiveRisk =
+                window.tradeRiskMap[ticket] || window.defaultRiskAmount || 0;
+              const netP = parseFloat(trade.net_profit || 0);
+              if (effectiveRisk > 0) {
+                const rValue = netP / effectiveRisk;
+                rSpan.style.color = rValue >= 0 ? "var(--success)" : "var(--danger)";
+                rSpan.innerText = (rValue >= 0 ? "+" : "") + rValue.toFixed(2) + "R";
+              } else {
+                rSpan.style.color = "var(--text-muted)";
+                rSpan.innerText = "-";
+              }
+            }
+          }
+          if (typeof processData === "function" && window.currentFilteredTrades) {
+            processData(window.currentFilteredTrades, window.currentCurSym || "$");
+          }
+        } else {
+          console.error("Risk save failed:", res.status);
+          inputEl.style.borderColor = "#ef4444"; // Red = error
+          setTimeout(() => {
+            inputEl.style.borderColor = origBorder;
+          }, 2000);
+        }
+      })
+      .catch((err) => {
+        console.error("Risk save err", err);
+        inputEl.style.borderColor = "#ef4444";
+        setTimeout(() => {
+          inputEl.style.borderColor = origBorder;
+        }, 2000);
+      });
+  }
+
+  // ── Playbook grading popover: check off the assigned strategy's rules
+  // for this specific trade, save, and refresh the compliance badge. ──
+  function openChecklistGradePopover(anchorEl, ticket, strategyId) {
+    document.getElementById("_checklist_popover")?.remove();
+
+    const strat = (window.strategyDefs || []).find((s) => s.id === strategyId);
+    if (!strat || !strat.checklist || strat.checklist.length === 0) return;
+
+    const results = (window.tradeChecklistMap && window.tradeChecklistMap[ticket]) || {};
+
+    const popover = document.createElement("div");
+    popover.id = "_checklist_popover";
+    popover.className = "checklist-grade-popover";
+
+    const title = document.createElement("div");
+    title.style.cssText = "font-weight: bold; font-size: 0.85rem; margin-bottom: 8px;";
+    title.innerText = strat.name;
+    popover.appendChild(title);
+
+    const checkboxes = [];
+    strat.checklist.forEach((item) => {
+      const row = document.createElement("label");
+      row.className = "checklist-grade-row";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = results[item.id] === true;
+      cb.dataset.itemId = item.id;
+      const span = document.createElement("span");
+      span.innerText = item.text;
+      row.appendChild(cb);
+      row.appendChild(span);
+      popover.appendChild(row);
+      checkboxes.push(cb);
+    });
+
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.className = "primary-btn";
+    saveBtn.style.cssText = "margin-top: 10px; padding: 5px 14px; font-size: 0.8rem; width: 100%;";
+    saveBtn.innerText = "Speichern";
+    saveBtn.addEventListener("click", () => {
+      const gradeResults = checkboxes.map((cb) => ({
+        item_id: cb.dataset.itemId,
+        passed: cb.checked,
+      }));
+      saveTradeChecklist(ticket, gradeResults);
+      popover.remove();
+    });
+    popover.appendChild(saveBtn);
+
+    document.body.appendChild(popover);
+    const rect = anchorEl.getBoundingClientRect();
+    popover.style.top = `${window.scrollY + rect.bottom + 6}px`;
+    popover.style.left = `${window.scrollX + rect.left}px`;
+
+    setTimeout(() => {
+      document.addEventListener(
+        "click",
+        function closeOnOutsideClick(e) {
+          if (!popover.contains(e.target) && e.target !== anchorEl) {
+            popover.remove();
+            document.removeEventListener("click", closeOnOutsideClick);
+          }
+        },
+        { once: false },
+      );
+    }, 0);
+  }
+
+  function saveTradeChecklist(ticket, results) {
+    const key = localStorage.getItem("tm_license_key");
+    if (!key) return;
+
+    fetch(`${API_URL}?action=trade_checklist`, {
+      method: "POST",
+      headers: {
+        Authorization: localStorage.getItem("tm_master_token"),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ account_id: key, ticket: String(ticket), results }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Save failed: " + res.status);
+        if (!window.tradeChecklistMap) window.tradeChecklistMap = {};
+        window.tradeChecklistMap[ticket] = {};
+        results.forEach((r) => {
+          window.tradeChecklistMap[ticket][r.item_id] = r.passed;
+        });
+        if (window.currentFilteredTrades && typeof window.renderTradesTable === "function") {
+          window.renderTradesTable(window.currentFilteredTrades, window.currentCurSym || "$");
+        }
+        if (typeof renderStrategyPerformance === "function") {
+          renderStrategyPerformance(window.currentFilteredTrades || []);
+        }
+      })
+      .catch((err) => console.error("Checklist save error", err));
+  }
+
   window.currentTradesPage = 1;
   window.tradesPerPage =
     parseInt(localStorage.getItem("tm_trades_limit")) || 10;
@@ -2539,9 +2780,45 @@ document.addEventListener("DOMContentLoaded", () => {
       const stratBadgeHtml = assignedStrat
         ? `<span class="strategy-badge" style="--s-color:${stratColor};--s-rgb:${stratRgb};" data-ticket="${t.ticket}" onclick="openStrategyPicker(this, '${t.ticket}')">${assignedStrat.name}</span>`
         : `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${t.ticket}')">+ Assign</button>`;
+
+      // Playbook compliance badge: only shown if the assigned strategy
+      // actually has checklist rules to grade against.
+      let checklistBadgeHtml = "";
+      if (assignedStrat && assignedStrat.checklist && assignedStrat.checklist.length > 0) {
+        const results = (window.tradeChecklistMap && window.tradeChecklistMap[t.ticket]) || {};
+        const gradedItems = assignedStrat.checklist.filter(
+          (it) => results[it.id] !== undefined,
+        );
+        if (gradedItems.length > 0) {
+          const passedCount = gradedItems.filter((it) => results[it.id]).length;
+          const pct = Math.round((passedCount / gradedItems.length) * 100);
+          const pctColor =
+            pct >= 80 ? "var(--success)" : pct >= 50 ? "#f59e0b" : "var(--danger)";
+          checklistBadgeHtml = `<button type="button" class="checklist-grade-btn" style="color:${pctColor}; border-color:${pctColor};" data-ticket="${t.ticket}" data-strategy-id="${assignedStrat.id}">${pct}%</button>`;
+        } else {
+          checklistBadgeHtml = `<button type="button" class="checklist-grade-btn" data-ticket="${t.ticket}" data-strategy-id="${assignedStrat.id}" title="Playbook-Regeln bewerten"><i class="ph ph-clipboard-text"></i></button>`;
+        }
+      }
       const currentNote = window.tradeNotesMap
         ? window.tradeNotesMap[t.ticket] || ""
         : "";
+
+      const riskOverride = window.tradeRiskMap
+        ? window.tradeRiskMap[t.ticket]
+        : undefined;
+      const effectiveRisk = riskOverride || window.defaultRiskAmount || 0;
+      const netProfitNum = parseFloat(t.net_profit || 0);
+      let rDisplay = "-";
+      let rColor = "var(--text-muted)";
+      if (effectiveRisk > 0) {
+        const rValue = netProfitNum / effectiveRisk;
+        rColor = rValue >= 0 ? "var(--success)" : "var(--danger)";
+        rDisplay = (rValue >= 0 ? "+" : "") + rValue.toFixed(2) + "R";
+      }
+      const riskInputValue = riskOverride ? riskOverride : "";
+      const riskPlaceholder = window.defaultRiskAmount
+        ? window.defaultRiskAmount
+        : "Risiko";
 
       const imgData = window.tradeImagesMap
         ? window.tradeImagesMap[t.ticket] || {}
@@ -2585,9 +2862,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
                 <td style="padding: 8px 6px; border-bottom: 1px solid var(--border-dark); text-align: center; width: 100px; white-space: nowrap;">${slBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${profitNum < 0 ? "-" : ""}${curSym}${Math.abs(profitNum).toFixed(2)}</td>
+                <td style="padding: 6px; border-bottom: 1px solid var(--border-dark); white-space: nowrap;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="number" class="trade-risk-input profile-select" data-ticket="${t.ticket}" value="${riskInputValue}" placeholder="${riskPlaceholder}" min="0" step="0.01" style="width: 55px; padding: 3px; font-size: 0.8rem; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
+                        <span style="font-size: 0.85rem; font-weight: bold; color: ${rColor};">${rDisplay}</span>
+                    </div>
+                </td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${commissionStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${stratBadgeHtml}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); white-space: nowrap;">${stratBadgeHtml}${checklistBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${chartHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">
                     <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -2615,6 +2898,27 @@ document.addEventListener("DOMContentLoaded", () => {
           e.preventDefault();
           e.target.blur();
         }
+      });
+    });
+
+    document.querySelectorAll(".trade-risk-input").forEach((inp) => {
+      inp.addEventListener("blur", (e) => saveTradeRisk(e.target));
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          e.target.blur(); // triggers blur → saveTradeRisk
+        }
+      });
+    });
+
+    document.querySelectorAll(".checklist-grade-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openChecklistGradePopover(
+          btn,
+          btn.getAttribute("data-ticket"),
+          btn.getAttribute("data-strategy-id"),
+        );
       });
     });
 
@@ -2660,11 +2964,26 @@ document.addEventListener("DOMContentLoaded", () => {
       shortLosses = 0;
     const symbolProfits = {};
 
+    let rSum = 0;
+    let rCount = 0;
+
     ascendingTrades.forEach((trade, index) => {
       const netP = parseFloat(trade.net_profit);
       const grossP =
         trade.gross_profit !== undefined ? trade.gross_profit : netP;
       const holdSec = trade.close_time - trade.open_time;
+
+      // R-Multiple: net_profit / risk amount (per-trade override, else the
+      // global default). Trades with no risk amount set anywhere are
+      // excluded from the average rather than skewing it with a guess.
+      const riskOverride = window.tradeRiskMap
+        ? window.tradeRiskMap[trade.ticket]
+        : undefined;
+      const effectiveRisk = riskOverride || window.defaultRiskAmount || 0;
+      if (effectiveRisk > 0) {
+        rSum += netP / effectiveRisk;
+        rCount++;
+      }
 
       // Revenge trade check
       if (index > 0) {
@@ -2796,6 +3115,17 @@ document.addEventListener("DOMContentLoaded", () => {
     updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
     document.getElementById("kpi-trades").innerText = trades.length;
     updateKPI("kpi-pf", profitFactor.toFixed(2), profitFactor >= 1.5);
+
+    if (rCount > 0) {
+      const avgR = rSum / rCount;
+      updateKPI("kpi-avg-r", `${avgR >= 0 ? "+" : ""}${avgR.toFixed(2)}R`, avgR >= 0);
+    } else {
+      const avgREl = document.getElementById("kpi-avg-r");
+      if (avgREl) {
+        avgREl.innerText = "-";
+        avgREl.className = "kpi-value";
+      }
+    }
 
     // Advanced UI
     updateKPI("kpi-edge", edgeText, true);
@@ -3742,10 +4072,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const ksLimit = document.getElementById("kill-switch-limit");
         const cdToggle = document.getElementById("cooldown-toggle");
         const cdMinutes = document.getElementById("cooldown-minutes");
+        const riskInput = document.getElementById("default-risk-amount");
         if (ksToggle) ksToggle.checked = settings.kill_switch_active === 1;
         if (ksLimit) ksLimit.value = settings.max_daily_loss;
         if (cdToggle) cdToggle.checked = settings.cooldown_active === 1;
         if (cdMinutes) cdMinutes.value = settings.cooldown_minutes || 15;
+        window.defaultRiskAmount = parseFloat(settings.default_risk_amount) || 0;
+        if (riskInput) riskInput.value = window.defaultRiskAmount;
       }
     } catch (e) {
       console.error("Failed to load settings", e);
@@ -3896,8 +4229,15 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("cooldown-toggle")?.checked || false,
           cooldown_minutes:
             parseFloat(document.getElementById("cooldown-minutes")?.value) || 15,
+          default_risk_amount:
+            parseFloat(document.getElementById("default-risk-amount")?.value) || 0,
         }),
       });
+      window.defaultRiskAmount =
+        parseFloat(document.getElementById("default-risk-amount")?.value) || 0;
+      if (window.currentFilteredTrades && typeof processData === "function") {
+        processData(window.currentFilteredTrades, window.currentCurSym || "$");
+      }
     } catch (e) {
       console.error("Failed to save settings", e);
     }
@@ -4298,6 +4638,29 @@ function renderStrategyPerformance(trades) {
       };
     }
 
+    // Ø Playbook-Konformität: nur über Trades, die tatsächlich gegen die
+    // Checkliste bewertet wurden (sonst würde ein niedriger Wert nur
+    // "ungegradet" bedeuten statt "Regeln nicht befolgt").
+    let complianceHtml = "";
+    if (s.checklist && s.checklist.length > 0) {
+      const complianceMap = window.tradeChecklistMap || {};
+      const gradedPcts = [];
+      stratTrades.forEach((t) => {
+        const results = complianceMap[t.ticket];
+        if (!results) return;
+        const graded = s.checklist.filter((it) => results[it.id] !== undefined);
+        if (graded.length === 0) return;
+        const passed = graded.filter((it) => results[it.id]).length;
+        gradedPcts.push((passed / graded.length) * 100);
+      });
+      if (gradedPcts.length > 0) {
+        const avgCompliance = gradedPcts.reduce((a, b) => a + b, 0) / gradedPcts.length;
+        const cColor =
+          avgCompliance >= 80 ? "var(--success)" : avgCompliance >= 50 ? "#f59e0b" : "var(--danger)";
+        complianceHtml = `<span style="color:${cColor};">${avgCompliance.toFixed(0)}% Konformität</span>`;
+      }
+    }
+
     allCards.push({
       profit,
       html: `
@@ -4308,6 +4671,7 @@ function renderStrategyPerformance(trades) {
                     <span>${stratTrades.length} Trades</span>
                     <span>${wr}% WR</span>
                     <span>${wins}W / ${losses}L</span>
+                    ${complianceHtml}
                 </div>
             </div>
         `,
@@ -4338,6 +4702,40 @@ function renderStrategyPerformance(trades) {
 }
 
 // ── Strategy Modal ────────────────────────────────
+// ── Playbook checklist editor (inside the Strategy modal) ─────
+function addChecklistEditorRow(text, itemId) {
+  const container = document.getElementById("strategy-checklist-editor");
+  if (!container) return;
+  const row = document.createElement("div");
+  row.className = "checklist-item-row";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "checklist-item-input";
+  input.value = text || "";
+  input.placeholder = "z.B. RSI unter 30, Trend auf H4 bestätigt...";
+  // Existing items keep their DB id, so editing/reordering doesn't orphan
+  // trades that were already graded against this rule (see saveStrategy).
+  if (itemId) input.dataset.itemId = itemId;
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "checklist-item-remove";
+  removeBtn.innerHTML = '<i class="ph ph-x"></i>';
+  removeBtn.addEventListener("click", () => row.remove());
+
+  row.appendChild(input);
+  row.appendChild(removeBtn);
+  container.appendChild(row);
+}
+
+function renderChecklistEditor(items) {
+  const container = document.getElementById("strategy-checklist-editor");
+  if (!container) return;
+  container.innerHTML = "";
+  (items || []).forEach((it) => addChecklistEditorRow(it.text, it.id));
+}
+
 function openStrategyModal(editId) {
   const modal = document.getElementById("strategy-modal");
   const titleEl = document.getElementById("strategy-modal-title");
@@ -4352,11 +4750,13 @@ function openStrategyModal(editId) {
     idInput.value = s ? s.id : "";
     nameInput.value = s ? s.name : "";
     descInput.value = s ? s.description || "" : "";
+    renderChecklistEditor(s ? s.checklist || [] : []);
   } else {
     titleEl.textContent = "New Strategy";
     idInput.value = "";
     nameInput.value = "";
     descInput.value = "";
+    renderChecklistEditor([]);
   }
   modal.classList.remove("hidden");
   setTimeout(() => nameInput.focus(), 50);
@@ -4373,7 +4773,16 @@ async function saveStrategy() {
     document.getElementById("strategy-modal-desc")?.value.trim() || "";
   const token = localStorage.getItem("tm_master_token");
 
-  const body = { name, description: desc };
+  const checklist = Array.from(
+    document.querySelectorAll("#strategy-checklist-editor .checklist-item-input"),
+  )
+    .map((inp) => ({
+      id: inp.dataset.itemId || undefined,
+      text: inp.value.trim(),
+    }))
+    .filter((it) => it.text !== "");
+
+  const body = { name, description: desc, checklist };
   if (id) body.id = id;
 
   try {
@@ -4394,14 +4803,15 @@ async function saveStrategy() {
           id: id || data.id,
           name,
           description: desc,
+          checklist,
         };
       } else {
-        window.strategyDefs.push({ id: data.id, name, description: desc });
+        window.strategyDefs.push({ id: data.id, name, description: desc, checklist });
       }
     }
     document.getElementById("strategy-modal").classList.add("hidden");
     renderStrategyCards();
-    renderStrategyPerformance(currentFilteredTrades);
+    renderStrategyPerformance(window.currentFilteredTrades || []);
   } catch (e) {
     console.error("Strategy save error", e);
   }
@@ -4515,6 +4925,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("strategy-modal-save")
     ?.addEventListener("click", saveStrategy);
+  document
+    .getElementById("strategy-checklist-add-btn")
+    ?.addEventListener("click", () => addChecklistEditorRow(""));
   document.getElementById("strategy-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "strategy-modal")
       document.getElementById("strategy-modal").classList.add("hidden");

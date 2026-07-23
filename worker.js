@@ -1152,7 +1152,8 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             kill_switch_active INTEGER DEFAULT 0,
             max_daily_loss REAL DEFAULT 0,
             cooldown_active INTEGER DEFAULT 0,
-            cooldown_minutes REAL DEFAULT 15
+            cooldown_minutes REAL DEFAULT 15,
+            default_risk_amount REAL DEFAULT 0
           )
         `,
         ).run();
@@ -1166,16 +1167,22 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             "ALTER TABLE user_settings ADD COLUMN cooldown_minutes REAL DEFAULT 15",
           ).run();
         } catch (e) {}
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE user_settings ADD COLUMN default_risk_amount REAL DEFAULT 0",
+          ).run();
+        } catch (e) {}
 
         await env.DB.prepare(
           `
-          INSERT INTO user_settings (license_key, kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO user_settings (license_key, kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes, default_risk_amount)
+          VALUES (?, ?, ?, ?, ?, ?)
           ON CONFLICT(license_key) DO UPDATE SET
             kill_switch_active=excluded.kill_switch_active,
             max_daily_loss=excluded.max_daily_loss,
             cooldown_active=excluded.cooldown_active,
-            cooldown_minutes=excluded.cooldown_minutes
+            cooldown_minutes=excluded.cooldown_minutes,
+            default_risk_amount=excluded.default_risk_amount
         `,
         )
           .bind(
@@ -1184,6 +1191,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             body.max_daily_loss || 0,
             body.cooldown_active ? 1 : 0,
             body.cooldown_minutes || 15,
+            body.default_risk_amount || 0,
           )
           .run();
 
@@ -1371,6 +1379,62 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         });
       }
 
+      // --- TRADE RISK ROUTE (POST) - per-trade $ risk override for R-multiple ---
+      if (request.method === "POST" && action === "trade_risk") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id)
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response("Invalid JSON", {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+
+        const account_id =
+          body.account_id || url.searchParams.get("account_id") || "default";
+        const db_key = `${user_id}:${account_id}`;
+
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS trade_risk (
+            license_key TEXT, ticket TEXT, risk_amount REAL, PRIMARY KEY (license_key, ticket)
+          )
+        `,
+        ).run();
+
+        const riskAmount = parseFloat(body.risk_amount);
+        if (!riskAmount || riskAmount <= 0) {
+          // Empty/zero risk clears the override, falling back to the default
+          await env.DB.prepare(
+            "DELETE FROM trade_risk WHERE license_key = ? AND ticket = ?",
+          )
+            .bind(db_key, String(body.ticket))
+            .run();
+        } else {
+          await env.DB.prepare(
+            `
+            INSERT INTO trade_risk (license_key, ticket, risk_amount)
+            VALUES (?, ?, ?)
+            ON CONFLICT(license_key, ticket) DO UPDATE SET risk_amount=excluded.risk_amount
+          `,
+          )
+            .bind(db_key, String(body.ticket), riskAmount)
+            .run();
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: corsHeaders,
+        });
+      }
+
       // --- TRADE IMAGES ROUTE (POST) ---
       if (request.method === "POST" && action === "images") {
         const user_id = await authenticateUser(request, env);
@@ -1449,10 +1513,22 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           )
         `,
         ).run();
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS strategy_checklist_items (
+            id TEXT PRIMARY KEY, strategy_id TEXT, user_id TEXT, text TEXT, item_order INTEGER
+          )
+        `,
+        ).run();
 
         if (body.delete_id) {
           await env.DB.prepare(
             "DELETE FROM strategy_definitions WHERE id = ? AND user_id = ?",
+          )
+            .bind(body.delete_id, user_id)
+            .run();
+          await env.DB.prepare(
+            "DELETE FROM strategy_checklist_items WHERE strategy_id = ? AND user_id = ?",
           )
             .bind(body.delete_id, user_id)
             .run();
@@ -1471,6 +1547,64 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         )
           .bind(id, user_id, body.name || "Unnamed", body.description || "")
           .run();
+
+        // Sync the checklist: keep existing item IDs stable across edits
+        // (update in place) so trade grading history doesn't get silently
+        // orphaned every time a strategy is edited. Only new items get a
+        // fresh ID, and items the user removed get pruned (along with any
+        // grading results that reference them).
+        if (Array.isArray(body.checklist)) {
+          const items = body.checklist.filter(
+            (it) => it && typeof it.text === "string" && it.text.trim() !== "",
+          );
+
+          const keptIds = [];
+          const batch = [];
+          items.forEach((it, idx) => {
+            if (it.id) {
+              keptIds.push(it.id);
+              batch.push(
+                env.DB.prepare(
+                  "UPDATE strategy_checklist_items SET text = ?, item_order = ? WHERE id = ? AND strategy_id = ? AND user_id = ?",
+                ).bind(it.text.trim(), idx, it.id, id, user_id),
+              );
+            } else {
+              const newId = crypto.randomUUID();
+              keptIds.push(newId);
+              batch.push(
+                env.DB.prepare(
+                  "INSERT INTO strategy_checklist_items (id, strategy_id, user_id, text, item_order) VALUES (?, ?, ?, ?, ?)",
+                ).bind(newId, id, user_id, it.text.trim(), idx),
+              );
+            }
+          });
+          if (batch.length > 0) await env.DB.batch(batch);
+
+          // Prune items that were removed in the editor.
+          const existingRes = await env.DB.prepare(
+            "SELECT id FROM strategy_checklist_items WHERE strategy_id = ? AND user_id = ?",
+          )
+            .bind(id, user_id)
+            .all();
+          const removedIds = (existingRes.results || [])
+            .map((r) => r.id)
+            .filter((existingId) => !keptIds.includes(existingId));
+          if (removedIds.length > 0) {
+            const placeholders = removedIds.map(() => "?").join(",");
+            await env.DB.prepare(
+              `DELETE FROM strategy_checklist_items WHERE id IN (${placeholders})`,
+            )
+              .bind(...removedIds)
+              .run();
+            try {
+              await env.DB.prepare(
+                `DELETE FROM trade_checklist_results WHERE item_id IN (${placeholders})`,
+              )
+                .bind(...removedIds)
+                .run();
+            } catch (e) {}
+          }
+        }
 
         return new Response(JSON.stringify({ success: true, id }), {
           headers: corsHeaders,
@@ -1531,6 +1665,63 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         });
       }
 
+      // --- TRADE CHECKLIST GRADING ROUTE (POST) - playbook compliance ---
+      if (request.method === "POST" && action === "trade_checklist") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id)
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response("Invalid JSON", {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+
+        const account_id =
+          body.account_id || url.searchParams.get("account_id") || "default";
+        const db_key = `${user_id}:${account_id}`;
+
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS trade_checklist_results (
+            license_key TEXT, ticket TEXT, item_id TEXT, passed INTEGER,
+            PRIMARY KEY (license_key, ticket, item_id)
+          )
+        `,
+        ).run();
+
+        // Replace-all for this ticket's graded results (a handful of rows).
+        await env.DB.prepare(
+          "DELETE FROM trade_checklist_results WHERE license_key = ? AND ticket = ?",
+        )
+          .bind(db_key, String(body.ticket))
+          .run();
+
+        const results = Array.isArray(body.results) ? body.results : [];
+        if (results.length > 0) {
+          const stmt = env.DB.prepare(
+            "INSERT INTO trade_checklist_results (license_key, ticket, item_id, passed) VALUES (?, ?, ?, ?)",
+          );
+          const batch = results
+            .filter((r) => r && r.item_id)
+            .map((r) =>
+              stmt.bind(db_key, String(body.ticket), r.item_id, r.passed ? 1 : 0),
+            );
+          if (batch.length > 0) await env.DB.batch(batch);
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: corsHeaders,
+        });
+      }
+
       // --- FETCH DATA ROUTES (GET) ---
       if (request.method === "GET") {
         const user_id = await authenticateUser(request, env);
@@ -1551,7 +1742,8 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
                 kill_switch_active INTEGER DEFAULT 0,
                 max_daily_loss REAL DEFAULT 0,
                 cooldown_active INTEGER DEFAULT 0,
-                cooldown_minutes REAL DEFAULT 15
+                cooldown_minutes REAL DEFAULT 15,
+                default_risk_amount REAL DEFAULT 0
               )
             `,
           ).run();
@@ -1565,8 +1757,13 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
               "ALTER TABLE user_settings ADD COLUMN cooldown_minutes REAL DEFAULT 15",
             ).run();
           } catch (e) {}
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE user_settings ADD COLUMN default_risk_amount REAL DEFAULT 0",
+            ).run();
+          } catch (e) {}
           const res = await env.DB.prepare(
-            "SELECT kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes FROM user_settings WHERE license_key = ?",
+            "SELECT kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes, default_risk_amount FROM user_settings WHERE license_key = ?",
           )
             .bind(db_key)
             .first();
@@ -1577,6 +1774,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
                 max_daily_loss: 0,
                 cooldown_active: 0,
                 cooldown_minutes: 15,
+                default_risk_amount: 0,
               },
             ),
             { headers: corsHeaders },
@@ -1715,6 +1913,24 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           });
         }
 
+        if (action === "trade_risk") {
+          await env.DB.prepare(
+            `
+              CREATE TABLE IF NOT EXISTS trade_risk (
+                license_key TEXT, ticket TEXT, risk_amount REAL, PRIMARY KEY (license_key, ticket)
+              )
+            `,
+          ).run();
+          const { results } = await env.DB.prepare(
+            "SELECT ticket, risk_amount FROM trade_risk WHERE license_key = ?",
+          )
+            .bind(db_key)
+            .all();
+          return new Response(JSON.stringify(results), {
+            headers: corsHeaders,
+          });
+        }
+
         if (action === "strategies") {
           await env.DB.prepare(
             `
@@ -1723,12 +1939,54 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
               )
             `,
           ).run();
+          await env.DB.prepare(
+            `
+              CREATE TABLE IF NOT EXISTS strategy_checklist_items (
+                id TEXT PRIMARY KEY, strategy_id TEXT, user_id TEXT, text TEXT, item_order INTEGER
+              )
+            `,
+          ).run();
           const { results } = await env.DB.prepare(
             "SELECT id, name, description FROM strategy_definitions WHERE user_id = ?",
           )
             .bind(user_id)
             .all();
-          return new Response(JSON.stringify(results), {
+
+          const { results: checklistRows } = await env.DB.prepare(
+            "SELECT id, strategy_id, text FROM strategy_checklist_items WHERE user_id = ? ORDER BY item_order ASC",
+          )
+            .bind(user_id)
+            .all();
+          const checklistByStrategy = {};
+          (checklistRows || []).forEach((row) => {
+            if (!checklistByStrategy[row.strategy_id]) checklistByStrategy[row.strategy_id] = [];
+            checklistByStrategy[row.strategy_id].push({ id: row.id, text: row.text });
+          });
+          const withChecklist = (results || []).map((s) => ({
+            ...s,
+            checklist: checklistByStrategy[s.id] || [],
+          }));
+
+          return new Response(JSON.stringify(withChecklist), {
+            headers: corsHeaders,
+          });
+        }
+
+        if (action === "trade_checklist") {
+          await env.DB.prepare(
+            `
+              CREATE TABLE IF NOT EXISTS trade_checklist_results (
+                license_key TEXT, ticket TEXT, item_id TEXT, passed INTEGER,
+                PRIMARY KEY (license_key, ticket, item_id)
+              )
+            `,
+          ).run();
+          const { results } = await env.DB.prepare(
+            "SELECT ticket, item_id, passed FROM trade_checklist_results WHERE license_key = ?",
+          )
+            .bind(db_key)
+            .all();
+          return new Response(JSON.stringify(results || []), {
             headers: corsHeaders,
           });
         }
@@ -1820,8 +2078,16 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         await env.DB.prepare("DELETE FROM trade_notes WHERE license_key = ?")
           .bind(db_key)
           .run();
+        await env.DB.prepare("DELETE FROM trade_risk WHERE license_key = ?")
+          .bind(db_key)
+          .run();
         await env.DB.prepare(
           "DELETE FROM trade_strategies WHERE license_key = ?",
+        )
+          .bind(db_key)
+          .run();
+        await env.DB.prepare(
+          "DELETE FROM trade_checklist_results WHERE license_key = ?",
         )
           .bind(db_key)
           .run();
