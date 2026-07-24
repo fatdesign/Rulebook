@@ -2390,6 +2390,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentAllTrades = trades;
       window.currentAllTrades = trades;
 
+      loadJournalEntryDates(key);
+
       // If the Journal tab was restored on reload before trades finished
       // loading, its mood/performance correlation needs a re-run now.
       if (document.getElementById("tab-journal")?.classList.contains("active")) {
@@ -3489,6 +3491,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Which dates already have a real Mental Journal entry, so the Daily
+  // Statistics table can highlight the journal button on those rows.
+  async function loadJournalEntryDates(key) {
+    const token = localStorage.getItem("tm_master_token");
+    if (!key || !token) return;
+    try {
+      const response = await fetch(
+        `${API_URL}?action=journal_dates&account_id=${encodeURIComponent(key)}`,
+        { headers: { Authorization: token } },
+      );
+      if (!response.ok) return;
+      const dates = await response.json();
+      window.journalEntryDates = new Set(Array.isArray(dates) ? dates : []);
+      if (window.currentAllTrades) {
+        renderDailyStatsTable(window.currentAllTrades, window.currentCurSym || "$");
+      }
+    } catch (e) {
+      console.error("Failed to load journal entry dates", e);
+    }
+  }
+  window.loadJournalEntryDates = loadJournalEntryDates;
+
   function renderDailyStatsTable(trades, curSym) {
     const tbody = document.querySelector("#daily-stats-table tbody");
     if (!tbody) return;
@@ -3599,7 +3623,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ? "text-danger"
             : "";
 
-      const hasJournal = window.journalData && window.journalData[day.dateKey] && window.journalData[day.dateKey].trim() !== "";
+      const hasJournal = !!(window.journalEntryDates && window.journalEntryDates.has(day.dateKey));
       const dateDisplayHtml = hasJournal 
         ? `<span class="journal-badge" title="Journal vorhanden"><i class="ph ph-notebook"></i></span> ${day.dateStr}`
         : day.dateStr;
@@ -4369,6 +4393,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
           modal.classList.add("hidden");
           loadMoodPerformance(key);
+          loadJournalEntryDates(key);
         }, 1000);
       } catch (err) {
         console.error("Journal save error", err);

@@ -2739,6 +2739,35 @@ WICHTIGE REGELN:
           });
         }
 
+        // Lightweight: just which dates actually have a real journal entry
+        // (not an empty row created by opening+saving without filling
+        // anything), so the calendar/daily-stats table can highlight them.
+        if (action === "journal_dates") {
+          await env.DB.prepare(
+            `
+              CREATE TABLE IF NOT EXISTS journal (
+                license_key TEXT, date TEXT, content TEXT,
+                plan_followed INTEGER, emotional_state INTEGER, mood TEXT,
+                PRIMARY KEY (license_key, date)
+              )
+            `,
+          ).run();
+          const { results } = await env.DB.prepare(
+            `SELECT date FROM journal WHERE license_key = ? AND (
+              (content IS NOT NULL AND TRIM(content) != '')
+              OR plan_followed IS NOT NULL
+              OR emotional_state IS NOT NULL
+              OR mood IS NOT NULL
+            )`,
+          )
+            .bind(db_key)
+            .all();
+          return new Response(
+            JSON.stringify((results || []).map((r) => r.date)),
+            { headers: corsHeaders },
+          );
+        }
+
         if (action === "notes") {
           await env.DB.prepare(
             `
