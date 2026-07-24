@@ -2230,12 +2230,18 @@ WICHTIGE REGELN:
           await env.DB.prepare("ALTER TABLE journal ADD COLUMN mood TEXT").run();
         } catch (e) {}
 
+        // Careful: the "No" button sends the STRING "0", which is truthy in
+        // JS - a plain `body.plan_followed ? 1 : 0` would wrongly save it as 1.
         const planFollowed =
-          body.plan_followed === null || body.plan_followed === undefined
+          body.plan_followed === null ||
+          body.plan_followed === undefined ||
+          body.plan_followed === ""
             ? null
-            : body.plan_followed
-              ? 1
-              : 0;
+            : body.plan_followed === "0" ||
+                body.plan_followed === 0 ||
+                body.plan_followed === false
+              ? 0
+              : 1;
         const emotionalState =
           body.emotional_state === null || body.emotional_state === undefined
             ? null
