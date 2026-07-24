@@ -45,6 +45,11 @@ const i18n = {
     tilt_sub: "Revenge Trades (< 15 mins nach Verlust)",
     killswitch_sub: "EA blockiert Trades bei Tagesverlust-Limit",
     heatmap_sub: "Wann verdienst du am meisten?",
+    news_corr_title: "News-Korrelation",
+    news_corr_warning: "⚠️ Du verlierst {pct}% der Trades, die du innerhalb von 30 Min. vor High-Impact-News eröffnest ({count} solcher Trades erfasst) — deine Winrate liegt insgesamt bei {overall}%.",
+    news_corr_positive: "📈 Trades, die du innerhalb von 30 Min. vor High-Impact-News eröffnest, laufen bei dir sogar besser: {winpct}% Winrate vs. {overall}% insgesamt ({count} solcher Trades erfasst).",
+    news_corr_neutral: "News-Timing scheint bei dir kaum einen Unterschied zu machen: {winpct}% Winrate bei Trades innerhalb von 30 Min. vor High-Impact-News, vs. {overall}% insgesamt ({count} solcher Trades erfasst).",
+    news_badge_title: "Innerhalb von 30 Min. vor einer High-Impact-News eröffnet",
     save_btn: "Speichern",
     limit_lbl: "Limit: ",
     modal_warn: "WARNUNG",
@@ -119,6 +124,7 @@ const i18n = {
     focus_btn: "Fokus Modus",
     kpi_avg_win: "Ø Gewinn",
     kpi_avg_loss: "Ø Verlust",
+    kpi_avg_win_loss: "Ø Gewinn / Verlust",
     ticker_title: "Markt Ticker",
     nav_dashboard: "Dashboard",
     nav_journal: "Journal",
@@ -323,6 +329,11 @@ const i18n = {
     tilt_sub: "Revenge Trades (< 15 mins after loss)",
     killswitch_sub: "EA blocks trades at daily loss limit",
     heatmap_sub: "When do you earn the most?",
+    news_corr_title: "News Correlation",
+    news_corr_warning: "⚠️ You lose {pct}% of trades opened within 30 min before High-Impact news ({count} such trades tracked) - your overall win rate is {overall}%.",
+    news_corr_positive: "📈 Trades opened within 30 min before High-Impact news actually do better for you: {winpct}% win rate vs. {overall}% overall ({count} such trades tracked).",
+    news_corr_neutral: "News timing doesn't seem to move the needle for you: {winpct}% win rate on trades opened within 30 min before High-Impact news, vs. {overall}% overall ({count} such trades tracked).",
+    news_badge_title: "Opened within 30 min before a High-Impact news event",
     save_btn: "Save",
     limit_lbl: "Limit: ",
     modal_warn: "WARNING",
@@ -397,6 +408,7 @@ const i18n = {
     focus_btn: "Focus Mode",
     kpi_avg_win: "Avg Win",
     kpi_avg_loss: "Avg Loss",
+    kpi_avg_win_loss: "Avg Win / Loss",
     ticker_title: "Market Ticker",
     nav_dashboard: "Dashboard",
     nav_journal: "Journal",
@@ -601,6 +613,11 @@ const i18n = {
     tilt_sub: "Operaciones de Revancha (< 15 mins post-pérdida)",
     killswitch_sub: "El EA bloquea trades al llegar al límite diario",
     heatmap_sub: "¿Cuándo ganas más?",
+    news_corr_title: "Correlación de Noticias",
+    news_corr_warning: "⚠️ Pierdes el {pct}% de las operaciones abiertas en los 30 min. previos a noticias de Alto Impacto ({count} operaciones registradas) — tu winrate general es {overall}%.",
+    news_corr_positive: "📈 Las operaciones abiertas en los 30 min. previos a noticias de Alto Impacto te van mejor: {winpct}% de winrate vs. {overall}% en general ({count} operaciones registradas).",
+    news_corr_neutral: "El timing de noticias no parece hacer mucha diferencia para ti: {winpct}% de winrate en operaciones abiertas en los 30 min. previos a noticias de Alto Impacto, vs. {overall}% en general ({count} operaciones registradas).",
+    news_badge_title: "Abierta en los 30 min. previos a una noticia de Alto Impacto",
     save_btn: "Guardar",
     limit_lbl: "Límite: ",
     modal_warn: "ADVERTENCIA",
@@ -674,6 +691,7 @@ const i18n = {
     focus_btn: "Modo Enfoque",
     kpi_avg_win: "Ganancia Prom.",
     kpi_avg_loss: "Pérdida Prom.",
+    kpi_avg_win_loss: "Ganancia / Pérdida Prom.",
     ticker_title: "Mercado Ticker",
     nav_dashboard: "Panel",
     nav_journal: "Diario",
@@ -878,6 +896,11 @@ const i18n = {
     tilt_sub: "İntikam İşlemleri (Kayıptan < 15 dk sonra)",
     killswitch_sub: "Günlük kayıp limitinde işlemleri durdurur",
     heatmap_sub: "En çok ne zaman kazanıyorsun?",
+    news_corr_title: "Haber Korelasyonu",
+    news_corr_warning: "⚠️ Yüksek Etkili haberlerden 30 dk. önce açtığın işlemlerin %{pct}'ini kaybediyorsun ({count} işlem izlendi) — genel kazanma oranın %{overall}.",
+    news_corr_positive: "📈 Yüksek Etkili haberlerden 30 dk. önce açtığın işlemler senin için daha iyi gidiyor: %{winpct} kazanma oranı vs. genelde %{overall} ({count} işlem izlendi).",
+    news_corr_neutral: "Haber zamanlaması senin için pek fark yaratmıyor gibi görünüyor: Yüksek Etkili haberlerden 30 dk. önce açılan işlemlerde %{winpct} kazanma oranı, genelde ise %{overall} ({count} işlem izlendi).",
+    news_badge_title: "Yüksek Etkili bir haberden 30 dk. önce açıldı",
     save_btn: "Kaydet",
     limit_lbl: "Limit: ",
     modal_warn: "UYARI",
@@ -951,6 +974,7 @@ const i18n = {
     focus_btn: "Odak Modu",
     kpi_avg_win: "Ort. Kazanç",
     kpi_avg_loss: "Ort. Kayıp",
+    kpi_avg_win_loss: "Ort. Kazanç / Kayıp",
     ticker_title: "Piyasa Takipçisi",
     nav_dashboard: "Panel",
     nav_journal: "Günlük",
@@ -2312,6 +2336,8 @@ document.addEventListener("DOMContentLoaded", () => {
         loadMoodPerformance(key);
       }
 
+      if (typeof renderNewsCorrelation === "function") renderNewsCorrelation();
+
       processData(filteredTrades, curSym);
     } catch (err) {
       showError(err.message);
@@ -2758,6 +2784,16 @@ document.addEventListener("DOMContentLoaded", () => {
         "Stop Loss {x}x in Verlustrichtung verschoben";
       const slTitle = tooltipTpl.replace("{x}", slWidenedCount);
 
+      const isNewsTagged =
+        window._newsCorrelationTaggedTickets &&
+        window._newsCorrelationTaggedTickets.has(String(t.ticket));
+      const newsTitleTpl =
+        (i18n[currentLang] || i18n["de"]).news_badge_title ||
+        "Opened within 30 min before a High-Impact news event";
+      const newsBadgeHtml = isNewsTagged
+        ? `<i class="ph ph-newspaper" style="color: var(--accent-color); margin-left: 5px;" title="${newsTitleTpl}"></i>`
+        : "";
+
       const slBadgeHtml =
         slWidenedCount > 0
           ? `<span class="sl-widened-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;" title="${slTitle}"><i class="ph ph-warning-circle"></i> SL +${slWidenedCount}x</span>`
@@ -2765,7 +2801,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       tr.innerHTML = `
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${dateStr}</td>
-                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}</td>
+                <td style="padding: 8px; border-bottom: 1px solid var(--border-dark);">${t.symbol || "-"}${newsBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
                 <td style="padding: 8px 6px; border-bottom: 1px solid var(--border-dark); text-align: center; width: 100px; white-space: nowrap;">${slBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${profitNum < 0 ? "-" : ""}${curSym}${Math.abs(profitNum).toFixed(2)}</td>
@@ -3073,6 +3109,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("kpi-best-day").innerText = bestDayText;
     document.getElementById("kpi-worst-day").innerText = worstDayText;
+
+    // Ø Gewinn / Verlust - same numbers as the Focus Mode tiles, surfaced
+    // on the main dashboard too so you don't need Focus Mode just to see it.
+    const kpiAvgWinEl = document.getElementById("kpi-avg-win");
+    const kpiAvgLossEl = document.getElementById("kpi-avg-loss");
+    if (kpiAvgWinEl) kpiAvgWinEl.innerText = `+${curSym}${avgWin.toFixed(2)}`;
+    if (kpiAvgLossEl) kpiAvgLossEl.innerText = `-${curSym}${avgLoss.toFixed(2)}`;
 
     // Update Focus Mode KPIs
     updateKPI("focus-kpi-hold-win", formatHoldTime(avgHoldWin), true);
@@ -4865,59 +4908,181 @@ async function initNewsTicker() {
     <span class="impact-medium">🟠 No News Available</span>
   `;
 
+  const noMatchNews = `
+    <span class="impact-low">⚪ No News Today</span>
+  `;
+
   try {
     const url = (typeof API_URL !== "undefined" ? API_URL : "") + "?action=news";
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch news");
     const events = await response.json();
 
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-
-    const fallbackNews = `
-    <span class="impact-low">⚪ No News Today</span>
-  `;
+    // Compare using the browser's local calendar date, not a raw ISO string
+    // slice - ff_calendar events carry a US-Eastern (-04:00/-05:00) offset,
+    // so string-matching against toISOString() (UTC) silently drops events
+    // whenever the local-vs-UTC date rolls over (i.e. most of the day for
+    // European/Asian traders).
+    const now = new Date();
+    const isSameLocalDay = (d) =>
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
 
     let newsHtml = "";
     if (Array.isArray(events)) {
       events.forEach((ev) => {
         if (!ev.date) return;
-        const evDateStr = ev.date.split("T")[0];
-        if (evDateStr === todayStr) {
-          if (!tickerFilters.impacts.includes(ev.impact)) return;
-          if (!tickerFilters.currencies.includes(ev.country)) return;
-          
-          const dateObj = new Date(ev.date);
-          const time = dateObj.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-          
-          let impactClass = "impact-low";
-          let icon = "🟡";
-          if (ev.impact === "High") {
-            impactClass = "impact-high";
-            icon = "🔴";
-          } else if (ev.impact === "Medium") {
-            impactClass = "impact-medium";
-            icon = "🟠";
-          } else if (ev.impact === "Holiday") {
-            icon = "⚪";
-          }
-          
-          newsHtml += `<span class="${impactClass}">${icon} [${time}] ${ev.country} - ${ev.title}</span>`;
+        const dateObj = new Date(ev.date);
+        if (isNaN(dateObj.getTime()) || !isSameLocalDay(dateObj)) return;
+
+        if (!tickerFilters.impacts.includes(ev.impact)) return;
+        if (!tickerFilters.currencies.includes(ev.country)) return;
+
+        const time = dateObj.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        let impactClass = "impact-low";
+        let icon = "🟡";
+        if (ev.impact === "High") {
+          impactClass = "impact-high";
+          icon = "🔴";
+        } else if (ev.impact === "Medium") {
+          impactClass = "impact-medium";
+          icon = "🟠";
+        } else if (ev.impact === "Holiday") {
+          icon = "⚪";
         }
+
+        newsHtml += `<span class="${impactClass}">${icon} [${time}] ${ev.country} - ${ev.title}</span>`;
       });
     }
 
     if (!newsHtml) {
-      newsHtml = fallbackNews;
+      newsHtml = noMatchNews;
     }
 
     ticker.innerHTML = newsHtml.repeat(8);
   } catch (err) {
     console.error("News fetch error:", err);
     ticker.innerHTML = fallbackNews.repeat(8);
+  }
+}
+
+// ── Automatic News Correlation ────────────────────────────────────────
+// Correlates each trade against the archived Forex Factory event history
+// (built up server-side over time) with zero manual tagging: was this
+// trade opened shortly before a High-Impact release for its currency?
+const NEWS_CORRELATION_WINDOW_SEC = 30 * 60; // 30 minutes, matches the ask
+
+async function loadNewsHistory() {
+  try {
+    const url =
+      (typeof API_URL !== "undefined" ? API_URL : "") +
+      "?action=news_history&days=180";
+    const token = localStorage.getItem("tm_master_token");
+    const response = await fetch(url, {
+      headers: token ? { Authorization: token } : {},
+    });
+    if (!response.ok) throw new Error("Failed to fetch news history");
+    window._newsHistoryEvents = await response.json();
+  } catch (err) {
+    console.error("News history fetch error:", err);
+    window._newsHistoryEvents = window._newsHistoryEvents || [];
+  }
+  renderNewsCorrelation();
+}
+
+function computeNewsCorrelation(trades, newsEvents) {
+  const highImpact = (newsEvents || [])
+    .filter((e) => e.impact === "High" && e.date && e.country)
+    .map((e) => ({
+      time: new Date(e.date).getTime() / 1000,
+      country: e.country,
+    }))
+    .filter((e) => !isNaN(e.time));
+
+  if (highImpact.length === 0 || !trades || trades.length === 0) return null;
+
+  const isNearNews = (t) => {
+    const symbol = (t.symbol || "").toUpperCase();
+    const openTime = t.open_time;
+    return highImpact.some(
+      (e) =>
+        symbol.includes(e.country) &&
+        openTime >= e.time - NEWS_CORRELATION_WINDOW_SEC &&
+        openTime <= e.time,
+    );
+  };
+
+  const nearNewsTrades = trades.filter(isNearNews);
+  // Below this, a single trade or two swings the % too wildly to say anything.
+  if (nearNewsTrades.length < 5) return null;
+
+  const winrateOf = (arr) => {
+    if (arr.length === 0) return 0;
+    const wins = arr.filter((t) => parseFloat(t.net_profit) > 0).length;
+    return (wins / arr.length) * 100;
+  };
+
+  return {
+    nearNewsCount: nearNewsTrades.length,
+    nearNewsWinrate: winrateOf(nearNewsTrades),
+    overallWinrate: winrateOf(trades),
+    taggedTickets: new Set(nearNewsTrades.map((t) => String(t.ticket))),
+  };
+}
+
+function renderNewsCorrelation() {
+  const panel = document.getElementById("news-correlation-panel");
+  const textEl = document.getElementById("news-correlation-text");
+  if (!panel || !textEl) return;
+
+  const trades = window.currentAllTrades || [];
+  const result = computeNewsCorrelation(trades, window._newsHistoryEvents);
+  window._newsCorrelationTaggedTickets = result ? result.taggedTickets : null;
+
+  if (!result) {
+    panel.style.display = "none";
+    return;
+  }
+
+  const currentLang = localStorage.getItem("tm_global_lang") || "de";
+  const dict = i18n[currentLang] || i18n["de"];
+  const diff = result.overallWinrate - result.nearNewsWinrate;
+
+  let tmpl;
+  if (diff >= 10) {
+    tmpl =
+      dict.news_corr_warning ||
+      "⚠️ You lose {pct}% of trades opened within 30 min before High-Impact news ({count} such trades tracked) - your overall win rate is {overall}%.";
+  } else if (diff <= -10) {
+    tmpl =
+      dict.news_corr_positive ||
+      "📈 Trades opened within 30 min before High-Impact news actually do better for you: {winpct}% win rate vs. {overall}% overall ({count} such trades tracked).";
+  } else {
+    tmpl =
+      dict.news_corr_neutral ||
+      "News timing doesn't seem to move the needle for you: {winpct}% win rate on trades opened within 30 min before High-Impact news, vs. {overall}% overall ({count} such trades tracked).";
+  }
+
+  const lossPct = (100 - result.nearNewsWinrate).toFixed(0);
+  textEl.innerHTML = tmpl
+    .replace("{pct}", lossPct)
+    .replace("{winpct}", result.nearNewsWinrate.toFixed(0))
+    .replace("{count}", result.nearNewsCount)
+    .replace("{overall}", result.overallWinrate.toFixed(0));
+
+  panel.style.display = "block";
+
+  // Re-render the trades table so the 📰 badges reflect the fresh tagging.
+  if (
+    window.currentFilteredTrades &&
+    typeof window.renderTradesTable === "function"
+  ) {
+    window.renderTradesTable(window.currentFilteredTrades, window.currentCurSym || "$");
   }
 }
 
@@ -5482,6 +5647,7 @@ window.updatePropChallengeTracker = function(trades) {
 document.addEventListener("DOMContentLoaded", () => {
   initTickerFilterUI();
   initNewsTicker();
+  loadNewsHistory();
   updateFocusModeUI();
   updateMarketSessions();
   setInterval(updateMarketSessions, 1000);

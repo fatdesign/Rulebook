@@ -63,6 +63,36 @@ export default {
         return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
       }
 
+      // --- Archive Forex Factory events into permanent history, so trades
+      // from past weeks can eventually be correlated against real news
+      // (the upstream feed itself only ever exposes "this week"). ---
+      async function archiveNewsEvents(env, events) {
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS news_events (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            country TEXT,
+            date TEXT,
+            impact TEXT
+          )
+        `,
+        ).run();
+
+        const stmt = env.DB.prepare(
+          "INSERT INTO news_events (id, title, country, date, impact) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+        );
+        const rows = [];
+        for (const ev of events) {
+          if (!ev || !ev.date || !ev.country || !ev.title) continue;
+          const id = `${ev.country}|${ev.date}|${ev.title}`;
+          rows.push(stmt.bind(id, ev.title, ev.country, ev.date, ev.impact || "Low"));
+        }
+        for (let i = 0; i < rows.length; i += 50) {
+          await env.DB.batch(rows.slice(i, i + 50));
+        }
+      }
+
       // --- Notification helper (reactions, comments, follows) ---
       async function createNotification(
         env,
@@ -270,25 +300,121 @@ export default {
       }
 
       // --- FOREX FACTORY NEWS PROXY ---
+      // nfs.faireconomy.media is flaky for Cloudflare Workers specifically
+      // (shared Workers IP ranges get rate-limited/blocked intermittently),
+      // so we cache the last good response in D1 and fall back to it
+      // instead of showing "no news" whenever the live fetch fails.
       if (request.method === "GET" && action === "news") {
-        try {
-          const ffResponse = await fetch(
-            "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
-            {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Accept": "application/json"
-              }
-            }
-          );
-          const data = await ffResponse.json();
-          return new Response(JSON.stringify(data), { headers: corsHeaders });
-        } catch (e) {
-          return new Response(
-            JSON.stringify({ error: "Failed to fetch news." }),
-            { status: 500, headers: corsHeaders },
-          );
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS news_cache (
+            id INTEGER PRIMARY KEY,
+            data TEXT,
+            fetched_at INTEGER
+          )
+        `,
+        ).run();
+
+        async function fetchLiveNews() {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 8000);
+          try {
+            const ffResponse = await fetch(
+              "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+              {
+                headers: {
+                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                  Accept: "application/json",
+                  Referer: "https://www.forexfactory.com/",
+                },
+                signal: controller.signal,
+              },
+            );
+            if (!ffResponse.ok) return null;
+            const text = await ffResponse.text();
+            const data = JSON.parse(text);
+            if (!Array.isArray(data) || data.length === 0) return null;
+            return { text, data };
+          } catch (e) {
+            return null;
+          } finally {
+            clearTimeout(timeout);
+          }
         }
+
+        // One retry - a single transient failure shouldn't force a fallback
+        // to (potentially days-old) cached data if the second try succeeds.
+        let live = await fetchLiveNews();
+        if (!live) live = await fetchLiveNews();
+
+        if (live) {
+          try {
+            await env.DB.prepare(
+              "INSERT INTO news_cache (id, data, fetched_at) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET data=excluded.data, fetched_at=excluded.fetched_at",
+            )
+              .bind(live.text, Math.floor(Date.now() / 1000))
+              .run();
+          } catch (e) {}
+
+          // Archive into a permanent history table too, since the upstream
+          // API only ever exposes "this week" - this is how we build up
+          // enough historical coverage to correlate trades with news over
+          // time (see action=news_history / the correlation panel).
+          try {
+            await archiveNewsEvents(env, live.data);
+          } catch (e) {}
+
+          return new Response(live.text, { headers: corsHeaders });
+        }
+
+        // Live fetch failed twice - serve the last known-good cache instead
+        // of an empty ticker, as long as it's not absurdly stale (7 days).
+        try {
+          const cached = await env.DB.prepare(
+            "SELECT data, fetched_at FROM news_cache WHERE id = 1",
+          ).first();
+          const maxAge = 7 * 24 * 60 * 60;
+          if (cached && Date.now() / 1000 - cached.fetched_at < maxAge) {
+            return new Response(cached.data, { headers: corsHeaders });
+          }
+        } catch (e) {}
+
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch news." }),
+          { status: 500, headers: corsHeaders },
+        );
+      }
+
+      // --- NEWS HISTORY (for trade/news correlation) ---
+      // Serves the archived events built up by action=news over time.
+      // Public market data, same as action=news - no auth required.
+      if (request.method === "GET" && action === "news_history") {
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS news_events (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            country TEXT,
+            date TEXT,
+            impact TEXT
+          )
+        `,
+        ).run();
+
+        const daysParam = parseInt(url.searchParams.get("days")) || 180;
+        const sinceDate = new Date(
+          Date.now() - daysParam * 24 * 60 * 60 * 1000,
+        ).toISOString();
+
+        const { results } = await env.DB.prepare(
+          "SELECT title, country, date, impact FROM news_events WHERE date >= ? ORDER BY date ASC LIMIT 5000",
+        )
+          .bind(sinceDate)
+          .all();
+
+        return new Response(JSON.stringify(results || []), {
+          headers: corsHeaders,
+        });
       }
 
       // --- COMMUNITY FEED ROUTES ---

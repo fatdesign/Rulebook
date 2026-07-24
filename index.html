@@ -649,6 +649,14 @@
                       <p id="kpi-pf" class="kpi-value">0.00</p>
                     </div>
                     <div class="kpi-card glass-panel">
+                      <h3 data-i18n="kpi_avg_win_loss">Ø Gewinn / Verlust</h3>
+                      <p class="kpi-value" style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                        <span id="kpi-avg-win" class="positive">$0.00</span>
+                        <span style="color: var(--text-muted); font-weight: normal;">/</span>
+                        <span id="kpi-avg-loss" class="negative">$0.00</span>
+                      </p>
+                    </div>
+                    <div class="kpi-card glass-panel">
                       <h3 data-i18n="kpi_drawdown">Max Drawdown</h3>
                       <p id="kpi-drawdown" class="kpi-value negative">$0.00</p>
                     </div>
@@ -807,6 +815,19 @@
                     >
                       <!-- Populated dynamically by JS -->
                     </div>
+                  </div>
+
+                  <!-- Automatic News Correlation -->
+                  <div
+                    id="news-correlation-panel"
+                    class="glass-panel"
+                    style="padding: 20px; margin-bottom: 20px; display: none;"
+                  >
+                    <h3 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                      <i class="ph ph-newspaper" style="color: var(--accent-color);"></i>
+                      <span data-i18n="news_corr_title">News-Korrelation</span>
+                    </h3>
+                    <p id="news-correlation-text" style="font-size: 0.92rem; color: var(--text-main); line-height: 1.6; margin: 0;"></p>
                   </div>
 
                   <!-- Data Row 1 (Charts) -->
