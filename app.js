@@ -148,6 +148,8 @@ const i18n = {
     lb_tab_gain: "Gain %",
     lb_tab_biggest_win: "Bester Trade",
     lb_tab_most_trades: "Meiste Trades",
+    lb_tab_hold_ratio: "Gewinner laufen lassen",
+    lb_hold_ratio_sub: "Gewinn {win} / Verlust {loss}",
     lb_loading: "Lade Rangliste...",
     lb_no_data: "Noch keine Daten für diese Woche.",
     lb_trades_suffix: "Trades",
@@ -436,6 +438,8 @@ const i18n = {
     lb_tab_gain: "Gain %",
     lb_tab_biggest_win: "Best Trade",
     lb_tab_most_trades: "Most Trades",
+    lb_tab_hold_ratio: "Letting Winners Run",
+    lb_hold_ratio_sub: "Win {win} / Loss {loss}",
     lb_loading: "Loading leaderboard...",
     lb_no_data: "No data for this week yet.",
     lb_trades_suffix: "Trades",
@@ -754,6 +758,8 @@ const i18n = {
     lb_tab_gain: "Ganancia %",
     lb_tab_biggest_win: "Mejor Trade",
     lb_tab_most_trades: "Más Trades",
+    lb_tab_hold_ratio: "Dejar Correr Ganancias",
+    lb_hold_ratio_sub: "Ganancia {win} / Pérdida {loss}",
     lb_loading: "Cargando ranking...",
     lb_no_data: "Aún no hay datos para esta semana.",
     lb_trades_suffix: "Trades",
@@ -1043,6 +1049,8 @@ const i18n = {
     lb_tab_gain: "Kazanç %",
     lb_tab_biggest_win: "En İyi İşlem",
     lb_tab_most_trades: "En Çok İşlem",
+    lb_tab_hold_ratio: "Kazananları Koşturmak",
+    lb_hold_ratio_sub: "Kazanç {win} / Kayıp {loss}",
     lb_loading: "Lider tablosu yükleniyor...",
     lb_no_data: "Bu hafta için henüz veri yok.",
     lb_trades_suffix: "İşlem",
@@ -6488,6 +6496,16 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  function formatHoldDuration(totalSec) {
+    const sec = Math.max(0, Math.round(totalSec || 0));
+    if (sec < 60) return `${sec}s`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m`;
+    const hrs = Math.floor(min / 60);
+    const remMin = min % 60;
+    return `${hrs}h${remMin > 0 ? " " + remMin + "m" : ""}`;
+  }
+
   function renderLeaderboard(data) {
     if (!leaderboardList) return;
     const currentLang = localStorage.getItem("tm_global_lang") || "de";
@@ -6517,6 +6535,13 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (activeLeaderboardCat === "most_trades") {
           valueHtml = `<span style="color: var(--text-main);">${entry.value}</span>`;
           subHtml = dict.lb_trades_suffix || "Trades";
+        } else if (activeLeaderboardCat === "hold_ratio") {
+          const isGood = entry.value >= 1;
+          valueHtml = `<span style="color: ${isGood ? "var(--success)" : "var(--danger)"};">${entry.value.toFixed(2)}x</span>`;
+          const tmpl = dict.lb_hold_ratio_sub || "Win {win} / Loss {loss}";
+          subHtml = tmpl
+            .replace("{win}", formatHoldDuration(entry.avg_win_hold_sec))
+            .replace("{loss}", formatHoldDuration(entry.avg_loss_hold_sec));
         }
 
         return `

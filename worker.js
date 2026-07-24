@@ -909,7 +909,7 @@ export default {
           );
 
           const { results: rows } = await env.DB.prepare(
-            "SELECT license_key, symbol, side, net_profit FROM trades WHERE close_time >= ?",
+            "SELECT license_key, symbol, side, net_profit, open_time, close_time FROM trades WHERE close_time >= ?",
           )
             .bind(weekStart)
             .all();
@@ -921,6 +921,7 @@ export default {
                 gain_pct: [],
                 biggest_win: [],
                 most_trades: [],
+                hold_ratio: [],
                 week_start: weekStart,
               }),
               { headers: corsHeaders },
@@ -952,6 +953,10 @@ export default {
                 count: 0,
                 maxWin: -Infinity,
                 maxWinSymbol: "",
+                winHoldSum: 0,
+                winHoldCount: 0,
+                lossHoldSum: 0,
+                lossHoldCount: 0,
               };
             }
             const a = perAccount[t.license_key];
@@ -961,6 +966,16 @@ export default {
             if (netProfit > a.maxWin) {
               a.maxWin = netProfit;
               a.maxWinSymbol = t.symbol || "";
+            }
+            const holdSec = (t.close_time || 0) - (t.open_time || 0);
+            if (holdSec > 0) {
+              if (netProfit > 0) {
+                a.winHoldSum += holdSec;
+                a.winHoldCount += 1;
+              } else {
+                a.lossHoldSum += holdSec;
+                a.lossHoldCount += 1;
+              }
             }
           }
 
@@ -1007,6 +1022,10 @@ export default {
                 hasBalance: false,
                 maxWin: -Infinity,
                 maxWinSymbol: "",
+                winHoldSum: 0,
+                winHoldCount: 0,
+                lossHoldSum: 0,
+                lossHoldCount: 0,
               };
             }
             const u = perUser[uid];
@@ -1022,6 +1041,10 @@ export default {
               u.maxWin = a.maxWin;
               u.maxWinSymbol = a.maxWinSymbol;
             }
+            u.winHoldSum += a.winHoldSum;
+            u.winHoldCount += a.winHoldCount;
+            u.lossHoldSum += a.lossHoldSum;
+            u.lossHoldCount += a.lossHoldCount;
           }
 
           const users = Object.values(perUser);
@@ -1059,12 +1082,31 @@ export default {
             .slice(0, 5)
             .map((u) => ({ username: u.username, value: u.count }));
 
+          // "Lets winners run" award: ratio of avg winning hold time to avg
+          // losing hold time. >1 means winners are held longer than losers.
+          // Needs at least 3 of each this week, otherwise too noisy to rank.
+          const holdRatio = users
+            .filter((u) => u.winHoldCount >= 3 && u.lossHoldCount >= 3)
+            .map((u) => {
+              const avgWinHold = u.winHoldSum / u.winHoldCount;
+              const avgLossHold = u.lossHoldSum / u.lossHoldCount;
+              return {
+                username: u.username,
+                value: parseFloat((avgWinHold / avgLossHold).toFixed(2)),
+                avg_win_hold_sec: Math.round(avgWinHold),
+                avg_loss_hold_sec: Math.round(avgLossHold),
+              };
+            })
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+
           return new Response(
             JSON.stringify({
               commissions,
               gain_pct: gainPct,
               biggest_win: biggestWin,
               most_trades: mostTrades,
+              hold_ratio: holdRatio,
               week_start: weekStart,
             }),
             { headers: corsHeaders },
