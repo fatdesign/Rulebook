@@ -1529,6 +1529,11 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             PRIMARY KEY (license_key, week_key)
           )`,
         ).run();
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE weekly_reports ADD COLUMN language TEXT",
+          ).run();
+        } catch (e) {}
 
         // Monday 00:00:00 UTC of the current week -> used as the week key & window start
         const now = new Date();
@@ -1556,7 +1561,19 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           .bind(db_key, weekKey)
           .first();
 
-        if (existing && !forceRegen) {
+        // A cached report written in another language (or written before we
+        // tracked language at all) doesn't count as a valid cache hit - it
+        // needs a fresh generation in the requested language, but that
+        // shouldn't burn one of the user's manual "regenerate" credits.
+        const languageMismatch = !!(
+          existing &&
+          existing.language &&
+          existing.language !== language
+        );
+        const legacyNoLanguage = !!(existing && !existing.language);
+        const needsLanguageRegen = languageMismatch || legacyNoLanguage;
+
+        if (existing && !forceRegen && !needsLanguageRegen) {
           return new Response(
             JSON.stringify({
               report: existing.report_text,
@@ -1570,7 +1587,12 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           );
         }
 
-        if (forceRegen && existing && (existing.regen_count || 0) >= 3) {
+        if (
+          forceRegen &&
+          !needsLanguageRegen &&
+          existing &&
+          (existing.regen_count || 0) >= 3
+        ) {
           return new Response(
             JSON.stringify({
               error: "Regenerierungs-Limit für diese Woche erreicht.",
@@ -1697,10 +1719,14 @@ WICHTIGE REGELN:
         const reportText = weeklyAiResponse.response || null;
         const generatedAt = Math.floor(Date.now() / 1000);
         const newRegenCount =
-          forceRegen && existing ? (existing.regen_count || 0) + 1 : 0;
+          forceRegen && !needsLanguageRegen && existing
+            ? (existing.regen_count || 0) + 1
+            : existing
+              ? existing.regen_count || 0
+              : 0;
 
         await env.DB.prepare(
-          "INSERT INTO weekly_reports (license_key, week_key, report_text, trade_count, generated_at, regen_count) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(license_key, week_key) DO UPDATE SET report_text=excluded.report_text, trade_count=excluded.trade_count, generated_at=excluded.generated_at, regen_count=excluded.regen_count",
+          "INSERT INTO weekly_reports (license_key, week_key, report_text, trade_count, generated_at, regen_count, language) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(license_key, week_key) DO UPDATE SET report_text=excluded.report_text, trade_count=excluded.trade_count, generated_at=excluded.generated_at, regen_count=excluded.regen_count, language=excluded.language",
         )
           .bind(
             db_key,
@@ -1709,6 +1735,7 @@ WICHTIGE REGELN:
             weekTrades.length,
             generatedAt,
             newRegenCount,
+            language,
           )
           .run();
 
