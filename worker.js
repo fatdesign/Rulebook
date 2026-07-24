@@ -1213,7 +1213,11 @@ export default {
           let checklistRows = [];
           try {
             const res = await env.DB.prepare(
-              "SELECT t.license_key AS license_key, tcr.ticket AS ticket, tcr.passed AS passed FROM trade_checklist_results tcr JOIN trades t ON t.ticket = tcr.ticket WHERE t.close_time >= ?",
+              // CAST both sides to INTEGER: trades.ticket can be stored as
+              // REAL (e.g. 123456.0) while trade_checklist_results.ticket is
+              // always TEXT ("123456") - a plain `=` or CAST(...AS TEXT) can
+              // silently fail to match ("123456.0" !== "123456").
+              "SELECT t.license_key AS license_key, tcr.ticket AS ticket, tcr.passed AS passed FROM trade_checklist_results tcr JOIN trades t ON CAST(t.ticket AS INTEGER) = CAST(tcr.ticket AS INTEGER) WHERE t.close_time >= ?",
             )
               .bind(weekStart)
               .all();
