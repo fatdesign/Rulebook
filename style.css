@@ -2306,6 +2306,10 @@ th {
   color: var(--accent-color);
   font-weight: bold;
 }
+.journal-choice-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .psych-cat-btn.active {
   background: var(--accent-glow);
   border-color: var(--accent-color);

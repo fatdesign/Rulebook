@@ -4282,15 +4282,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderJournalModalTrades(dateKey);
 
-    const planGroup = wireChoiceGroup(
-      Array.from(document.querySelectorAll(".journal-plan-btn")),
-    );
-    const stateGroup = wireChoiceGroup(
-      Array.from(document.querySelectorAll(".journal-state-btn")),
-    );
-    const moodGroup = wireChoiceGroup(
-      Array.from(document.querySelectorAll(".journal-mood-btn")),
-    );
+    const planBtns = Array.from(document.querySelectorAll(".journal-plan-btn"));
+    const stateBtns = Array.from(document.querySelectorAll(".journal-state-btn"));
+    const moodBtns = Array.from(document.querySelectorAll(".journal-mood-btn"));
+    const allChoiceBtns = [...planBtns, ...stateBtns, ...moodBtns];
+
+    const planGroup = wireChoiceGroup(planBtns);
+    const stateGroup = wireChoiceGroup(stateBtns);
+    const moodGroup = wireChoiceGroup(moodBtns);
+
+    // Disable the choice buttons while the saved values are loading, so a
+    // click that lands before the fetch resolves can't get silently
+    // overwritten by planGroup.set()/stateGroup.set()/moodGroup.set() below.
+    allChoiceBtns.forEach((b) => (b.disabled = true));
 
     // Fetch journal for this specific day
     try {
@@ -4316,6 +4320,7 @@ document.addEventListener("DOMContentLoaded", () => {
       status.style.color = "var(--danger)";
     } finally {
       textObj.disabled = false;
+      allChoiceBtns.forEach((b) => (b.disabled = false));
     }
 
     // Remove old event listeners to prevent duplicate saves
