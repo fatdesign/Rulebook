@@ -4235,6 +4235,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
   }
 
+  // Clones each button and swaps it into the DOM in its own place, which
+  // drops any event listeners left over from previous modal opens - without
+  // this, every openJournalModal() call would stack another click listener
+  // onto the same persistent buttons, and clicks would randomly appear to
+  // "do nothing" whenever an even number of listeners cancelled each other out.
+  function cloneAndReplace(buttons) {
+    return buttons.map((btn) => {
+      const clone = btn.cloneNode(true);
+      btn.parentNode.replaceChild(clone, btn);
+      return clone;
+    });
+  }
+
   // Wires a group of single-select toggle buttons (plan / state / mood).
   // Returns a getter for the currently selected data-value (or null).
   function wireChoiceGroup(buttons) {
@@ -4282,9 +4295,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderJournalModalTrades(dateKey);
 
-    const planBtns = Array.from(document.querySelectorAll(".journal-plan-btn"));
-    const stateBtns = Array.from(document.querySelectorAll(".journal-state-btn"));
-    const moodBtns = Array.from(document.querySelectorAll(".journal-mood-btn"));
+    const planBtns = cloneAndReplace(
+      Array.from(document.querySelectorAll(".journal-plan-btn")),
+    );
+    const stateBtns = cloneAndReplace(
+      Array.from(document.querySelectorAll(".journal-state-btn")),
+    );
+    const moodBtns = cloneAndReplace(
+      Array.from(document.querySelectorAll(".journal-mood-btn")),
+    );
     const allChoiceBtns = [...planBtns, ...stateBtns, ...moodBtns];
 
     const planGroup = wireChoiceGroup(planBtns);
