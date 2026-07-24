@@ -4852,21 +4852,15 @@ function openStrategyPicker(el, ticket) {
       delete window.tradeStrategyMap[ticket];
     }
 
-    // Update badge inline
-    const strat = (window.strategyDefs || []).find((s) => s.id === sid);
-    const color = strat ? getStrategyColor(strat.id) : null;
-    const rgb = color ? hexToRgb(color) : null;
-    if (el.tagName === "SPAN") {
-      if (strat) {
-        el.style.cssText = `--s-color:${color};--s-rgb:${rgb};`;
-        el.textContent = strat.name;
-      } else {
-        el.outerHTML = `<button class="strategy-select-dropdown" style="opacity:0.5;" onclick="openStrategyPicker(this, '${ticket}')">+ Assign</button>`;
-      }
-    } else {
-      if (strat) {
-        el.outerHTML = `<span class="strategy-badge" style="--s-color:${color};--s-rgb:${rgb};" data-ticket="${ticket}" onclick="openStrategyPicker(this, '${ticket}')">${strat.name}</span>`;
-      }
+    // Re-render the whole trades table rather than patching just the badge
+    // in place - the checklist-grading button next to it is a separate
+    // element derived from tradeStrategyMap, so a partial patch left it
+    // missing until a full page reload re-ran renderTradesTable().
+    if (typeof window.renderTradesTable === "function") {
+      window.renderTradesTable(
+        window.currentFilteredTrades || currentFilteredTrades,
+        window.currentCurSym || "$",
+      );
     }
     renderStrategyCards();
     renderStrategyPerformance(currentFilteredTrades);

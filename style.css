@@ -2435,6 +2435,11 @@ th {
 .checklist-grade-row input[type="checkbox"] {
   margin-top: 2px;
   flex-shrink: 0;
+  width: auto;
+}
+.checklist-grade-row span {
+  flex: 1;
+  min-width: 0;
 }
 
 /* --- CLICKABLE HASHTAGS --- */
