@@ -2329,9 +2329,6 @@
             </button>
           </div>
 
-          <!-- Trades of the day, so you don't have to remember what happened -->
-          <div id="journal-modal-trades" style="margin-bottom: 18px;"></div>
-
           <!-- Did you follow your plan? -->
           <div style="margin-bottom: 16px;">
             <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;" data-i18n="journal_plan_q">
@@ -2403,6 +2400,21 @@
             >
               Save Entry
             </button>
+          </div>
+
+          <!-- Trades of the day, shown below the form so the questions are
+               reachable without scrolling past them first -->
+          <div
+            style="
+              margin-top: 18px;
+              padding-top: 14px;
+              border-top: 1px solid var(--border-dark);
+            "
+          >
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;" data-i18n="journal_trades_of_day">
+              Trades des Tages
+            </div>
+            <div id="journal-modal-trades"></div>
           </div>
         </div>
       </div>
