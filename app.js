@@ -50,6 +50,10 @@ const i18n = {
     news_corr_positive: "📈 Trades, die du innerhalb von 30 Min. vor High-Impact-News eröffnest, laufen bei dir sogar besser: {winpct}% Winrate vs. {overall}% insgesamt ({count} solcher Trades erfasst).",
     news_corr_neutral: "News-Timing scheint bei dir kaum einen Unterschied zu machen: {winpct}% Winrate bei Trades innerhalb von 30 Min. vor High-Impact-News, vs. {overall}% insgesamt ({count} solcher Trades erfasst).",
     news_badge_title: "Innerhalb von 30 Min. vor einer High-Impact-News eröffnet",
+    weekly_report_title: "Dein Wochenrückblick",
+    weekly_report_regen_btn: "Neu generieren",
+    weekly_report_meta: "Erstellt am {date} · {count} Trades",
+    weekly_report_error: "Fehler beim Erstellen des Rückblicks.",
     save_btn: "Speichern",
     limit_lbl: "Limit: ",
     modal_warn: "WARNUNG",
@@ -334,6 +338,10 @@ const i18n = {
     news_corr_positive: "📈 Trades opened within 30 min before High-Impact news actually do better for you: {winpct}% win rate vs. {overall}% overall ({count} such trades tracked).",
     news_corr_neutral: "News timing doesn't seem to move the needle for you: {winpct}% win rate on trades opened within 30 min before High-Impact news, vs. {overall}% overall ({count} such trades tracked).",
     news_badge_title: "Opened within 30 min before a High-Impact news event",
+    weekly_report_title: "Your Weekly Recap",
+    weekly_report_regen_btn: "Regenerate",
+    weekly_report_meta: "Generated on {date} · {count} trades",
+    weekly_report_error: "Error generating the recap.",
     save_btn: "Save",
     limit_lbl: "Limit: ",
     modal_warn: "WARNING",
@@ -618,6 +626,10 @@ const i18n = {
     news_corr_positive: "📈 Las operaciones abiertas en los 30 min. previos a noticias de Alto Impacto te van mejor: {winpct}% de winrate vs. {overall}% en general ({count} operaciones registradas).",
     news_corr_neutral: "El timing de noticias no parece hacer mucha diferencia para ti: {winpct}% de winrate en operaciones abiertas en los 30 min. previos a noticias de Alto Impacto, vs. {overall}% en general ({count} operaciones registradas).",
     news_badge_title: "Abierta en los 30 min. previos a una noticia de Alto Impacto",
+    weekly_report_title: "Tu Resumen Semanal",
+    weekly_report_regen_btn: "Regenerar",
+    weekly_report_meta: "Generado el {date} · {count} operaciones",
+    weekly_report_error: "Error al generar el resumen.",
     save_btn: "Guardar",
     limit_lbl: "Límite: ",
     modal_warn: "ADVERTENCIA",
@@ -901,6 +913,10 @@ const i18n = {
     news_corr_positive: "📈 Yüksek Etkili haberlerden 30 dk. önce açtığın işlemler senin için daha iyi gidiyor: %{winpct} kazanma oranı vs. genelde %{overall} ({count} işlem izlendi).",
     news_corr_neutral: "Haber zamanlaması senin için pek fark yaratmıyor gibi görünüyor: Yüksek Etkili haberlerden 30 dk. önce açılan işlemlerde %{winpct} kazanma oranı, genelde ise %{overall} ({count} işlem izlendi).",
     news_badge_title: "Yüksek Etkili bir haberden 30 dk. önce açıldı",
+    weekly_report_title: "Haftalık Özetin",
+    weekly_report_regen_btn: "Yeniden Oluştur",
+    weekly_report_meta: "{date} tarihinde oluşturuldu · {count} işlem",
+    weekly_report_error: "Özet oluşturulurken hata oluştu.",
     save_btn: "Kaydet",
     limit_lbl: "Limit: ",
     modal_warn: "UYARI",
@@ -2337,6 +2353,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (typeof renderNewsCorrelation === "function") renderNewsCorrelation();
+      if (typeof window.loadWeeklyReport === "function") window.loadWeeklyReport(key);
 
       processData(filteredTrades, curSym);
     } catch (err) {
@@ -5086,6 +5103,118 @@ function renderNewsCorrelation() {
   }
 }
 
+async function loadWeeklyReport(accountKey, forceRegen) {
+  const panel = document.getElementById("weekly-report-panel");
+  const textEl = document.getElementById("weekly-report-text");
+  if (!panel || !textEl) return;
+
+  const key = accountKey || localStorage.getItem("tm_license_key");
+  const token = localStorage.getItem("tm_master_token");
+  if (!key || !token) return;
+
+  const currentLang = localStorage.getItem("tm_global_lang") || "de";
+  const dict = i18n[currentLang] || i18n["de"];
+  const apiBase = typeof API_URL !== "undefined" ? API_URL : "";
+
+  if (forceRegen) {
+    textEl.innerHTML = `<div class="skeleton-loader"></div>`;
+    panel.style.display = "block";
+  }
+
+  try {
+    let data;
+    if (forceRegen) {
+      const response = await fetch(`${apiBase}?action=weekly_report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({
+          account_id: key,
+          language: currentLang,
+          force: true,
+        }),
+      });
+      data = await response.json();
+      if (!response.ok) {
+        textEl.innerText = data.error || dict.weekly_report_error || "Error generating report.";
+        return;
+      }
+    } else {
+      const response = await fetch(
+        `${apiBase}?action=weekly_report&account_id=${encodeURIComponent(key)}&language=${currentLang}`,
+        { headers: { Authorization: token } },
+      );
+      if (!response.ok) throw new Error("Failed to fetch weekly report");
+      data = await response.json();
+    }
+    renderWeeklyReport(data, dict);
+  } catch (err) {
+    if (!forceRegen) panel.style.display = "none";
+  }
+}
+window.loadWeeklyReport = loadWeeklyReport;
+
+function renderWeeklyReport(data, dict) {
+  const panel = document.getElementById("weekly-report-panel");
+  const textEl = document.getElementById("weekly-report-text");
+  const metaEl = document.getElementById("weekly-report-meta");
+  const regenBtn = document.getElementById("weekly-report-regen-btn");
+  if (!panel || !textEl) return;
+
+  if (!data || !data.report) {
+    panel.style.display = "none";
+    return;
+  }
+
+  const currentLang = localStorage.getItem("tm_global_lang") || "de";
+  window._weeklyReportRegenLeft =
+    typeof data.regen_left === "number" ? data.regen_left : 3;
+  const escaped = data.report.replace(
+    /[&<>'"]/g,
+    (tag) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;",
+      })[tag] || tag,
+  );
+  textEl.innerHTML = escaped.replace(/\n/g, "<br>");
+
+  if (metaEl) {
+    const genDate = data.generated_at
+      ? new Date(data.generated_at * 1000)
+      : null;
+    const dateStr = genDate ? genDate.toLocaleDateString(currentLang) : "";
+    const tmpl =
+      dict.weekly_report_meta || "Generated on {date} · {count} trades";
+    metaEl.innerText = tmpl
+      .replace("{date}", dateStr)
+      .replace("{count}", data.trade_count || 0);
+  }
+
+  if (regenBtn) {
+    regenBtn.disabled = window._weeklyReportRegenLeft <= 0;
+    regenBtn.style.opacity = regenBtn.disabled ? "0.5" : "1";
+  }
+
+  panel.style.display = "block";
+}
+
+function initWeeklyReportRegenBtn() {
+  const regenBtn = document.getElementById("weekly-report-regen-btn");
+  if (!regenBtn || regenBtn.dataset.bound) return;
+  regenBtn.dataset.bound = "1";
+  regenBtn.addEventListener("click", () => {
+    const key = localStorage.getItem("tm_license_key");
+    if (key) loadWeeklyReport(key, true);
+  });
+}
+window.initWeeklyReportRegenBtn = initWeeklyReportRegenBtn;
+
 window.selectedAnalyzerTag = window.selectedAnalyzerTag || null;
 
 window.renderTagAnalyzer = function (trades, curSym) {
@@ -5648,6 +5777,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTickerFilterUI();
   initNewsTicker();
   loadNewsHistory();
+  initWeeklyReportRegenBtn();
   updateFocusModeUI();
   updateMarketSessions();
   setInterval(updateMarketSessions, 1000);

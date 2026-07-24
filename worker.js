@@ -1484,6 +1484,247 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         );
       }
 
+      // --- WEEKLY AI REPORT (auto-generated recap, cached per calendar week) ---
+      if (
+        (request.method === "GET" || request.method === "POST") &&
+        action === "weekly_report"
+      ) {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id)
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+
+        let body = {};
+        if (request.method === "POST") {
+          try {
+            body = await request.json();
+          } catch (e) {
+            body = {};
+          }
+        }
+
+        const account_id =
+          body.account_id || url.searchParams.get("account_id") || "default";
+        const db_key = `${user_id}:${account_id}`;
+        const language =
+          body.language || url.searchParams.get("language") || "de";
+        const langMap = {
+          de: "Deutsch",
+          en: "English",
+          es: "Español",
+          tr: "Türkçe",
+        };
+        const promptLang = langMap[language] || "Deutsch";
+
+        await env.DB.prepare(
+          `CREATE TABLE IF NOT EXISTS weekly_reports (
+            license_key TEXT,
+            week_key TEXT,
+            report_text TEXT,
+            trade_count INTEGER,
+            generated_at INTEGER,
+            regen_count INTEGER DEFAULT 0,
+            PRIMARY KEY (license_key, week_key)
+          )`,
+        ).run();
+
+        // Monday 00:00:00 UTC of the current week -> used as the week key & window start
+        const now = new Date();
+        const dayOfWeek = now.getUTCDay(); // 0 = Sunday
+        const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const monday = new Date(
+          Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate() - diffToMonday,
+          ),
+        );
+        const nextMonday = new Date(
+          monday.getTime() + 7 * 24 * 60 * 60 * 1000,
+        );
+        const weekKey = monday.toISOString().split("T")[0];
+        const weekStartSec = Math.floor(monday.getTime() / 1000);
+        const weekEndSec = Math.floor(nextMonday.getTime() / 1000);
+
+        const forceRegen = request.method === "POST" && body.force === true;
+
+        const existing = await env.DB.prepare(
+          "SELECT * FROM weekly_reports WHERE license_key = ? AND week_key = ?",
+        )
+          .bind(db_key, weekKey)
+          .first();
+
+        if (existing && !forceRegen) {
+          return new Response(
+            JSON.stringify({
+              report: existing.report_text,
+              week_key: weekKey,
+              trade_count: existing.trade_count,
+              generated_at: existing.generated_at,
+              cached: true,
+              regen_left: Math.max(0, 3 - (existing.regen_count || 0)),
+            }),
+            { headers: corsHeaders },
+          );
+        }
+
+        if (forceRegen && existing && (existing.regen_count || 0) >= 3) {
+          return new Response(
+            JSON.stringify({
+              error: "Regenerierungs-Limit für diese Woche erreicht.",
+            }),
+            { status: 403, headers: corsHeaders },
+          );
+        }
+
+        const tradesRes = await env.DB.prepare(
+          "SELECT * FROM trades WHERE license_key = ? AND close_time >= ? AND close_time < ? ORDER BY close_time ASC",
+        )
+          .bind(db_key, weekStartSec, weekEndSec)
+          .all();
+        const weekTrades = tradesRes.results || [];
+
+        if (weekTrades.length < 3) {
+          return new Response(
+            JSON.stringify({
+              report: null,
+              reason: "not_enough_trades",
+              trade_count: weekTrades.length,
+              week_key: weekKey,
+            }),
+            { headers: corsHeaders },
+          );
+        }
+
+        // Aggregate stats for the prompt
+        const weekdayNames = [
+          "Sonntag",
+          "Montag",
+          "Dienstag",
+          "Mittwoch",
+          "Donnerstag",
+          "Freitag",
+          "Samstag",
+        ];
+        const byWeekday = {};
+        const byHour = {};
+        let wins = 0;
+        let grossProfit = 0;
+        let grossLoss = 0;
+        let slWidenedCount = 0;
+        const symbolCounts = {};
+
+        for (const t of weekTrades) {
+          const profit = parseFloat(t.net_profit) || 0;
+          if (profit > 0) {
+            wins++;
+            grossProfit += profit;
+          } else {
+            grossLoss += profit;
+          }
+          if (t.sl_widened) slWidenedCount++;
+          symbolCounts[t.symbol] = (symbolCounts[t.symbol] || 0) + 1;
+
+          const d = new Date(t.close_time * 1000);
+          const wd = weekdayNames[d.getUTCDay()];
+          const hr = d.getUTCHours();
+          byWeekday[wd] = (byWeekday[wd] || 0) + profit;
+          byHour[hr] = (byHour[hr] || 0) + profit;
+        }
+
+        const sortedWeekdays = Object.entries(byWeekday).sort(
+          (a, b) => b[1] - a[1],
+        );
+        const sortedHours = Object.entries(byHour).sort(
+          (a, b) => b[1] - a[1],
+        );
+        const topSymbol = Object.entries(symbolCounts).sort(
+          (a, b) => b[1] - a[1],
+        )[0];
+
+        const statsSummary = {
+          zeitraum: `${weekKey} bis ${nextMonday.toISOString().split("T")[0]}`,
+          anzahl_trades: weekTrades.length,
+          winrate: ((wins / weekTrades.length) * 100).toFixed(1) + "%",
+          netto_ergebnis: (grossProfit + grossLoss).toFixed(2),
+          bester_wochentag: sortedWeekdays[0] ? sortedWeekdays[0][0] : "-",
+          schlechtester_wochentag: sortedWeekdays[sortedWeekdays.length - 1]
+            ? sortedWeekdays[sortedWeekdays.length - 1][0]
+            : "-",
+          beste_uhrzeit_utc: sortedHours[0] ? sortedHours[0][0] + ":00" : "-",
+          schlechteste_uhrzeit_utc: sortedHours[sortedHours.length - 1]
+            ? sortedHours[sortedHours.length - 1][0] + ":00"
+            : "-",
+          meistgehandeltes_symbol: topSymbol ? topSymbol[0] : "-",
+          sl_verschoben_anzahl: slWidenedCount,
+        };
+
+        const prompt = `Du bist ein direkter, erfahrener Trading-Mentor und schreibst einen kurzen Wochenrückblick für einen Trader, der automatisch jeden Montag generiert wird.
+Statistiken der vergangenen Handelswoche: ${JSON.stringify(statsSummary)}
+WICHTIGE REGELN:
+1. Sprich den Trader IMMER direkt mit "Du" an.
+2. KEINE EINLEITUNG. Starte direkt mit der wichtigsten Erkenntnis der Woche.
+3. Nenne KEINE rohen Zeitstempel, sondern leite Muster ab (z.B. "montags läuft es bei dir deutlich besser als freitags").
+4. Wenn sl_verschoben_anzahl > 0 ist, weise klar darauf hin, dass das Verschieben des Stop Loss ein Disziplinproblem ist.
+5. Maximal 3-4 Sätze, wie ein kurzes Montags-Briefing. Kein Blabla.
+6. Beende mit EINEM konkreten, umsetzbaren Tipp für die kommende Woche.
+7. SPRACHE: Antworte NUR auf ${promptLang}.`;
+
+        if (!env.AI)
+          return new Response(
+            JSON.stringify({ error: "Cloudflare AI Binding fehlt." }),
+            { status: 500, headers: corsHeaders },
+          );
+
+        let weeklyAiResponse;
+        try {
+          weeklyAiResponse = await env.AI.run(
+            "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+            {
+              messages: [{ role: "system", content: prompt }],
+              max_tokens: 400,
+            },
+          );
+        } catch (err) {
+          return new Response(
+            JSON.stringify({ error: "Cloudflare AI Fehler: " + err.message }),
+            { status: 500, headers: corsHeaders },
+          );
+        }
+
+        const reportText = weeklyAiResponse.response || null;
+        const generatedAt = Math.floor(Date.now() / 1000);
+        const newRegenCount =
+          forceRegen && existing ? (existing.regen_count || 0) + 1 : 0;
+
+        await env.DB.prepare(
+          "INSERT INTO weekly_reports (license_key, week_key, report_text, trade_count, generated_at, regen_count) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(license_key, week_key) DO UPDATE SET report_text=excluded.report_text, trade_count=excluded.trade_count, generated_at=excluded.generated_at, regen_count=excluded.regen_count",
+        )
+          .bind(
+            db_key,
+            weekKey,
+            reportText,
+            weekTrades.length,
+            generatedAt,
+            newRegenCount,
+          )
+          .run();
+
+        return new Response(
+          JSON.stringify({
+            report: reportText,
+            week_key: weekKey,
+            trade_count: weekTrades.length,
+            generated_at: generatedAt,
+            cached: false,
+            regen_left: Math.max(0, 3 - newRegenCount),
+          }),
+          { headers: corsHeaders },
+        );
+      }
+
       // --- MT5 EA SYNC ROUTE ---
       if (request.method === "POST" && (!action || action === "trades")) {
         const user_id = await authenticateUser(request, env);

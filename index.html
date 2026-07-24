@@ -817,6 +817,34 @@
                     </div>
                   </div>
 
+                  <!-- Weekly AI Report -->
+                  <div
+                    id="weekly-report-panel"
+                    class="glass-panel"
+                    style="padding: 20px; margin-bottom: 20px; display: none;"
+                  >
+                    <div
+                      style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;"
+                    >
+                      <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-sparkle" style="color: var(--accent-color);"></i>
+                        <span data-i18n="weekly_report_title">Dein Wochenrückblick</span>
+                      </h3>
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="weekly-report-meta" style="font-size: 0.78rem; color: var(--text-muted);"></span>
+                        <button
+                          id="weekly-report-regen-btn"
+                          class="secondary-btn"
+                          style="padding: 4px 10px; font-size: 0.78rem;"
+                          data-i18n="weekly_report_regen_btn"
+                        >
+                          <i class="ph ph-arrow-clockwise"></i> Neu generieren
+                        </button>
+                      </div>
+                    </div>
+                    <p id="weekly-report-text" style="font-size: 0.92rem; color: var(--text-main); line-height: 1.6; margin: 0;"></p>
+                  </div>
+
                   <!-- Automatic News Correlation -->
                   <div
                     id="news-correlation-panel"
