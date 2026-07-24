@@ -181,9 +181,13 @@ const i18n = {
     lb_tab_fewest_sl: "Wenigste SL-Änderungen",
     lb_tab_compliance: "Playbook-Treue",
     lb_tab_winrate: "Beste Winrate",
-    lb_sub_sl_widened: "{count}/{total} Trades",
+    lb_tab_fewest_sl_hint: "Wie oft wurde der Stop Loss diese Woche nachträglich verschoben (weniger ist besser).",
+    lb_tab_compliance_hint: "Wie genau die eigene Strategie-Checkliste bei bewerteten Trades eingehalten wurde. Erfordert eine Strategie mit Checkliste + bewertete Trades.",
+    lb_tab_winrate_hint: "Trefferquote der Woche (Gewinn-Trades / alle Trades).",
+    lb_sub_sl_widened: "von {total} Trades diese Woche",
     lb_sub_compliance: "{count} Trades gewertet",
     lb_sub_winrate: "{count} Trades",
+    lb_no_data_compliance: "Noch keine bewerteten Trades diese Woche. Füge einer Strategie eine Checkliste hinzu und bewerte deine Trades damit, um hier zu erscheinen.",
     failed_feed: "Fehler beim Laden des Feeds.",
     prop_sub:
       "Überwache dein Konto in Echtzeit gegen Max Drawdown, Daily Loss & Profit Target Regeln.",
@@ -480,9 +484,13 @@ const i18n = {
     lb_tab_fewest_sl: "Fewest SL Changes",
     lb_tab_compliance: "Playbook Compliance",
     lb_tab_winrate: "Best Winrate",
-    lb_sub_sl_widened: "{count}/{total} trades",
+    lb_tab_fewest_sl_hint: "How often the stop loss was moved after entry this week (fewer is better).",
+    lb_tab_compliance_hint: "How closely you followed your own strategy checklist on graded trades. Requires a Strategy with a checklist + graded trades.",
+    lb_tab_winrate_hint: "This week's win rate (winning trades / all trades).",
+    lb_sub_sl_widened: "of {total} trades this week",
     lb_sub_compliance: "{count} trades graded",
     lb_sub_winrate: "{count} trades",
+    lb_no_data_compliance: "No graded trades yet this week. Add a checklist to a Strategy and grade your trades against it to show up here.",
     failed_feed: "Failed to load feed.",
     prop_sub:
       "Monitor your account in real-time against Max Drawdown, Daily Loss & Profit Target rules.",
@@ -809,9 +817,13 @@ const i18n = {
     lb_tab_fewest_sl: "Menos Cambios de SL",
     lb_tab_compliance: "Cumplimiento del Playbook",
     lb_tab_winrate: "Mejor Winrate",
-    lb_sub_sl_widened: "{count}/{total} operaciones",
+    lb_tab_fewest_sl_hint: "Cuántas veces se movió el Stop Loss después de abrir la operación esta semana (menos es mejor).",
+    lb_tab_compliance_hint: "Qué tan bien seguiste tu propia checklist de estrategia en las operaciones evaluadas. Requiere una Estrategia con checklist + operaciones evaluadas.",
+    lb_tab_winrate_hint: "Winrate de la semana (operaciones ganadoras / todas las operaciones).",
+    lb_sub_sl_widened: "de {total} operaciones esta semana",
     lb_sub_compliance: "{count} operaciones evaluadas",
     lb_sub_winrate: "{count} operaciones",
+    lb_no_data_compliance: "Aún no hay operaciones evaluadas esta semana. Agrega una checklist a una Estrategia y evalúa tus operaciones con ella para aparecer aquí.",
     failed_feed: "Error al cargar el feed.",
     prop_tracker: "Rastreador Reto Prop",
     nav_coach: "Coach IA",
@@ -1109,9 +1121,13 @@ const i18n = {
     lb_tab_fewest_sl: "En Az SL Değişikliği",
     lb_tab_compliance: "Playbook Uyumu",
     lb_tab_winrate: "En İyi Kazanma Oranı",
-    lb_sub_sl_widened: "{count}/{total} işlem",
+    lb_tab_fewest_sl_hint: "Bu hafta Stop Loss'un girişten sonra kaç kez taşındığı (az olması daha iyi).",
+    lb_tab_compliance_hint: "Değerlendirilen işlemlerde kendi strateji kontrol listeni ne kadar takip ettiğin. Kontrol listeli bir Strateji + değerlendirilmiş işlemler gerektirir.",
+    lb_tab_winrate_hint: "Bu haftanın kazanma oranı (kazanan işlemler / tüm işlemler).",
+    lb_sub_sl_widened: "bu hafta {total} işlemden",
     lb_sub_compliance: "{count} işlem değerlendirildi",
     lb_sub_winrate: "{count} işlem",
+    lb_no_data_compliance: "Bu hafta henüz değerlendirilmiş işlem yok. Bir Stratejiye kontrol listesi ekle ve işlemlerini buna göre değerlendir.",
     failed_feed: "Akış yüklenemedi.",
     nav_calendar: "Takvim",
     nav_community: "Topluluk",
@@ -6700,7 +6716,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const entries = (data && data[activeDisciplineCat]) || [];
 
     if (entries.length === 0) {
-      disciplineLeaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${dict.lb_no_data || "No data for this week yet."}</p>`;
+      const emptyMsg =
+        activeDisciplineCat === "playbook_compliance"
+          ? dict.lb_no_data_compliance ||
+            "No graded trades yet. Add a checklist to a Strategy and grade your trades against it to show up here."
+          : dict.lb_no_data || "No data for this week yet.";
+      disciplineLeaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${emptyMsg}</p>`;
       return;
     }
 
@@ -6710,11 +6731,13 @@ document.addEventListener("DOMContentLoaded", () => {
         let valueHtml = "";
         let subHtml = "";
         if (activeDisciplineCat === "fewest_sl_widened") {
-          const isGood = entry.value <= 0;
-          valueHtml = `<span style="color: ${isGood ? "var(--success)" : "var(--text-main)"};">${entry.value.toFixed(1)}%</span>`;
-          subHtml = (dict.lb_sub_sl_widened || "{count}/{total} trades")
-            .replace("{count}", entry.widened_count)
-            .replace("{total}", entry.trade_count);
+          // A count, not a percentage - "0.0%" read as meaningless to users.
+          const isGood = entry.widened_count <= 0;
+          valueHtml = `<span style="color: ${isGood ? "var(--success)" : "var(--text-main)"};">${entry.widened_count}</span>`;
+          subHtml = (dict.lb_sub_sl_widened || "of {total} trades this week").replace(
+            "{total}",
+            entry.trade_count,
+          );
         } else if (activeDisciplineCat === "playbook_compliance") {
           valueHtml = `<span style="color: var(--success);">${entry.value.toFixed(1)}%</span>`;
           subHtml = (dict.lb_sub_compliance || "{count} trades graded").replace(
