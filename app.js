@@ -176,6 +176,14 @@ const i18n = {
     follow_btn: "Folgen",
     unfollow_btn: "Entfolgen",
     following_empty: "Du folgst noch niemandem. Klicke bei einem Post auf \"Folgen\".",
+    journal_streak_title: "{count} Tage Journaling-Streak in Folge",
+    discipline_leaderboard_title: "Disziplin-Leaderboard",
+    lb_tab_fewest_sl: "Wenigste SL-Änderungen",
+    lb_tab_compliance: "Playbook-Treue",
+    lb_tab_winrate: "Beste Winrate",
+    lb_sub_sl_widened: "{count}/{total} Trades",
+    lb_sub_compliance: "{count} Trades gewertet",
+    lb_sub_winrate: "{count} Trades",
     failed_feed: "Fehler beim Laden des Feeds.",
     prop_sub:
       "Überwache dein Konto in Echtzeit gegen Max Drawdown, Daily Loss & Profit Target Regeln.",
@@ -466,6 +474,14 @@ const i18n = {
     follow_btn: "Follow",
     unfollow_btn: "Unfollow",
     following_empty: "You're not following anyone yet. Click \"Follow\" on a post.",
+    journal_streak_title: "{count} day journaling streak",
+    discipline_leaderboard_title: "Discipline Leaderboard",
+    lb_tab_fewest_sl: "Fewest SL Changes",
+    lb_tab_compliance: "Playbook Compliance",
+    lb_tab_winrate: "Best Winrate",
+    lb_sub_sl_widened: "{count}/{total} trades",
+    lb_sub_compliance: "{count} trades graded",
+    lb_sub_winrate: "{count} trades",
     failed_feed: "Failed to load feed.",
     prop_sub:
       "Monitor your account in real-time against Max Drawdown, Daily Loss & Profit Target rules.",
@@ -786,6 +802,14 @@ const i18n = {
     follow_btn: "Seguir",
     unfollow_btn: "Dejar de seguir",
     following_empty: "Aún no sigues a nadie. Haz clic en \"Seguir\" en una publicación.",
+    journal_streak_title: "Racha de {count} días registrando en el diario",
+    discipline_leaderboard_title: "Leaderboard de Disciplina",
+    lb_tab_fewest_sl: "Menos Cambios de SL",
+    lb_tab_compliance: "Cumplimiento del Playbook",
+    lb_tab_winrate: "Mejor Winrate",
+    lb_sub_sl_widened: "{count}/{total} operaciones",
+    lb_sub_compliance: "{count} operaciones evaluadas",
+    lb_sub_winrate: "{count} operaciones",
     failed_feed: "Error al cargar el feed.",
     prop_tracker: "Rastreador Reto Prop",
     nav_coach: "Coach IA",
@@ -1077,6 +1101,14 @@ const i18n = {
     follow_btn: "Takip Et",
     unfollow_btn: "Takibi Bırak",
     following_empty: "Henüz kimseyi takip etmiyorsun. Bir gönderide \"Takip Et\"e tıkla.",
+    journal_streak_title: "{count} günlük günlük tutma serisi",
+    discipline_leaderboard_title: "Disiplin Lider Tablosu",
+    lb_tab_fewest_sl: "En Az SL Değişikliği",
+    lb_tab_compliance: "Playbook Uyumu",
+    lb_tab_winrate: "En İyi Kazanma Oranı",
+    lb_sub_sl_widened: "{count}/{total} işlem",
+    lb_sub_compliance: "{count} işlem değerlendirildi",
+    lb_sub_winrate: "{count} işlem",
     failed_feed: "Akış yüklenemedi.",
     nav_calendar: "Takvim",
     nav_community: "Topluluk",
@@ -5892,6 +5924,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tabId === "tab-community") {
         loadCommunityFeed();
         loadCommunityLeaderboard();
+        loadCommunityDisciplineLeaderboard();
         loadNotifications();
       }
       if (tabId === "tab-psychology") {
@@ -6047,6 +6080,7 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshFeedBtn.addEventListener("click", () => {
       loadCommunityFeed();
       loadCommunityLeaderboard();
+      loadCommunityDisciplineLeaderboard();
     });
   }
 
@@ -6277,7 +6311,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="post-header">
                     <div class="post-avatar" style="background: ${avatarColor(post.username)};">${post.username ? post.username.substring(0, 1).toUpperCase() : "U"}</div>
                     <div class="post-author-info">
-                        <span class="post-username">${post.username || "Unknown Trader"}</span>
+                        <span class="post-username">${post.username || "Unknown Trader"}${post.journal_streak > 0 ? `<span class="journal-streak-badge" title="${(dict.journal_streak_title || "{count} day journaling streak").replace("{count}", post.journal_streak)}">🔥 ${post.journal_streak}</span>` : ""}</span>
                         <span class="post-time" title="${fullTimeStr}">${timeStr}</span>
                     </div>
                     ${
@@ -6542,6 +6576,104 @@ document.addEventListener("DOMContentLoaded", () => {
           subHtml = tmpl
             .replace("{win}", formatHoldDuration(entry.avg_win_hold_sec))
             .replace("{loss}", formatHoldDuration(entry.avg_loss_hold_sec));
+        }
+
+        return `
+          <div class="leaderboard-item">
+            <div class="leaderboard-rank rank-${rank}">${rank}</div>
+            <div class="leaderboard-avatar" style="background: ${avatarColor(entry.username)};">${entry.username ? entry.username.substring(0, 1).toUpperCase() : "U"}</div>
+            <div class="leaderboard-info">
+              <span class="leaderboard-username">${entry.username}</span>
+              ${subHtml ? `<span class="leaderboard-sub">${subHtml}</span>` : ""}
+            </div>
+            <div class="leaderboard-value">${valueHtml}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // --- COMMUNITY DISCIPLINE LEADERBOARD LOGIC (profit-blind) ---
+  const disciplineLeaderboardList = document.getElementById(
+    "discipline-leaderboard-list",
+  );
+  const disciplineLeaderboardTabsEl = document.getElementById(
+    "discipline-leaderboard-tabs",
+  );
+  let activeDisciplineCat = "fewest_sl_widened";
+  let disciplineLeaderboardData = null;
+
+  if (disciplineLeaderboardTabsEl) {
+    disciplineLeaderboardTabsEl
+      .querySelectorAll(".leaderboard-tab")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          disciplineLeaderboardTabsEl
+            .querySelectorAll(".leaderboard-tab")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeDisciplineCat = btn.getAttribute("data-cat");
+          if (disciplineLeaderboardData)
+            renderDisciplineLeaderboard(disciplineLeaderboardData);
+        });
+      });
+  }
+
+  function loadCommunityDisciplineLeaderboard() {
+    if (!disciplineLeaderboardList) return;
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
+    disciplineLeaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${dict.lb_loading || "Loading leaderboard..."}</p>`;
+    const token = localStorage.getItem("tm_master_token");
+    fetch(`${API_URL}?action=community_discipline_leaderboard&t=${Date.now()}`, {
+      headers: { Authorization: token },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        disciplineLeaderboardData = data;
+        renderDisciplineLeaderboard(data);
+      })
+      .catch((e) => {
+        console.error(e);
+        disciplineLeaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${dict.failed_feed || "Failed to load."}</p>`;
+      });
+  }
+
+  function renderDisciplineLeaderboard(data) {
+    if (!disciplineLeaderboardList) return;
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
+
+    const entries = (data && data[activeDisciplineCat]) || [];
+
+    if (entries.length === 0) {
+      disciplineLeaderboardList.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;">${dict.lb_no_data || "No data for this week yet."}</p>`;
+      return;
+    }
+
+    disciplineLeaderboardList.innerHTML = entries
+      .map((entry, idx) => {
+        const rank = idx + 1;
+        let valueHtml = "";
+        let subHtml = "";
+        if (activeDisciplineCat === "fewest_sl_widened") {
+          const isGood = entry.value <= 0;
+          valueHtml = `<span style="color: ${isGood ? "var(--success)" : "var(--text-main)"};">${entry.value.toFixed(1)}%</span>`;
+          subHtml = (dict.lb_sub_sl_widened || "{count}/{total} trades")
+            .replace("{count}", entry.widened_count)
+            .replace("{total}", entry.trade_count);
+        } else if (activeDisciplineCat === "playbook_compliance") {
+          valueHtml = `<span style="color: var(--success);">${entry.value.toFixed(1)}%</span>`;
+          subHtml = (dict.lb_sub_compliance || "{count} trades graded").replace(
+            "{count}",
+            entry.graded_trades,
+          );
+        } else if (activeDisciplineCat === "best_winrate") {
+          valueHtml = `<span style="color: var(--success);">${entry.value.toFixed(1)}%</span>`;
+          subHtml = (dict.lb_sub_winrate || "{count} trades").replace(
+            "{count}",
+            entry.trade_count,
+          );
         }
 
         return `

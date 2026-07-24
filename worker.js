@@ -855,6 +855,56 @@ export default {
             });
           }
 
+          // Journaling streak badge: consecutive days (ending today or
+          // yesterday, so a streak isn't lost before the day is over) that
+          // this post's author logged at least one journal entry, across
+          // any of their linked accounts.
+          const authorIds = [...new Set(results.map((p) => p.user_id))];
+          const streakByUser = {};
+          if (authorIds.length > 0) {
+            try {
+              const since = new Date();
+              since.setUTCDate(since.getUTCDate() - 40);
+              const sinceStr = since.toISOString().split("T")[0];
+              const journalRes = await env.DB.prepare(
+                "SELECT DISTINCT license_key, date FROM journal WHERE date >= ?",
+              )
+                .bind(sinceStr)
+                .all();
+              const authorIdSet = new Set(authorIds);
+              const daysByUser = {};
+              (journalRes.results || []).forEach((r) => {
+                const uid = (r.license_key || "").split(":")[0];
+                if (!authorIdSet.has(uid)) return;
+                if (!daysByUser[uid]) daysByUser[uid] = new Set();
+                daysByUser[uid].add(r.date);
+              });
+
+              const todayStr = new Date().toISOString().split("T")[0];
+              const yesterdayDate = new Date();
+              yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+              const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
+
+              for (const uid of Object.keys(daysByUser)) {
+                const days = daysByUser[uid];
+                let cursor;
+                if (days.has(todayStr)) cursor = new Date(`${todayStr}T00:00:00Z`);
+                else if (days.has(yesterdayStr))
+                  cursor = new Date(`${yesterdayStr}T00:00:00Z`);
+                else continue; // streak already broken today - no badge
+
+                let streak = 0;
+                while (true) {
+                  const dStr = cursor.toISOString().split("T")[0];
+                  if (!days.has(dStr)) break;
+                  streak++;
+                  cursor.setUTCDate(cursor.getUTCDate() - 1);
+                }
+                streakByUser[uid] = streak;
+              }
+            } catch (e) {}
+          }
+
           const feed = results.map((post) => {
             let parsedTrade = null;
             let parsedImages = [];
@@ -878,6 +928,7 @@ export default {
               trade_data: parsedTrade,
               image_urls: parsedImages,
               comments: commentsByPost[post.id] || [],
+              journal_streak: streakByUser[post.user_id] || 0,
             };
           });
 
@@ -1107,6 +1158,192 @@ export default {
               biggest_win: biggestWin,
               most_trades: mostTrades,
               hold_ratio: holdRatio,
+              week_start: weekStart,
+            }),
+            { headers: corsHeaders },
+          );
+        } catch (e) {
+          return new Response(e.message, { status: 500, headers: corsHeaders });
+        }
+      }
+
+      // --- COMMUNITY DISCIPLINE LEADERBOARD (weekly) ---
+      // A second, profit-blind leaderboard so small accounts have something
+      // to compete for too: fewest SL widenings, playbook compliance, winrate.
+      if (
+        request.method === "GET" &&
+        action === "community_discipline_leaderboard"
+      ) {
+        try {
+          const user_id = await authenticateUser(request, env);
+          if (!user_id)
+            return new Response("Unauthorized", {
+              status: 401,
+              headers: corsHeaders,
+            });
+
+          const now = new Date();
+          const day = now.getUTCDay();
+          const daysToMonday = day === 0 ? -6 : 1 - day;
+          const weekStart = Math.floor(
+            Date.UTC(
+              now.getUTCFullYear(),
+              now.getUTCMonth(),
+              now.getUTCDate() + daysToMonday,
+            ) / 1000,
+          );
+
+          const { results: tradeRows } = await env.DB.prepare(
+            "SELECT license_key, net_profit, sl_widened FROM trades WHERE close_time >= ?",
+          )
+            .bind(weekStart)
+            .all();
+
+          const perAccount = {};
+          for (const t of tradeRows) {
+            if (!perAccount[t.license_key]) {
+              perAccount[t.license_key] = { count: 0, wins: 0, widenedSum: 0 };
+            }
+            const a = perAccount[t.license_key];
+            a.count += 1;
+            if ((parseFloat(t.net_profit) || 0) > 0) a.wins += 1;
+            a.widenedSum += t.sl_widened || 0;
+          }
+
+          let checklistRows = [];
+          try {
+            const res = await env.DB.prepare(
+              "SELECT t.license_key AS license_key, tcr.ticket AS ticket, tcr.passed AS passed FROM trade_checklist_results tcr JOIN trades t ON t.ticket = tcr.ticket WHERE t.close_time >= ?",
+            )
+              .bind(weekStart)
+              .all();
+            checklistRows = res.results || [];
+          } catch (e) {}
+
+          const perAccountChecklist = {};
+          for (const r of checklistRows) {
+            if (!perAccountChecklist[r.license_key]) {
+              perAccountChecklist[r.license_key] = {
+                passedSum: 0,
+                totalCount: 0,
+                tickets: new Set(),
+              };
+            }
+            const c = perAccountChecklist[r.license_key];
+            c.passedSum += r.passed ? 1 : 0;
+            c.totalCount += 1;
+            c.tickets.add(r.ticket);
+          }
+
+          const licenseKeys = [
+            ...new Set([
+              ...Object.keys(perAccount),
+              ...Object.keys(perAccountChecklist),
+            ]),
+          ];
+
+          if (!licenseKeys.length) {
+            return new Response(
+              JSON.stringify({
+                fewest_sl_widened: [],
+                playbook_compliance: [],
+                best_winrate: [],
+                week_start: weekStart,
+              }),
+              { headers: corsHeaders },
+            );
+          }
+
+          const userIds = [
+            ...new Set(licenseKeys.map((lk) => lk.split(":")[0])),
+          ];
+          const userMap = {};
+          if (userIds.length) {
+            const placeholders = userIds.map(() => "?").join(",");
+            const uRows = await env.DB
+              .prepare(
+                `SELECT id, username FROM users WHERE id IN (${placeholders})`,
+              )
+              .bind(...userIds)
+              .all();
+            (uRows.results || []).forEach((u) => {
+              userMap[u.id] = u.username || "Trader";
+            });
+          }
+
+          const perUser = {};
+          function ensureUser(uid) {
+            if (!perUser[uid]) {
+              perUser[uid] = {
+                username: userMap[uid] || "Trader",
+                count: 0,
+                wins: 0,
+                widenedSum: 0,
+                passedSum: 0,
+                checklistTotal: 0,
+                checklistTickets: new Set(),
+              };
+            }
+            return perUser[uid];
+          }
+
+          for (const lk of Object.keys(perAccount)) {
+            const uid = lk.split(":")[0];
+            const u = ensureUser(uid);
+            const a = perAccount[lk];
+            u.count += a.count;
+            u.wins += a.wins;
+            u.widenedSum += a.widenedSum;
+          }
+          for (const lk of Object.keys(perAccountChecklist)) {
+            const uid = lk.split(":")[0];
+            const u = ensureUser(uid);
+            const c = perAccountChecklist[lk];
+            u.passedSum += c.passedSum;
+            u.checklistTotal += c.totalCount;
+            c.tickets.forEach((tk) => u.checklistTickets.add(tk));
+          }
+
+          const users = Object.values(perUser);
+
+          const fewestSlWidened = users
+            .filter((u) => u.count >= 5)
+            .map((u) => ({
+              username: u.username,
+              value: parseFloat(((u.widenedSum / u.count) * 100).toFixed(1)),
+              widened_count: u.widenedSum,
+              trade_count: u.count,
+            }))
+            .sort((a, b) => a.value - b.value)
+            .slice(0, 5);
+
+          const playbookCompliance = users
+            .filter((u) => u.checklistTickets.size >= 3)
+            .map((u) => ({
+              username: u.username,
+              value: parseFloat(
+                ((u.passedSum / u.checklistTotal) * 100).toFixed(1),
+              ),
+              graded_trades: u.checklistTickets.size,
+            }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+
+          const bestWinrate = users
+            .filter((u) => u.count >= 5)
+            .map((u) => ({
+              username: u.username,
+              value: parseFloat(((u.wins / u.count) * 100).toFixed(1)),
+              trade_count: u.count,
+            }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+
+          return new Response(
+            JSON.stringify({
+              fewest_sl_widened: fewestSlWidened,
+              playbook_compliance: playbookCompliance,
+              best_winrate: bestWinrate,
               week_start: weekStart,
             }),
             { headers: corsHeaders },

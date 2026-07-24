@@ -1973,8 +1973,12 @@
 
                   <!-- Sidebar Stats Column -->
                   <div
-                    class="glass-panel desktop-only-sidebar"
-                    style="width: 350px; height: fit-content; padding: 20px; position: sticky; top: 15px;"
+                    class="desktop-only-sidebar"
+                    style="width: 350px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; height: fit-content; position: sticky; top: 15px;"
+                  >
+                  <div
+                    class="glass-panel"
+                    style="padding: 20px;"
                   >
                     <h3
                       style="
@@ -2016,6 +2020,48 @@
                     >
                       <p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;" data-i18n="lb_loading">Lade Rangliste...</p>
                     </div>
+                  </div>
+
+                  <!-- Discipline Leaderboard (profit-blind) -->
+                  <div
+                    class="glass-panel"
+                    style="padding: 20px;"
+                  >
+                    <h3
+                      style="
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                      "
+                    >
+                      <i class="ph ph-shield-check"></i>
+                      <span data-i18n="discipline_leaderboard_title">Disziplin-Leaderboard</span>
+                    </h3>
+
+                    <div id="discipline-leaderboard-tabs" class="leaderboard-tabs">
+                      <button class="leaderboard-tab active" data-cat="fewest_sl_widened">
+                        <i class="ph ph-shield"></i> <span data-i18n="lb_tab_fewest_sl">Wenigste SL-Änderungen</span>
+                      </button>
+                      <button class="leaderboard-tab" data-cat="playbook_compliance">
+                        <i class="ph ph-clipboard-text"></i> <span data-i18n="lb_tab_compliance">Playbook-Treue</span>
+                      </button>
+                      <button class="leaderboard-tab" data-cat="best_winrate">
+                        <i class="ph ph-crosshair-simple"></i> <span data-i18n="lb_tab_winrate">Beste Winrate</span>
+                      </button>
+                    </div>
+
+                    <div
+                      id="discipline-leaderboard-list"
+                      style="
+                        border-top: 1px solid var(--border-dark);
+                        padding-top: 5px;
+                        margin-top: 5px;
+                      "
+                    >
+                      <p class="ai-placeholder-text" style="text-align: center; padding: 20px 0; font-size: 0.85rem;" data-i18n="lb_loading">Lade Rangliste...</p>
+                    </div>
+                  </div>
                   </div>
                 </div>
               </div>
