@@ -1683,7 +1683,9 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           sl_verschoben_anzahl: slWidenedCount,
         };
 
-        const prompt = `Du bist ein direkter, erfahrener Trading-Mentor und schreibst einen kurzen Wochenrückblick für einen Trader, der automatisch jeden Montag generiert wird.
+        const prompt = `SPRACHE / LANGUAGE / IDIOMA / DİL: Antworte ausschließlich auf ${promptLang}. Deine GESAMTE Antwort muss auf ${promptLang} sein - unabhängig davon, in welcher Sprache die folgenden Anweisungen und Daten formuliert sind.
+
+Du bist ein direkter, erfahrener Trading-Mentor und schreibst einen kurzen Wochenrückblick für einen Trader, der automatisch jeden Montag generiert wird.
 Statistiken der vergangenen Handelswoche: ${JSON.stringify(statsSummary)}
 WICHTIGE REGELN:
 1. Sprich den Trader IMMER direkt mit "Du" an.
@@ -1692,7 +1694,7 @@ WICHTIGE REGELN:
 4. Wenn sl_verschoben_anzahl > 0 ist, weise klar darauf hin, dass das Verschieben des Stop Loss ein Disziplinproblem ist.
 5. Maximal 3-4 Sätze, wie ein kurzes Montags-Briefing. Kein Blabla.
 6. Beende mit EINEM konkreten, umsetzbaren Tipp für die kommende Woche.
-7. SPRACHE: Antworte NUR auf ${promptLang}.`;
+7. SPRACHE EXTREM WICHTIG: Antworte NUR auf ${promptLang}! Übersetze deine gesamte finale Antwort komplett in ${promptLang}, auch wenn Regeln und Statistiken oben auf Deutsch stehen.`;
 
         if (!env.AI)
           return new Response(
@@ -1700,12 +1702,23 @@ WICHTIGE REGELN:
             { status: 500, headers: corsHeaders },
           );
 
+        const userTriggerMap = {
+          de: "Schreibe jetzt meinen Wochenrückblick auf Deutsch.",
+          en: "Now write my weekly recap in English.",
+          es: "Ahora escribe mi resumen semanal en español.",
+          tr: "Şimdi haftalık özetimi Türkçe yaz.",
+        };
+        const userTrigger = userTriggerMap[language] || userTriggerMap.de;
+
         let weeklyAiResponse;
         try {
           weeklyAiResponse = await env.AI.run(
             "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
             {
-              messages: [{ role: "system", content: prompt }],
+              messages: [
+                { role: "system", content: prompt },
+                { role: "user", content: userTrigger },
+              ],
               max_tokens: 400,
             },
           );
