@@ -654,18 +654,6 @@
                   </div>
                   <!-- KPIs Row 2 -->
                   <div class="kpi-row">
-                    <div class="kpi-card glass-panel" title="Erwartungswert pro Trade in R (net_profit / Risiko-Betrag), gemittelt über alle bewerteten Trades">
-                      <h3 data-i18n="kpi_avg_r" style="font-size: 0.85rem">
-                        Ø R (Erwartungswert)
-                      </h3>
-                      <p
-                        id="kpi-avg-r"
-                        class="kpi-value"
-                        style="font-size: 1.2rem"
-                      >
-                        -
-                      </p>
-                    </div>
                     <div class="kpi-card glass-panel">
                       <h3 data-i18n="kpi_edge" style="font-size: 0.85rem">
                         Long vs. Short
@@ -1799,7 +1787,8 @@
                         border-bottom: 1px solid var(--border-dark);
                         position: sticky;
                         top: 0;
-                        background: var(--bg-main);
+                        background: var(--bg-color);
+                        backdrop-filter: blur(8px);
                         z-index: 10;
                         display: flex;
                         justify-content: space-between;

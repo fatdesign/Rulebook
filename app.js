@@ -51,7 +51,6 @@ const i18n = {
     risk_per_trade_sub: "Standard-Risiko pro Trade, um deine Trades in R-Multiples auszuwerten",
     risk_per_trade_lbl: "Risiko: €",
     risk_per_trade_hint: "(0 = deaktiviert)",
-    kpi_avg_r: "Ø R (Erwartungswert)",
     th_r_multiple: "R-Multiple",
     heatmap_sub: "Wann verdienst du am meisten?",
     save_btn: "Speichern",
@@ -324,7 +323,6 @@ const i18n = {
     risk_per_trade_sub: "Default risk per trade, used to evaluate your trades in R-multiples",
     risk_per_trade_lbl: "Risk: $",
     risk_per_trade_hint: "(0 = disabled)",
-    kpi_avg_r: "Avg R (Expectancy)",
     th_r_multiple: "R-Multiple",
     heatmap_sub: "When do you earn the most?",
     save_btn: "Save",
@@ -597,7 +595,6 @@ const i18n = {
     risk_per_trade_sub: "Riesgo por defecto por operación, para evaluar tus trades en R-múltiplos",
     risk_per_trade_lbl: "Riesgo: €",
     risk_per_trade_hint: "(0 = desactivado)",
-    kpi_avg_r: "Ø R (Esperanza)",
     th_r_multiple: "R-Múltiplo",
     heatmap_sub: "¿Cuándo ganas más?",
     save_btn: "Guardar",
@@ -869,7 +866,6 @@ const i18n = {
     risk_per_trade_sub: "İşlemlerini R-Multiple olarak değerlendirmek için varsayılan işlem başına risk",
     risk_per_trade_lbl: "Risk: ₺",
     risk_per_trade_hint: "(0 = kapalı)",
-    kpi_avg_r: "Ø R (Beklenti)",
     th_r_multiple: "R-Multiple",
     heatmap_sub: "En çok ne zaman kazanıyorsun?",
     save_btn: "Kaydet",
@@ -2964,26 +2960,11 @@ document.addEventListener("DOMContentLoaded", () => {
       shortLosses = 0;
     const symbolProfits = {};
 
-    let rSum = 0;
-    let rCount = 0;
-
     ascendingTrades.forEach((trade, index) => {
       const netP = parseFloat(trade.net_profit);
       const grossP =
         trade.gross_profit !== undefined ? trade.gross_profit : netP;
       const holdSec = trade.close_time - trade.open_time;
-
-      // R-Multiple: net_profit / risk amount (per-trade override, else the
-      // global default). Trades with no risk amount set anywhere are
-      // excluded from the average rather than skewing it with a guess.
-      const riskOverride = window.tradeRiskMap
-        ? window.tradeRiskMap[trade.ticket]
-        : undefined;
-      const effectiveRisk = riskOverride || window.defaultRiskAmount || 0;
-      if (effectiveRisk > 0) {
-        rSum += netP / effectiveRisk;
-        rCount++;
-      }
 
       // Revenge trade check
       if (index > 0) {
@@ -3115,17 +3096,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateKPI("kpi-winrate", `${winrate.toFixed(1)}%`, winrate >= 50);
     document.getElementById("kpi-trades").innerText = trades.length;
     updateKPI("kpi-pf", profitFactor.toFixed(2), profitFactor >= 1.5);
-
-    if (rCount > 0) {
-      const avgR = rSum / rCount;
-      updateKPI("kpi-avg-r", `${avgR >= 0 ? "+" : ""}${avgR.toFixed(2)}R`, avgR >= 0);
-    } else {
-      const avgREl = document.getElementById("kpi-avg-r");
-      if (avgREl) {
-        avgREl.innerText = "-";
-        avgREl.className = "kpi-value";
-      }
-    }
 
     // Advanced UI
     updateKPI("kpi-edge", edgeText, true);

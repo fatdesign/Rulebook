@@ -1284,13 +1284,13 @@ th {
 }
 .sidebar-toggle-btn:hover {
   color: var(--text-main);
-  background: var(--bg-panel-hover);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .sidebar.collapsed .sidebar-toggle-btn {
   right: -10px;
   transform: translateX(50%);
-  background: var(--bg-panel);
+  background: var(--panel-bg);
   border: 1px solid var(--border-dark);
   border-radius: 6px;
   padding: 4px;
@@ -1918,7 +1918,7 @@ th {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--bg-panel-hover);
+  background: var(--panel-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1959,7 +1959,7 @@ th {
   position: relative;
 }
 .community-post:hover {
-  background: var(--bg-panel-hover);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .post-options-menu {
@@ -1988,7 +1988,7 @@ th {
   position: absolute;
   top: 100%;
   right: 0;
-  background: var(--bg-panel);
+  background: var(--panel-bg);
   border: 1px solid var(--border-dark);
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
@@ -2143,7 +2143,7 @@ th {
   gap: 6px;
 }
 .leaderboard-tab {
-  background: var(--bg-panel-hover);
+  background: var(--panel-bg);
   border: 1px solid var(--border-dark);
   color: var(--text-muted);
   border-radius: 8px;
