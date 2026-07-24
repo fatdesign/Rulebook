@@ -63,6 +63,52 @@ export default {
         return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
       }
 
+      // --- Notification helper (reactions, comments, follows) ---
+      async function createNotification(
+        env,
+        { recipient_user_id, actor_user_id, type, post_id, extra },
+      ) {
+        if (!recipient_user_id || recipient_user_id === actor_user_id) return;
+
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS notifications (
+            id TEXT PRIMARY KEY,
+            recipient_user_id TEXT,
+            actor_user_id TEXT,
+            actor_username TEXT,
+            type TEXT,
+            post_id TEXT,
+            extra TEXT,
+            is_read INTEGER DEFAULT 0,
+            created_at INTEGER
+          )
+        `,
+        ).run();
+
+        const actor = await env.DB.prepare(
+          "SELECT username FROM users WHERE id = ?",
+        )
+          .bind(actor_user_id)
+          .first();
+        const actorUsername = actor ? actor.username : "Someone";
+
+        await env.DB.prepare(
+          "INSERT INTO notifications (id, recipient_user_id, actor_user_id, actor_username, type, post_id, extra, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)",
+        )
+          .bind(
+            crypto.randomUUID(),
+            recipient_user_id,
+            actor_user_id,
+            actorUsername,
+            type,
+            post_id || null,
+            extra || null,
+            Math.floor(Date.now() / 1000),
+          )
+          .run();
+      }
+
       async function setupMasterTables(env) {
         await env.DB.prepare(
           `
@@ -289,10 +335,22 @@ export default {
             trade_data TEXT,
             image_urls TEXT,
             likes INTEGER DEFAULT 0,
+            fire_count INTEGER DEFAULT 0,
+            flex_count INTEGER DEFAULT 0,
             created_at INTEGER
           )
         `,
           ).run();
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE community_posts ADD COLUMN fire_count INTEGER DEFAULT 0",
+            ).run();
+          } catch (e) {}
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE community_posts ADD COLUMN flex_count INTEGER DEFAULT 0",
+            ).run();
+          } catch (e) {}
 
           const post_id = crypto.randomUUID();
           const created_at = Math.floor(Date.now() / 1000);
@@ -319,6 +377,14 @@ export default {
         }
       }
 
+      // Reaction type -> counter column on community_posts. Whitelisted
+      // because column names can't be parameterized in SQL.
+      const REACTION_COLUMNS = {
+        heart: "likes",
+        fire: "fire_count",
+        flex: "flex_count",
+      };
+
       if (request.method === "POST" && action === "community_like") {
         const user_id = await authenticateUser(request, env);
         if (!user_id)
@@ -342,52 +408,188 @@ export default {
             headers: corsHeaders,
           });
 
+        const reaction = REACTION_COLUMNS[body.reaction] ? body.reaction : "heart";
+        const column = REACTION_COLUMNS[reaction];
+
         await env.DB.prepare(
           `
           CREATE TABLE IF NOT EXISTS community_likes (
             post_id TEXT,
             user_id TEXT,
+            reaction TEXT DEFAULT 'heart',
             PRIMARY KEY (post_id, user_id)
           )
         `,
         ).run();
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE community_likes ADD COLUMN reaction TEXT DEFAULT 'heart'",
+          ).run();
+        } catch (e) {}
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE community_posts ADD COLUMN fire_count INTEGER DEFAULT 0",
+          ).run();
+        } catch (e) {}
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE community_posts ADD COLUMN flex_count INTEGER DEFAULT 0",
+          ).run();
+        } catch (e) {}
 
-        // Check if already liked
         const existing = await env.DB.prepare(
-          "SELECT * FROM community_likes WHERE post_id = ? AND user_id = ?",
+          "SELECT reaction FROM community_likes WHERE post_id = ? AND user_id = ?",
         )
           .bind(body.post_id, user_id)
           .first();
-        if (existing) {
-          // Unlike
+
+        if (existing && existing.reaction === reaction) {
+          // Same reaction clicked again -> remove it
           await env.DB.prepare(
             "DELETE FROM community_likes WHERE post_id = ? AND user_id = ?",
           )
             .bind(body.post_id, user_id)
             .run();
           await env.DB.prepare(
-            "UPDATE community_posts SET likes = max(0, likes - 1) WHERE id = ?",
+            `UPDATE community_posts SET ${column} = max(0, ${column} - 1) WHERE id = ?`,
           )
             .bind(body.post_id)
             .run();
-          return new Response(JSON.stringify({ success: true, liked: false }), {
-            headers: corsHeaders,
-          });
+          return new Response(
+            JSON.stringify({ success: true, active: false, reaction }),
+            { headers: corsHeaders },
+          );
+        } else if (existing) {
+          // Switching from a different reaction to this one
+          const oldColumn = REACTION_COLUMNS[existing.reaction] || "likes";
+          await env.DB.prepare(
+            "UPDATE community_likes SET reaction = ? WHERE post_id = ? AND user_id = ?",
+          )
+            .bind(reaction, body.post_id, user_id)
+            .run();
+          await env.DB.prepare(
+            `UPDATE community_posts SET ${oldColumn} = max(0, ${oldColumn} - 1) WHERE id = ?`,
+          )
+            .bind(body.post_id)
+            .run();
+          await env.DB.prepare(
+            `UPDATE community_posts SET ${column} = ${column} + 1 WHERE id = ?`,
+          )
+            .bind(body.post_id)
+            .run();
+          return new Response(
+            JSON.stringify({ success: true, active: true, reaction }),
+            { headers: corsHeaders },
+          );
         } else {
-          // Like
+          // New reaction
           await env.DB.prepare(
-            "INSERT INTO community_likes (post_id, user_id) VALUES (?, ?)",
+            "INSERT INTO community_likes (post_id, user_id, reaction) VALUES (?, ?, ?)",
           )
-            .bind(body.post_id, user_id)
+            .bind(body.post_id, user_id, reaction)
             .run();
           await env.DB.prepare(
-            "UPDATE community_posts SET likes = likes + 1 WHERE id = ?",
+            `UPDATE community_posts SET ${column} = ${column} + 1 WHERE id = ?`,
           )
             .bind(body.post_id)
             .run();
-          return new Response(JSON.stringify({ success: true, liked: true }), {
+
+          // Notify the post owner (unless reacting to your own post).
+          try {
+            const post = await env.DB.prepare(
+              "SELECT user_id FROM community_posts WHERE id = ?",
+            )
+              .bind(body.post_id)
+              .first();
+            if (post && post.user_id !== user_id) {
+              await createNotification(env, {
+                recipient_user_id: post.user_id,
+                actor_user_id: user_id,
+                type: "reaction",
+                post_id: body.post_id,
+                extra: reaction,
+              });
+            }
+          } catch (e) {}
+
+          return new Response(
+            JSON.stringify({ success: true, active: true, reaction }),
+            { headers: corsHeaders },
+          );
+        }
+      }
+
+      // --- FOLLOW / UNFOLLOW A COMMUNITY USER ---
+      if (request.method === "POST" && action === "community_follow") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id)
+          return new Response("Unauthorized", {
+            status: 401,
             headers: corsHeaders,
           });
+
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response("Invalid JSON", {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+        if (!body.target_user_id || body.target_user_id === user_id) {
+          return new Response("Invalid target_user_id", {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS community_follows (
+            follower_user_id TEXT,
+            followee_user_id TEXT,
+            created_at INTEGER,
+            PRIMARY KEY (follower_user_id, followee_user_id)
+          )
+        `,
+        ).run();
+
+        const existing = await env.DB.prepare(
+          "SELECT 1 FROM community_follows WHERE follower_user_id = ? AND followee_user_id = ?",
+        )
+          .bind(user_id, body.target_user_id)
+          .first();
+
+        if (existing) {
+          await env.DB.prepare(
+            "DELETE FROM community_follows WHERE follower_user_id = ? AND followee_user_id = ?",
+          )
+            .bind(user_id, body.target_user_id)
+            .run();
+          return new Response(
+            JSON.stringify({ success: true, following: false }),
+            { headers: corsHeaders },
+          );
+        } else {
+          await env.DB.prepare(
+            "INSERT INTO community_follows (follower_user_id, followee_user_id, created_at) VALUES (?, ?, ?)",
+          )
+            .bind(user_id, body.target_user_id, Math.floor(Date.now() / 1000))
+            .run();
+
+          try {
+            await createNotification(env, {
+              recipient_user_id: body.target_user_id,
+              actor_user_id: user_id,
+              type: "follow",
+            });
+          } catch (e) {}
+
+          return new Response(
+            JSON.stringify({ success: true, following: true }),
+            { headers: corsHeaders },
+          );
         }
       }
 
@@ -410,20 +612,38 @@ export default {
             trade_data TEXT,
             image_urls TEXT,
             likes INTEGER DEFAULT 0,
+            fire_count INTEGER DEFAULT 0,
+            flex_count INTEGER DEFAULT 0,
             created_at INTEGER
           )
         `,
           ).run();
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE community_posts ADD COLUMN fire_count INTEGER DEFAULT 0",
+            ).run();
+          } catch (e) {}
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE community_posts ADD COLUMN flex_count INTEGER DEFAULT 0",
+            ).run();
+          } catch (e) {}
 
           await env.DB.prepare(
             `
           CREATE TABLE IF NOT EXISTS community_likes (
             post_id TEXT,
             user_id TEXT,
+            reaction TEXT DEFAULT 'heart',
             PRIMARY KEY (post_id, user_id)
           )
         `,
           ).run();
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE community_likes ADD COLUMN reaction TEXT DEFAULT 'heart'",
+            ).run();
+          } catch (e) {}
 
           await env.DB.prepare(
             `
@@ -438,18 +658,60 @@ export default {
         `,
           ).run();
 
-          // Fetch top 50 posts
-          const { results } = await env.DB.prepare(
-            "SELECT * FROM community_posts ORDER BY created_at DESC LIMIT 50",
-          ).all();
+          await env.DB.prepare(
+            `
+          CREATE TABLE IF NOT EXISTS community_follows (
+            follower_user_id TEXT,
+            followee_user_id TEXT,
+            created_at INTEGER,
+            PRIMARY KEY (follower_user_id, followee_user_id)
+          )
+        `,
+          ).run();
 
-          // Fetch user's liked posts to show active heart icon
-          const likedRes = await env.DB.prepare(
-            "SELECT post_id FROM community_likes WHERE user_id = ?",
+          // Who the current user follows, for the "is_following" flag and
+          // for scope=following filtering.
+          const followsRes = await env.DB.prepare(
+            "SELECT followee_user_id FROM community_follows WHERE follower_user_id = ?",
           )
             .bind(user_id)
             .all();
-          const likedSet = new Set(likedRes.results.map((r) => r.post_id));
+          const followedIds = (followsRes.results || []).map(
+            (r) => r.followee_user_id,
+          );
+          const followedSet = new Set(followedIds);
+
+          const scope = url.searchParams.get("scope");
+          let results;
+          if (scope === "following") {
+            if (followedIds.length === 0) {
+              results = [];
+            } else {
+              const placeholders = followedIds.map(() => "?").join(",");
+              const followingRes = await env.DB.prepare(
+                `SELECT * FROM community_posts WHERE user_id IN (${placeholders}) ORDER BY created_at DESC LIMIT 50`,
+              )
+                .bind(...followedIds)
+                .all();
+              results = followingRes.results;
+            }
+          } else {
+            const allRes = await env.DB.prepare(
+              "SELECT * FROM community_posts ORDER BY created_at DESC LIMIT 50",
+            ).all();
+            results = allRes.results;
+          }
+
+          // Fetch the current user's reaction (if any) per post
+          const reactionRes = await env.DB.prepare(
+            "SELECT post_id, reaction FROM community_likes WHERE user_id = ?",
+          )
+            .bind(user_id)
+            .all();
+          const reactionByPost = {};
+          (reactionRes.results || []).forEach((r) => {
+            reactionByPost[r.post_id] = r.reaction || "heart";
+          });
 
           // Fetch comments for these posts
           const postsIds = results.map((r) => r.id);
@@ -479,8 +741,14 @@ export default {
 
             return {
               ...post,
-              has_liked: likedSet.has(post.id),
+              reactions: {
+                heart: post.likes || 0,
+                fire: post.fire_count || 0,
+                flex: post.flex_count || 0,
+              },
+              user_reaction: reactionByPost[post.id] || null,
               is_owner: post.user_id === user_id,
+              is_following: followedSet.has(post.user_id),
               trade_data: parsedTrade,
               image_urls: parsedImages,
               comments: commentsByPost[post.id] || [],
@@ -743,6 +1011,23 @@ export default {
             )
             .run();
 
+          try {
+            const post = await env.DB.prepare(
+              "SELECT user_id FROM community_posts WHERE id = ?",
+            )
+              .bind(body.post_id)
+              .first();
+            if (post) {
+              await createNotification(env, {
+                recipient_user_id: post.user_id,
+                actor_user_id: user_id,
+                type: "comment",
+                post_id: body.post_id,
+                extra: String(body.content).slice(0, 80),
+              });
+            }
+          } catch (e) {}
+
           return new Response(
             JSON.stringify({ success: true, comment_id, username, created_at }),
             { headers: corsHeaders },
@@ -750,6 +1035,41 @@ export default {
         } catch (e) {
           return new Response(e.message, { status: 500, headers: corsHeaders });
         }
+      }
+
+      if (request.method === "POST" && action === "notifications_mark_read") {
+        const user_id = await authenticateUser(request, env);
+        if (!user_id)
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+
+        await env.DB.prepare(
+          `
+          CREATE TABLE IF NOT EXISTS notifications (
+            id TEXT PRIMARY KEY,
+            recipient_user_id TEXT,
+            actor_user_id TEXT,
+            actor_username TEXT,
+            type TEXT,
+            post_id TEXT,
+            extra TEXT,
+            is_read INTEGER DEFAULT 0,
+            created_at INTEGER
+          )
+        `,
+        ).run();
+
+        await env.DB.prepare(
+          "UPDATE notifications SET is_read = 1 WHERE recipient_user_id = ?",
+        )
+          .bind(user_id)
+          .run();
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: corsHeaders,
+        });
       }
 
       if (request.method === "POST" && action === "community_delete_post") {
@@ -1152,8 +1472,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             kill_switch_active INTEGER DEFAULT 0,
             max_daily_loss REAL DEFAULT 0,
             cooldown_active INTEGER DEFAULT 0,
-            cooldown_minutes REAL DEFAULT 15,
-            default_risk_amount REAL DEFAULT 0
+            cooldown_minutes REAL DEFAULT 15
           )
         `,
         ).run();
@@ -1167,22 +1486,16 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             "ALTER TABLE user_settings ADD COLUMN cooldown_minutes REAL DEFAULT 15",
           ).run();
         } catch (e) {}
-        try {
-          await env.DB.prepare(
-            "ALTER TABLE user_settings ADD COLUMN default_risk_amount REAL DEFAULT 0",
-          ).run();
-        } catch (e) {}
 
         await env.DB.prepare(
           `
-          INSERT INTO user_settings (license_key, kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes, default_risk_amount)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO user_settings (license_key, kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes)
+          VALUES (?, ?, ?, ?, ?)
           ON CONFLICT(license_key) DO UPDATE SET
             kill_switch_active=excluded.kill_switch_active,
             max_daily_loss=excluded.max_daily_loss,
             cooldown_active=excluded.cooldown_active,
-            cooldown_minutes=excluded.cooldown_minutes,
-            default_risk_amount=excluded.default_risk_amount
+            cooldown_minutes=excluded.cooldown_minutes
         `,
         )
           .bind(
@@ -1191,7 +1504,6 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
             body.max_daily_loss || 0,
             body.cooldown_active ? 1 : 0,
             body.cooldown_minutes || 15,
-            body.default_risk_amount || 0,
           )
           .run();
 
@@ -1373,62 +1685,6 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
         )
           .bind(db_key, String(body.ticket), body.note || "")
           .run();
-
-        return new Response(JSON.stringify({ success: true }), {
-          headers: corsHeaders,
-        });
-      }
-
-      // --- TRADE RISK ROUTE (POST) - per-trade $ risk override for R-multiple ---
-      if (request.method === "POST" && action === "trade_risk") {
-        const user_id = await authenticateUser(request, env);
-        if (!user_id)
-          return new Response("Unauthorized", {
-            status: 401,
-            headers: corsHeaders,
-          });
-
-        let body;
-        try {
-          body = await request.json();
-        } catch (e) {
-          return new Response("Invalid JSON", {
-            status: 400,
-            headers: corsHeaders,
-          });
-        }
-
-        const account_id =
-          body.account_id || url.searchParams.get("account_id") || "default";
-        const db_key = `${user_id}:${account_id}`;
-
-        await env.DB.prepare(
-          `
-          CREATE TABLE IF NOT EXISTS trade_risk (
-            license_key TEXT, ticket TEXT, risk_amount REAL, PRIMARY KEY (license_key, ticket)
-          )
-        `,
-        ).run();
-
-        const riskAmount = parseFloat(body.risk_amount);
-        if (!riskAmount || riskAmount <= 0) {
-          // Empty/zero risk clears the override, falling back to the default
-          await env.DB.prepare(
-            "DELETE FROM trade_risk WHERE license_key = ? AND ticket = ?",
-          )
-            .bind(db_key, String(body.ticket))
-            .run();
-        } else {
-          await env.DB.prepare(
-            `
-            INSERT INTO trade_risk (license_key, ticket, risk_amount)
-            VALUES (?, ?, ?)
-            ON CONFLICT(license_key, ticket) DO UPDATE SET risk_amount=excluded.risk_amount
-          `,
-          )
-            .bind(db_key, String(body.ticket), riskAmount)
-            .run();
-        }
 
         return new Response(JSON.stringify({ success: true }), {
           headers: corsHeaders,
@@ -1742,8 +1998,7 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
                 kill_switch_active INTEGER DEFAULT 0,
                 max_daily_loss REAL DEFAULT 0,
                 cooldown_active INTEGER DEFAULT 0,
-                cooldown_minutes REAL DEFAULT 15,
-                default_risk_amount REAL DEFAULT 0
+                cooldown_minutes REAL DEFAULT 15
               )
             `,
           ).run();
@@ -1757,13 +2012,8 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
               "ALTER TABLE user_settings ADD COLUMN cooldown_minutes REAL DEFAULT 15",
             ).run();
           } catch (e) {}
-          try {
-            await env.DB.prepare(
-              "ALTER TABLE user_settings ADD COLUMN default_risk_amount REAL DEFAULT 0",
-            ).run();
-          } catch (e) {}
           const res = await env.DB.prepare(
-            "SELECT kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes, default_risk_amount FROM user_settings WHERE license_key = ?",
+            "SELECT kill_switch_active, max_daily_loss, cooldown_active, cooldown_minutes FROM user_settings WHERE license_key = ?",
           )
             .bind(db_key)
             .first();
@@ -1774,9 +2024,45 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
                 max_daily_loss: 0,
                 cooldown_active: 0,
                 cooldown_minutes: 15,
-                default_risk_amount: 0,
               },
             ),
+            { headers: corsHeaders },
+          );
+        }
+
+        if (action === "notifications") {
+          await env.DB.prepare(
+            `
+              CREATE TABLE IF NOT EXISTS notifications (
+                id TEXT PRIMARY KEY,
+                recipient_user_id TEXT,
+                actor_user_id TEXT,
+                actor_username TEXT,
+                type TEXT,
+                post_id TEXT,
+                extra TEXT,
+                is_read INTEGER DEFAULT 0,
+                created_at INTEGER
+              )
+            `,
+          ).run();
+
+          const { results } = await env.DB.prepare(
+            "SELECT id, actor_username, type, post_id, extra, is_read, created_at FROM notifications WHERE recipient_user_id = ? ORDER BY created_at DESC LIMIT 30",
+          )
+            .bind(user_id)
+            .all();
+          const unreadRes = await env.DB.prepare(
+            "SELECT COUNT(*) as count FROM notifications WHERE recipient_user_id = ? AND is_read = 0",
+          )
+            .bind(user_id)
+            .first();
+
+          return new Response(
+            JSON.stringify({
+              notifications: results || [],
+              unread_count: (unreadRes && unreadRes.count) || 0,
+            }),
             { headers: corsHeaders },
           );
         }
@@ -1905,24 +2191,6 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           ).run();
           const { results } = await env.DB.prepare(
             "SELECT ticket, note FROM trade_notes WHERE license_key = ?",
-          )
-            .bind(db_key)
-            .all();
-          return new Response(JSON.stringify(results), {
-            headers: corsHeaders,
-          });
-        }
-
-        if (action === "trade_risk") {
-          await env.DB.prepare(
-            `
-              CREATE TABLE IF NOT EXISTS trade_risk (
-                license_key TEXT, ticket TEXT, risk_amount REAL, PRIMARY KEY (license_key, ticket)
-              )
-            `,
-          ).run();
-          const { results } = await env.DB.prepare(
-            "SELECT ticket, risk_amount FROM trade_risk WHERE license_key = ?",
           )
             .bind(db_key)
             .all();
@@ -2076,9 +2344,6 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           .bind(db_key)
           .run();
         await env.DB.prepare("DELETE FROM trade_notes WHERE license_key = ?")
-          .bind(db_key)
-          .run();
-        await env.DB.prepare("DELETE FROM trade_risk WHERE license_key = ?")
           .bind(db_key)
           .run();
         await env.DB.prepare(

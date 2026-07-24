@@ -48,10 +48,6 @@ const i18n = {
     cooldown_lbl: "Cooldown: ",
     cooldown_min_suffix: "Min.",
     cooldown_violations_stat: "{week}x diese Woche vom Cooldown gestoppt ({total}x insgesamt)",
-    risk_per_trade_sub: "Standard-Risiko pro Trade, um deine Trades in R-Multiples auszuwerten",
-    risk_per_trade_lbl: "Risiko: €",
-    risk_per_trade_hint: "(0 = deaktiviert)",
-    th_r_multiple: "R-Multiple",
     heatmap_sub: "Wann verdienst du am meisten?",
     save_btn: "Speichern",
     limit_lbl: "Limit: ",
@@ -158,6 +154,20 @@ const i18n = {
     composer_submit: "Posten",
     loading_feed: "Lade Feed...",
     no_posts: "Noch keine Posts. Teile als Erster einen Trade!",
+    hashtag_filter_bar: "Gefiltert nach <strong>#{tag}</strong> ({count})",
+    hashtag_filter_empty: "Keine Posts mit diesem Hashtag.",
+    reaction_heart: "Gefällt mir",
+    reaction_fire: "Geiler Trade",
+    reaction_flex: "Respekt",
+    notifications_empty: "Noch keine Benachrichtigungen.",
+    notif_comment: '<strong>{user}</strong> hat kommentiert: "{text}"',
+    notif_reaction: "<strong>{user}</strong> hat auf deinen Post reagiert",
+    notif_follow: "<strong>{user}</strong> folgt dir jetzt",
+    community_for_you: "Für dich",
+    community_following: "Folge ich",
+    follow_btn: "Folgen",
+    unfollow_btn: "Entfolgen",
+    following_empty: "Du folgst noch niemandem. Klicke bei einem Post auf \"Folgen\".",
     failed_feed: "Fehler beim Laden des Feeds.",
     prop_sub:
       "Überwache dein Konto in Echtzeit gegen Max Drawdown, Daily Loss & Profit Target Regeln.",
@@ -320,10 +330,6 @@ const i18n = {
     cooldown_lbl: "Cooldown: ",
     cooldown_min_suffix: "min",
     cooldown_violations_stat: "{week}x stopped by Cooldown this week ({total}x total)",
-    risk_per_trade_sub: "Default risk per trade, used to evaluate your trades in R-multiples",
-    risk_per_trade_lbl: "Risk: $",
-    risk_per_trade_hint: "(0 = disabled)",
-    th_r_multiple: "R-Multiple",
     heatmap_sub: "When do you earn the most?",
     save_btn: "Save",
     limit_lbl: "Limit: ",
@@ -430,6 +436,20 @@ const i18n = {
     composer_submit: "Post",
     loading_feed: "Loading Feed...",
     no_posts: "No posts yet. Be the first to share a trade!",
+    hashtag_filter_bar: "Filtered by <strong>#{tag}</strong> ({count})",
+    hashtag_filter_empty: "No posts with this hashtag.",
+    reaction_heart: "Like",
+    reaction_fire: "Fire trade",
+    reaction_flex: "Respect",
+    notifications_empty: "No notifications yet.",
+    notif_comment: '<strong>{user}</strong> commented: "{text}"',
+    notif_reaction: "<strong>{user}</strong> reacted to your post",
+    notif_follow: "<strong>{user}</strong> started following you",
+    community_for_you: "For You",
+    community_following: "Following",
+    follow_btn: "Follow",
+    unfollow_btn: "Unfollow",
+    following_empty: "You're not following anyone yet. Click \"Follow\" on a post.",
     failed_feed: "Failed to load feed.",
     prop_sub:
       "Monitor your account in real-time against Max Drawdown, Daily Loss & Profit Target rules.",
@@ -592,10 +612,6 @@ const i18n = {
     cooldown_lbl: "Enfriamiento: ",
     cooldown_min_suffix: "min",
     cooldown_violations_stat: "{week}x detenido por el Enfriamiento esta semana ({total}x en total)",
-    risk_per_trade_sub: "Riesgo por defecto por operación, para evaluar tus trades en R-múltiplos",
-    risk_per_trade_lbl: "Riesgo: €",
-    risk_per_trade_hint: "(0 = desactivado)",
-    th_r_multiple: "R-Múltiplo",
     heatmap_sub: "¿Cuándo ganas más?",
     save_btn: "Guardar",
     limit_lbl: "Límite: ",
@@ -732,6 +748,20 @@ const i18n = {
     composer_submit: "Publicar",
     loading_feed: "Cargando Feed...",
     no_posts: "Aún no hay publicaciones. ¡Sé el primero en compartir una operación!",
+    hashtag_filter_bar: "Filtrado por <strong>#{tag}</strong> ({count})",
+    hashtag_filter_empty: "No hay publicaciones con este hashtag.",
+    reaction_heart: "Me gusta",
+    reaction_fire: "Trade increíble",
+    reaction_flex: "Respeto",
+    notifications_empty: "Aún no hay notificaciones.",
+    notif_comment: '<strong>{user}</strong> comentó: "{text}"',
+    notif_reaction: "<strong>{user}</strong> reaccionó a tu publicación",
+    notif_follow: "<strong>{user}</strong> ahora te sigue",
+    community_for_you: "Para ti",
+    community_following: "Siguiendo",
+    follow_btn: "Seguir",
+    unfollow_btn: "Dejar de seguir",
+    following_empty: "Aún no sigues a nadie. Haz clic en \"Seguir\" en una publicación.",
     failed_feed: "Error al cargar el feed.",
     prop_tracker: "Rastreador Reto Prop",
     nav_coach: "Coach IA",
@@ -863,10 +893,6 @@ const i18n = {
     cooldown_lbl: "Bekleme Süresi: ",
     cooldown_min_suffix: "dk",
     cooldown_violations_stat: "Bu hafta {week}x Bekleme Süresi tarafından durduruldu (toplam {total}x)",
-    risk_per_trade_sub: "İşlemlerini R-Multiple olarak değerlendirmek için varsayılan işlem başına risk",
-    risk_per_trade_lbl: "Risk: ₺",
-    risk_per_trade_hint: "(0 = kapalı)",
-    th_r_multiple: "R-Multiple",
     heatmap_sub: "En çok ne zaman kazanıyorsun?",
     save_btn: "Kaydet",
     limit_lbl: "Limit: ",
@@ -1005,6 +1031,20 @@ const i18n = {
     composer_submit: "Paylaş",
     loading_feed: "Akış Yükleniyor...",
     no_posts: "Henüz paylaşım yok. İlk işlemi paylaşan siz olun!",
+    hashtag_filter_bar: "<strong>#{tag}</strong> ile filtrelendi ({count})",
+    hashtag_filter_empty: "Bu hashtag ile paylaşım yok.",
+    reaction_heart: "Beğen",
+    reaction_fire: "Harika işlem",
+    reaction_flex: "Saygı",
+    notifications_empty: "Henüz bildirim yok.",
+    notif_comment: '<strong>{user}</strong> yorum yaptı: "{text}"',
+    notif_reaction: "<strong>{user}</strong> gönderine tepki verdi",
+    notif_follow: "<strong>{user}</strong> seni takip etmeye başladı",
+    community_for_you: "Senin İçin",
+    community_following: "Takip Ettiklerim",
+    follow_btn: "Takip Et",
+    unfollow_btn: "Takibi Bırak",
+    following_empty: "Henüz kimseyi takip etmiyorsun. Bir gönderide \"Takip Et\"e tıkla.",
     failed_feed: "Akış yüklenemedi.",
     nav_calendar: "Takvim",
     nav_community: "Topluluk",
@@ -2021,6 +2061,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Load Settings once
       loadSettings(key);
       loadCooldownStats(key);
+      if (typeof window.loadNotifications === "function") window.loadNotifications();
 
       // Note: Journal is now loaded dynamically when opening the modal for a specific day.
 
@@ -2050,26 +2091,6 @@ document.addEventListener("DOMContentLoaded", () => {
               window.currentAllTrades,
               window.currentCurSym || "$",
             );
-          }
-        })
-        .catch((e) => console.error(e));
-
-      // Load per-trade Risk overrides (for R-Multiple)
-      fetch(`${API_URL}?action=trade_risk&account_id=${encodeURIComponent(key)}`, {
-        headers: { Authorization: localStorage.getItem("tm_master_token") },
-      })
-        .then((r) => r.json())
-        .then((d) => {
-          window.tradeRiskMap = {};
-          (d || []).forEach((n) => {
-            window.tradeRiskMap[n.ticket] = parseFloat(n.risk_amount);
-          });
-          if (currentFilteredTrades && currentFilteredTrades.length > 0) {
-            if (typeof renderTradesTable === "function") {
-              renderTradesTable(currentFilteredTrades, window.currentCurSym);
-            } else {
-              processData(currentFilteredTrades, window.currentCurSym);
-            }
           }
         })
         .catch((e) => console.error(e));
@@ -2502,82 +2523,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  function saveTradeRisk(inputEl) {
-    const ticket = inputEl.getAttribute("data-ticket");
-    const riskAmount = parseFloat(inputEl.value);
-    const key = localStorage.getItem("tm_license_key");
-    if (!key) return;
-
-    const origBorder = inputEl.style.borderColor;
-    inputEl.style.borderColor = "#f59e0b"; // Yellow = saving
-
-    fetch(`${API_URL}?action=trade_risk`, {
-      method: "POST",
-      headers: {
-        Authorization: localStorage.getItem("tm_master_token"),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        account_id: key,
-        ticket: String(ticket),
-        risk_amount: isNaN(riskAmount) ? null : riskAmount,
-      }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          if (!window.tradeRiskMap) window.tradeRiskMap = {};
-          if (isNaN(riskAmount) || riskAmount <= 0) {
-            delete window.tradeRiskMap[ticket];
-          } else {
-            window.tradeRiskMap[ticket] = riskAmount;
-          }
-          inputEl.style.borderColor = "#10b981"; // Green = saved
-          setTimeout(() => {
-            inputEl.style.borderColor = origBorder;
-          }, 1500);
-
-          // Live-update the R display next to the input, and the Ø R KPI,
-          // without needing a full page reload.
-          const row = inputEl.closest("tr");
-          const rSpan = row ? row.querySelector("td:nth-child(6) span") : null;
-          if (rSpan && window.currentAllTrades) {
-            const trade = window.currentAllTrades.find(
-              (t) => String(t.ticket) === String(ticket),
-            );
-            if (trade) {
-              const effectiveRisk =
-                window.tradeRiskMap[ticket] || window.defaultRiskAmount || 0;
-              const netP = parseFloat(trade.net_profit || 0);
-              if (effectiveRisk > 0) {
-                const rValue = netP / effectiveRisk;
-                rSpan.style.color = rValue >= 0 ? "var(--success)" : "var(--danger)";
-                rSpan.innerText = (rValue >= 0 ? "+" : "") + rValue.toFixed(2) + "R";
-              } else {
-                rSpan.style.color = "var(--text-muted)";
-                rSpan.innerText = "-";
-              }
-            }
-          }
-          if (typeof processData === "function" && window.currentFilteredTrades) {
-            processData(window.currentFilteredTrades, window.currentCurSym || "$");
-          }
-        } else {
-          console.error("Risk save failed:", res.status);
-          inputEl.style.borderColor = "#ef4444"; // Red = error
-          setTimeout(() => {
-            inputEl.style.borderColor = origBorder;
-          }, 2000);
-        }
-      })
-      .catch((err) => {
-        console.error("Risk save err", err);
-        inputEl.style.borderColor = "#ef4444";
-        setTimeout(() => {
-          inputEl.style.borderColor = origBorder;
-        }, 2000);
-      });
-  }
-
   // ── Playbook grading popover: check off the assigned strategy's rules
   // for this specific trade, save, and refresh the compliance badge. ──
   function openChecklistGradePopover(anchorEl, ticket, strategyId) {
@@ -2799,23 +2744,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ? window.tradeNotesMap[t.ticket] || ""
         : "";
 
-      const riskOverride = window.tradeRiskMap
-        ? window.tradeRiskMap[t.ticket]
-        : undefined;
-      const effectiveRisk = riskOverride || window.defaultRiskAmount || 0;
-      const netProfitNum = parseFloat(t.net_profit || 0);
-      let rDisplay = "-";
-      let rColor = "var(--text-muted)";
-      if (effectiveRisk > 0) {
-        const rValue = netProfitNum / effectiveRisk;
-        rColor = rValue >= 0 ? "var(--success)" : "var(--danger)";
-        rDisplay = (rValue >= 0 ? "+" : "") + rValue.toFixed(2) + "R";
-      }
-      const riskInputValue = riskOverride ? riskOverride : "";
-      const riskPlaceholder = window.defaultRiskAmount
-        ? window.defaultRiskAmount
-        : "Risiko";
-
       const imgData = window.tradeImagesMap
         ? window.tradeImagesMap[t.ticket] || {}
         : {};
@@ -2858,12 +2786,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${sideColor}">${sideStr}</td>
                 <td style="padding: 8px 6px; border-bottom: 1px solid var(--border-dark); text-align: center; width: 100px; white-space: nowrap;">${slBadgeHtml}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: ${profitColor}">${profitNum < 0 ? "-" : ""}${curSym}${Math.abs(profitNum).toFixed(2)}</td>
-                <td style="padding: 6px; border-bottom: 1px solid var(--border-dark); white-space: nowrap;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="number" class="trade-risk-input profile-select" data-ticket="${t.ticket}" value="${riskInputValue}" placeholder="${riskPlaceholder}" min="0" step="0.01" style="width: 55px; padding: 3px; font-size: 0.8rem; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border-dark);">
-                        <span style="font-size: 0.85rem; font-weight: bold; color: ${rColor};">${rDisplay}</span>
-                    </div>
-                </td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted);">${commissionStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); color: var(--text-muted); font-size: 0.85rem;">${durationStr}</td>
                 <td style="padding: 8px; border-bottom: 1px solid var(--border-dark); white-space: nowrap;">${stratBadgeHtml}${checklistBadgeHtml}</td>
@@ -2893,16 +2815,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.key === "Enter") {
           e.preventDefault();
           e.target.blur();
-        }
-      });
-    });
-
-    document.querySelectorAll(".trade-risk-input").forEach((inp) => {
-      inp.addEventListener("blur", (e) => saveTradeRisk(e.target));
-      inp.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          e.target.blur(); // triggers blur → saveTradeRisk
         }
       });
     });
@@ -4042,13 +3954,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const ksLimit = document.getElementById("kill-switch-limit");
         const cdToggle = document.getElementById("cooldown-toggle");
         const cdMinutes = document.getElementById("cooldown-minutes");
-        const riskInput = document.getElementById("default-risk-amount");
         if (ksToggle) ksToggle.checked = settings.kill_switch_active === 1;
         if (ksLimit) ksLimit.value = settings.max_daily_loss;
         if (cdToggle) cdToggle.checked = settings.cooldown_active === 1;
         if (cdMinutes) cdMinutes.value = settings.cooldown_minutes || 15;
-        window.defaultRiskAmount = parseFloat(settings.default_risk_amount) || 0;
-        if (riskInput) riskInput.value = window.defaultRiskAmount;
       }
     } catch (e) {
       console.error("Failed to load settings", e);
@@ -4199,15 +4108,8 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("cooldown-toggle")?.checked || false,
           cooldown_minutes:
             parseFloat(document.getElementById("cooldown-minutes")?.value) || 15,
-          default_risk_amount:
-            parseFloat(document.getElementById("default-risk-amount")?.value) || 0,
         }),
       });
-      window.defaultRiskAmount =
-        parseFloat(document.getElementById("default-risk-amount")?.value) || 0;
-      if (window.currentFilteredTrades && typeof processData === "function") {
-        processData(window.currentFilteredTrades, window.currentCurSym || "$");
-      }
     } catch (e) {
       console.error("Failed to save settings", e);
     }
@@ -5752,6 +5654,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tabId === "tab-community") {
         loadCommunityFeed();
         loadCommunityLeaderboard();
+        loadNotifications();
       }
       if (tabId === "tab-psychology") {
         renderPsychologyLessons();
@@ -5770,6 +5673,137 @@ document.addEventListener("DOMContentLoaded", () => {
     "community-feed-container",
   );
   const refreshFeedBtn = document.getElementById("refresh-feed-btn");
+
+  // --- NOTIFICATIONS ---
+  const notificationBellBtn = document.getElementById("notification-bell-btn");
+  const notificationDropdown = document.getElementById("notification-dropdown");
+  const notificationBadge = document.getElementById("notification-badge");
+  const sidebarNotificationDot = document.getElementById("sidebar-notification-dot");
+
+  function renderNotificationDropdown(notifications) {
+    if (!notificationDropdown) return;
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
+
+    if (!notifications || notifications.length === 0) {
+      notificationDropdown.innerHTML = `<div class="notification-empty">${dict.notifications_empty || "No notifications yet."}</div>`;
+      return;
+    }
+
+    notificationDropdown.innerHTML = notifications
+      .map((n) => {
+        const icon =
+          n.type === "comment"
+            ? "💬"
+            : n.type === "follow"
+              ? "👤"
+              : n.extra === "fire"
+                ? "🔥"
+                : n.extra === "flex"
+                  ? "💪"
+                  : "❤️";
+        let text;
+        if (n.type === "comment") {
+          const tmpl = dict.notif_comment || '<strong>{user}</strong> commented: "{text}"';
+          text = tmpl
+            .replace("{user}", n.actor_username)
+            .replace("{text}", escapeHTML(n.extra || ""));
+        } else if (n.type === "follow") {
+          const tmpl = dict.notif_follow || "<strong>{user}</strong> started following you";
+          text = tmpl.replace("{user}", n.actor_username);
+        } else {
+          const tmpl = dict.notif_reaction || "<strong>{user}</strong> reacted to your post";
+          text = tmpl.replace("{user}", n.actor_username);
+        }
+        const timeStr = formatRelativeTime(n.created_at, dict);
+        return `
+          <div class="notification-item ${n.is_read ? "" : "unread"}">
+            <div class="notification-icon">${icon}</div>
+            <div class="notification-text">${text}<span class="notification-time">${timeStr}</span></div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function loadNotifications() {
+    const token = localStorage.getItem("tm_master_token");
+    if (!token) return;
+    fetch(`${API_URL}?action=notifications&t=${Date.now()}`, {
+      headers: { Authorization: token },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        window._communityNotifications = d.notifications || [];
+        const unread = d.unread_count || 0;
+        if (notificationBadge) {
+          if (unread > 0) {
+            notificationBadge.style.display = "flex";
+            notificationBadge.innerText = unread > 9 ? "9+" : String(unread);
+          } else {
+            notificationBadge.style.display = "none";
+          }
+        }
+        if (sidebarNotificationDot) {
+          sidebarNotificationDot.style.display = unread > 0 ? "block" : "none";
+        }
+        renderNotificationDropdown(window._communityNotifications);
+      })
+      .catch((e) => console.error("Failed to load notifications", e));
+  }
+  window.loadNotifications = loadNotifications;
+
+  if (notificationBellBtn && notificationDropdown) {
+    notificationBellBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = notificationDropdown.classList.contains("hidden");
+      if (isHidden) {
+        notificationDropdown.classList.remove("hidden");
+        const token = localStorage.getItem("tm_master_token");
+        if (token) {
+          fetch(`${API_URL}?action=notifications_mark_read`, {
+            method: "POST",
+            headers: { Authorization: token, "Content-Type": "application/json" },
+          }).then(() => {
+            if (notificationBadge) notificationBadge.style.display = "none";
+            if (sidebarNotificationDot) sidebarNotificationDot.style.display = "none";
+            (window._communityNotifications || []).forEach((n) => (n.is_read = 1));
+            renderNotificationDropdown(window._communityNotifications);
+          });
+        }
+      } else {
+        notificationDropdown.classList.add("hidden");
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        !notificationDropdown.classList.contains("hidden") &&
+        !notificationDropdown.contains(e.target) &&
+        e.target !== notificationBellBtn &&
+        !notificationBellBtn.contains(e.target)
+      ) {
+        notificationDropdown.classList.add("hidden");
+      }
+    });
+  }
+
+  // Poll every 60s so the badge stays roughly live without a websocket.
+  setInterval(() => {
+    if (localStorage.getItem("tm_master_token")) loadNotifications();
+  }, 60000);
+
+  document.querySelectorAll(".feed-scope-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document
+        .querySelectorAll(".feed-scope-tab")
+        .forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      window._communityFeedScope = tab.getAttribute("data-scope");
+      window._communityActiveTag = null;
+      loadCommunityFeed();
+    });
+  });
 
   if (refreshFeedBtn) {
     refreshFeedBtn.addEventListener("click", () => {
@@ -5811,12 +5845,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return new Date(unixSeconds * 1000).toLocaleDateString();
   }
 
+  window._communityFeedScope = window._communityFeedScope || "all";
+
   function loadCommunityFeed() {
     if (!communityFeedContainer) return;
     const currentLang = document.getElementById("global-lang")?.value || "de";
     communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].loading_feed}</p>`;
     const token = localStorage.getItem("tm_master_token");
-    fetch(`${API_URL}?action=community_feed&t=${Date.now()}`, {
+    const scopeParam =
+      window._communityFeedScope === "following" ? "&scope=following" : "";
+    fetch(`${API_URL}?action=community_feed${scopeParam}&t=${Date.now()}`, {
       headers: { Authorization: token },
     })
       .then((r) => r.json())
@@ -5827,13 +5865,19 @@ document.addEventListener("DOMContentLoaded", () => {
           communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].failed_feed}</p>`;
           return;
         }
+        window._allCommunityPosts = posts;
         if (posts.length === 0) {
           const currentLang =
             document.getElementById("global-lang")?.value || "de";
-          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${i18n[currentLang].no_posts}</p>`;
+          const dict = i18n[currentLang] || i18n["de"];
+          const emptyMsg =
+            window._communityFeedScope === "following"
+              ? dict.following_empty
+              : dict.no_posts;
+          communityFeedContainer.innerHTML = `<p class="ai-placeholder-text" style="text-align: center; margin-top: 40px;">${emptyMsg}</p>`;
           return;
         }
-        renderCommunityFeed(posts);
+        applyHashtagFilterAndRender();
       })
       .catch((e) => {
         console.error(e);
@@ -5843,10 +5887,60 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  // ── Clickable hashtags: filter the already-loaded feed client-side ──
+  function getPostHashtags(post) {
+    const tags = new Set();
+    (post.content || "").match(/#[\w]+/g)?.forEach((t) => tags.add(t.slice(1).toLowerCase()));
+    if (post.trade_data && post.trade_data.note) {
+      post.trade_data.note.match(/#[\w]+/g)?.forEach((t) => tags.add(t.slice(1).toLowerCase()));
+    }
+    return tags;
+  }
+
+  function applyHashtagFilterAndRender() {
+    const all = window._allCommunityPosts || [];
+    const tag = window._communityActiveTag;
+    const toShow = tag
+      ? all.filter((p) => getPostHashtags(p).has(tag.toLowerCase()))
+      : all;
+    renderCommunityFeed(toShow);
+  }
+
+  function linkifyHashtags(text) {
+    const escaped = escapeHTML(text || "");
+    return escaped.replace(/(^|\s)(#[\w]+)/g, (match, prefix, tag) => {
+      return `${prefix}<span class="hashtag-link" data-tag="${tag.slice(1)}">${tag}</span>`;
+    });
+  }
+
   function renderCommunityFeed(posts) {
     communityFeedContainer.innerHTML = "";
     const currentLang = localStorage.getItem("tm_global_lang") || "de";
     const dict = i18n[currentLang] || i18n["de"];
+
+    if (window._communityActiveTag) {
+      const bar = document.createElement("div");
+      bar.className = "hashtag-filter-bar";
+      const tmpl = dict.hashtag_filter_bar || 'Filtered by <strong>#{tag}</strong> ({count})';
+      bar.innerHTML = `
+        <span>${tmpl.replace("{tag}", window._communityActiveTag).replace("{count}", posts.length)}</span>
+        <button type="button" class="hashtag-filter-clear"><i class="ph ph-x"></i></button>
+      `;
+      bar.querySelector(".hashtag-filter-clear").addEventListener("click", () => {
+        window._communityActiveTag = null;
+        applyHashtagFilterAndRender();
+      });
+      communityFeedContainer.appendChild(bar);
+
+      if (posts.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "ai-placeholder-text";
+        empty.style.cssText = "text-align: center; margin-top: 40px;";
+        empty.innerText = dict.hashtag_filter_empty || "No posts with this hashtag.";
+        communityFeedContainer.appendChild(empty);
+        return;
+      }
+    }
 
     posts.forEach((post) => {
       const timeStr = formatRelativeTime(post.created_at, dict);
@@ -5865,7 +5959,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (td.note) {
           const tags = td.note.match(/#[\w]+/g);
           if (tags) {
-            hashtagsHtml = `<div style="margin-top: 10px; color: var(--accent-color); font-size: 0.85rem; display: flex; gap: 8px; flex-wrap: wrap;">${tags.map((tag) => `<span>${tag}</span>`).join("")}</div>`;
+            hashtagsHtml = `<div style="margin-top: 10px; font-size: 0.85rem; display: flex; gap: 8px; flex-wrap: wrap;">${tags.map((tag) => `<span class="hashtag-link" data-tag="${tag.slice(1)}">${tag}</span>`).join("")}</div>`;
           }
         }
 
@@ -5948,23 +6042,43 @@ document.addEventListener("DOMContentLoaded", () => {
                         <span class="post-username">${post.username || "Unknown Trader"}</span>
                         <span class="post-time" title="${fullTimeStr}">${timeStr}</span>
                     </div>
+                    ${
+                      post.is_owner
+                        ? ""
+                        : `<button type="button" class="follow-btn ${post.is_following ? "following" : ""}" data-user-id="${post.user_id}">${post.is_following ? dict.unfollow_btn || "Unfollow" : dict.follow_btn || "Follow"}</button>`
+                    }
                 </div>
-                <div class="post-content">${escapeHTML(post.content || "")}</div>
+                <div class="post-content">${linkifyHashtags(post.content || "")}</div>
                 ${tradeHtml}
                 <div class="post-actions" style="margin-bottom: 10px;">
                     <button class="post-action-btn reply-btn" data-post-id="${post.id}">
                         <i class="ph ph-chat-circle"></i>
                         <span class="reply-count">${commentCount}</span>
                     </button>
-                    <button class="post-action-btn like-btn ${post.has_liked ? "liked" : ""}" data-post-id="${post.id}">
-                        <i class="${post.has_liked ? "ph-fill ph-heart" : "ph ph-heart"}"></i>
-                        <span class="like-count">${post.likes || 0}</span>
+                    <button class="post-action-btn reaction-btn ${post.user_reaction === "heart" ? "active" : ""}" data-post-id="${post.id}" data-reaction="heart" title="${dict.reaction_heart || "Like"}">
+                        <i class="${post.user_reaction === "heart" ? "ph-fill ph-heart" : "ph ph-heart"}"></i>
+                        <span class="reaction-count">${(post.reactions && post.reactions.heart) || 0}</span>
+                    </button>
+                    <button class="post-action-btn reaction-btn ${post.user_reaction === "fire" ? "active" : ""}" data-post-id="${post.id}" data-reaction="fire" title="${dict.reaction_fire || "Fire trade"}">
+                        <span class="reaction-emoji">🔥</span>
+                        <span class="reaction-count">${(post.reactions && post.reactions.fire) || 0}</span>
+                    </button>
+                    <button class="post-action-btn reaction-btn ${post.user_reaction === "flex" ? "active" : ""}" data-post-id="${post.id}" data-reaction="flex" title="${dict.reaction_flex || "Respect"}">
+                        <span class="reaction-emoji">💪</span>
+                        <span class="reaction-count">${(post.reactions && post.reactions.flex) || 0}</span>
                     </button>
                 </div>
                 ${commentsHtml}
                 ${commentInputHtml}
             `;
       communityFeedContainer.appendChild(p);
+    });
+
+    communityFeedContainer.querySelectorAll(".hashtag-link").forEach((el) => {
+      el.addEventListener("click", () => {
+        window._communityActiveTag = el.getAttribute("data-tag");
+        applyHashtagFilterAndRender();
+      });
     });
 
     // Reply button focuses this post's comment input (functional, not decorative)
@@ -5979,13 +6093,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     communityFeedContainer
-      .querySelectorAll(".like-btn")
+      .querySelectorAll(".reaction-btn")
       .forEach((btn) => {
         btn.addEventListener("click", function () {
           const postId = this.getAttribute("data-post-id");
-          toggleLike(postId, this);
+          const reaction = this.getAttribute("data-reaction");
+          toggleReaction(postId, reaction, this);
         });
       });
+
+    communityFeedContainer.querySelectorAll(".follow-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        toggleFollow(btn.getAttribute("data-user-id"), btn);
+      });
+    });
 
     communityFeedContainer
       .querySelectorAll(".post-comment-btn")
@@ -6183,31 +6304,81 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
   }
 
-  function toggleLike(postId, btnEl) {
+  // Three reaction types (heart/fire/flex) share one post per user - picking
+  // a new one switches away from whichever was active before.
+  function toggleReaction(postId, reaction, btnEl) {
     const token = localStorage.getItem("tm_master_token");
+    const siblingBtns = document.querySelectorAll(
+      `.reaction-btn[data-post-id="${postId}"]`,
+    );
+    const prevActiveBtn = Array.from(siblingBtns).find(
+      (b) => b !== btnEl && b.classList.contains("active"),
+    );
+
     fetch(`${API_URL}?action=community_like`, {
       method: "POST",
       headers: { Authorization: token, "Content-Type": "application/json" },
-      body: JSON.stringify({ post_id: postId }),
+      body: JSON.stringify({ post_id: postId, reaction }),
     })
       .then((r) => r.json())
       .then((d) => {
-        if (d.success) {
-          const countEl = btnEl.querySelector(".like-count");
-          const iconEl = btnEl.querySelector("i");
-          let count = parseInt(countEl.innerText) || 0;
-          if (d.liked) {
-            btnEl.classList.add("liked");
-            iconEl.className = "ph-fill ph-heart";
-            countEl.innerText = count + 1;
-          } else {
-            btnEl.classList.remove("liked");
-            iconEl.className = "ph ph-heart";
-            countEl.innerText = Math.max(0, count - 1);
+        if (!d.success) return;
+
+        const countEl = btnEl.querySelector(".reaction-count");
+        const count = parseInt(countEl.innerText) || 0;
+
+        if (d.active) {
+          btnEl.classList.add("active");
+          countEl.innerText = count + 1;
+          if (reaction === "heart") {
+            const icon = btnEl.querySelector("i");
+            if (icon) icon.className = "ph-fill ph-heart";
+          }
+          if (prevActiveBtn) {
+            const prevCountEl = prevActiveBtn.querySelector(".reaction-count");
+            const prevCount = parseInt(prevCountEl.innerText) || 0;
+            prevCountEl.innerText = Math.max(0, prevCount - 1);
+            prevActiveBtn.classList.remove("active");
+            if (prevActiveBtn.getAttribute("data-reaction") === "heart") {
+              const prevIcon = prevActiveBtn.querySelector("i");
+              if (prevIcon) prevIcon.className = "ph ph-heart";
+            }
+          }
+        } else {
+          btnEl.classList.remove("active");
+          countEl.innerText = Math.max(0, count - 1);
+          if (reaction === "heart") {
+            const icon = btnEl.querySelector("i");
+            if (icon) icon.className = "ph ph-heart";
           }
         }
       })
       .catch(console.error);
+  }
+
+  function toggleFollow(targetUserId, btnEl) {
+    if (!targetUserId) return;
+    const token = localStorage.getItem("tm_master_token");
+    const currentLang = localStorage.getItem("tm_global_lang") || "de";
+    const dict = i18n[currentLang] || i18n["de"];
+
+    btnEl.disabled = true;
+    fetch(`${API_URL}?action=community_follow`, {
+      method: "POST",
+      headers: { Authorization: token, "Content-Type": "application/json" },
+      body: JSON.stringify({ target_user_id: targetUserId }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.success) return;
+        // Reload rather than patch the DOM: the "Folge ich" scope depends
+        // on this exact follow state, so it needs a fresh, correct list.
+        loadCommunityFeed();
+      })
+      .catch((err) => console.error("Follow toggle error", err))
+      .finally(() => {
+        btnEl.disabled = false;
+      });
   }
 
   function escapeHTML(str) {
