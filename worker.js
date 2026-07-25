@@ -473,6 +473,115 @@ export default {
         );
       }
 
+      // --- ADMIN: permanently delete a user and everything tied to them ---
+      if (request.method === "DELETE" && action === "admin_delete_user") {
+        if (!isAdminAuthed(request, env)) {
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+        }
+        await setupMasterTables(env);
+
+        const targetUserId = url.searchParams.get("user_id");
+        if (!targetUserId) {
+          return new Response("Missing user_id", {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+
+        const targetUser = await env.DB.prepare(
+          "SELECT id, email FROM users WHERE id = ?",
+        )
+          .bind(targetUserId)
+          .first();
+        if (!targetUser) {
+          return new Response(
+            JSON.stringify({ error: "User not found." }),
+            { status: 404, headers: corsHeaders },
+          );
+        }
+
+        const likeKey = `${targetUserId}:%`;
+
+        // Tables keyed by license_key ("<user_id>:<account_id>") - every
+        // account this user ever linked, in one shot via LIKE, instead of
+        // looping per account_id.
+        const licenseKeyTables = [
+          "trades",
+          "journal",
+          "trade_notes",
+          "trade_strategies",
+          "trade_checklist_results",
+          "trade_images",
+          "user_settings",
+          "account_balances",
+          "weekly_reports",
+          "coach_archives",
+        ];
+        for (const table of licenseKeyTables) {
+          try {
+            await env.DB.prepare(
+              `DELETE FROM ${table} WHERE license_key LIKE ?`,
+            )
+              .bind(likeKey)
+              .run();
+          } catch (e) {}
+        }
+
+        // ai_limits stores the raw user_id in its license_key column (not
+        // the "<user_id>:<account_id>" composite), so it needs an exact
+        // match instead of the LIKE prefix used above.
+        try {
+          await env.DB.prepare("DELETE FROM ai_limits WHERE license_key = ?")
+            .bind(targetUserId)
+            .run();
+        } catch (e) {}
+
+        // Tables keyed directly by user_id.
+        const userIdTables = [
+          "user_accounts",
+          "strategy_definitions",
+          "strategy_checklist_items",
+          "community_posts",
+          "community_likes",
+          "community_comments",
+        ];
+        for (const table of userIdTables) {
+          try {
+            await env.DB.prepare(`DELETE FROM ${table} WHERE user_id = ?`)
+              .bind(targetUserId)
+              .run();
+          } catch (e) {}
+        }
+
+        try {
+          await env.DB.prepare(
+            "DELETE FROM community_follows WHERE follower_user_id = ? OR followee_user_id = ?",
+          )
+            .bind(targetUserId, targetUserId)
+            .run();
+        } catch (e) {}
+
+        try {
+          await env.DB.prepare(
+            "DELETE FROM notifications WHERE recipient_user_id = ? OR actor_user_id = ?",
+          )
+            .bind(targetUserId, targetUserId)
+            .run();
+        } catch (e) {}
+
+        await env.DB.prepare("DELETE FROM users WHERE id = ?")
+          .bind(targetUserId)
+          .run();
+
+        return new Response(
+          JSON.stringify({ success: true, deleted_email: targetUser.email }),
+          { headers: corsHeaders },
+        );
+      }
+
       // --- MASTER ACCOUNT ROUTES ---
       if (request.method === "POST" && action === "register") {
         await setupMasterTables(env);

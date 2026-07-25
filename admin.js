@@ -38,10 +38,11 @@ function showDashboard() {
   document.getElementById("admin-dashboard").classList.remove("hidden");
 }
 
-async function adminFetch(action, params) {
+async function adminFetch(action, params, method) {
   const password = getStoredPassword();
   const qs = new URLSearchParams({ action, ...(params || {}) }).toString();
   const response = await fetch(`${API_URL}?${qs}`, {
+    method: method || "GET",
     headers: { Authorization: password || "" },
   });
   if (response.status === 401) {
@@ -57,6 +58,52 @@ function formatTimestamp(sec) {
   if (!sec) return "—";
   const d = new Date(sec * 1000);
   return d.toLocaleDateString("de-DE") + " " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+}
+
+function escapeHtml(str) {
+  return String(str).replace(
+    /[&<>'"]/g,
+    (tag) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[
+        tag
+      ] || tag,
+  );
+}
+
+async function handleDeleteUser(btn) {
+  const userId = btn.getAttribute("data-user-id");
+  const email = btn.getAttribute("data-email");
+
+  const typed = prompt(
+    `Diese Aktion löscht den Nutzer "${email}" und ALLE zugehörigen Daten (Trades, Journal, Community-Posts, Strategien, ...) UNWIDERRUFLICH.\n\nTippe die E-Mail-Adresse zur Bestätigung ein:`,
+  );
+  if (typed === null) return; // cancelled
+  if (typed.trim().toLowerCase() !== (email || "").trim().toLowerCase()) {
+    alert("E-Mail stimmt nicht überein. Löschung abgebrochen.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerText = "...";
+  try {
+    const data = await adminFetch(
+      "admin_delete_user",
+      { user_id: userId },
+      "DELETE",
+    );
+    if (data.success) {
+      loadStats();
+      loadUsers();
+    } else {
+      alert("Fehler: " + (data.error || "Unbekannter Fehler"));
+      btn.disabled = false;
+      btn.innerText = "Löschen";
+    }
+  } catch (e) {
+    alert("Fehler beim Löschen: " + e.message);
+    btn.disabled = false;
+    btn.innerText = "Löschen";
+  }
 }
 
 function renderStats(data) {
@@ -79,21 +126,35 @@ function renderUsers(data) {
   const users = data.users || [];
 
   if (users.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 20px;">Keine Nutzer gefunden.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 20px;">Keine Nutzer gefunden.</td></tr>`;
   } else {
     tbody.innerHTML = users
       .map(
         (u) => `
         <tr>
-          <td>${u.email || "—"}</td>
-          <td>${u.username || "—"}</td>
+          <td>${escapeHtml(u.email || "—")}</td>
+          <td>${escapeHtml(u.username || "—")}</td>
           <td>${formatTimestamp(u.created_at)}</td>
           <td>${u.linked_accounts ?? 0}</td>
           <td>${formatTimestamp(u.last_trade_at)}</td>
+          <td>
+            <button
+              class="secondary-btn admin-delete-user-btn"
+              data-user-id="${u.id}"
+              data-email="${escapeHtml(u.email || "")}"
+              style="padding: 4px 10px; border-color: var(--danger); color: var(--danger); font-size: 0.78rem;"
+            >
+              <i class="ph ph-trash"></i> Löschen
+            </button>
+          </td>
         </tr>
       `,
       )
       .join("");
+
+    tbody.querySelectorAll(".admin-delete-user-btn").forEach((btn) => {
+      btn.addEventListener("click", () => handleDeleteUser(btn));
+    });
   }
 
   const pagination = document.getElementById("admin-users-pagination");
