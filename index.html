@@ -333,16 +333,13 @@
                   <!-- Options generated dynamically -->
                 </select>
                 <button
-                  id="delete-account-btn"
+                  id="open-settings-btn"
                   class="secondary-btn"
-                  style="
-                    padding: 6px 10px;
-                    border-color: #ef4444;
-                    color: #ef4444;
-                  "
-                  title="Delete current account"
+                  style="padding: 6px 10px;"
+                  title="Einstellungen"
+                  data-i18n-title="settings_title"
                 >
-                  🗑️
+                  <i class="ph ph-gear-six"></i>
                 </button>
               </div>
 
@@ -394,30 +391,6 @@
                   <i class="ph ph-sparkle"></i>
                   <span class="sidebar-btn-text" data-i18n="focus_btn"
                     >Focus Mode</span
-                  >
-                </button>
-                <button
-                  id="reset-btn"
-                  style="
-                    flex: 1;
-                    padding: 5px;
-                    border: 1px solid rgba(239, 68, 68, 0.2);
-                    background: transparent;
-                    color: #ef4444;
-                    border-radius: 4px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 4px;
-                    cursor: pointer;
-                    font-size: 0.75rem;
-                    box-shadow: none;
-                  "
-                  title="Reset Dashboard"
-                >
-                  <i class="ph ph-warning"></i>
-                  <span class="sidebar-btn-text" data-i18n="reset_btn"
-                    >Reset</span
                   >
                 </button>
               </div>
@@ -2416,6 +2389,95 @@
               Trades des Tages
             </div>
             <div id="journal-modal-trades"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Modal -->
+      <div id="settings-modal" class="modal-overlay hidden">
+        <div
+          class="modal-content glass-panel"
+          style="
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 18px;
+            "
+          >
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="ph ph-gear-six"></i>
+              <span data-i18n="settings_title">Einstellungen</span>
+            </h3>
+            <button
+              id="settings-modal-close"
+              class="secondary-btn"
+              style="
+                padding: 4px 8px;
+                border: none;
+                background: transparent;
+                font-size: 1.2rem;
+                cursor: pointer;
+              "
+            >
+              &times;
+            </button>
+          </div>
+
+          <!-- Delete account -->
+          <div
+            style="
+              margin-bottom: 20px;
+              padding-bottom: 20px;
+              border-bottom: 1px solid var(--border-dark);
+            "
+          >
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;" data-i18n="settings_delete_account_label">
+              Account löschen
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <select
+                id="settings-delete-account-select"
+                class="profile-select"
+                style="flex: 1; padding: 6px;"
+              ></select>
+              <button
+                id="settings-delete-account-btn"
+                class="secondary-btn"
+                style="padding: 6px 14px; border-color: #ef4444; color: #ef4444; white-space: nowrap;"
+                data-i18n="delete_account_btn"
+              >
+                Löschen
+              </button>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;" data-i18n="settings_delete_account_hint">
+              Löscht diesen Account und alle zugehörigen Daten (Trades, Journal, Notizen) permanent.
+            </div>
+          </div>
+
+          <!-- Reset dashboard -->
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;" data-i18n="settings_reset_label">
+              Dashboard zurücksetzen
+            </div>
+            <button
+              id="settings-reset-btn"
+              class="secondary-btn"
+              style="width: 100%; padding: 8px; border-color: #ef4444; color: #ef4444; display: flex; align-items: center; justify-content: center; gap: 6px;"
+            >
+              <i class="ph ph-warning"></i>
+              <span class="sidebar-btn-text" data-i18n="reset_btn">Reset</span>
+            </button>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;" data-i18n="settings_reset_hint">
+              Löscht alle Trades des aktuell aktiven Accounts im Dashboard (dein MT5 bleibt unangetastet). Der EA synchronisiert innerhalb von 60s neu.
+            </div>
           </div>
         </div>
       </div>

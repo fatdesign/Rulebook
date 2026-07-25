@@ -11,6 +11,12 @@ const i18n = {
     disconnect_btn: "Trennen",
     refresh_btn: "↻ Aktualisieren",
     reset_btn: "Reset",
+    settings_title: "Einstellungen",
+    settings_delete_account_label: "Account löschen",
+    delete_account_btn: "Löschen",
+    settings_delete_account_hint: "Löscht diesen Account und alle zugehörigen Daten (Trades, Journal, Notizen) permanent.",
+    settings_reset_label: "Dashboard zurücksetzen",
+    settings_reset_hint: "Löscht alle Trades des aktuell aktiven Accounts im Dashboard (dein MT5 bleibt unangetastet). Der EA synchronisiert innerhalb von 60s neu.",
     filter_today: "Heute",
     filter_yesterday: "Gestern",
     filter_week: "Diese Woche",
@@ -315,6 +321,12 @@ const i18n = {
     disconnect_btn: "Disconnect",
     refresh_btn: "↻ Refresh",
     reset_btn: "Reset",
+    settings_title: "Settings",
+    settings_delete_account_label: "Delete account",
+    delete_account_btn: "Delete",
+    settings_delete_account_hint: "Permanently deletes this account and all its data (trades, journal, notes).",
+    settings_reset_label: "Reset dashboard",
+    settings_reset_hint: "Deletes all trades for the currently active account in the dashboard (your MT5 stays untouched). The EA will resync within 60s.",
     filter_today: "Today",
     filter_yesterday: "Yesterday",
     filter_week: "This Week",
@@ -619,6 +631,12 @@ const i18n = {
     disconnect_btn: "Desconectar",
     refresh_btn: "↻ Actualizar",
     reset_btn: "Reset",
+    settings_title: "Configuración",
+    settings_delete_account_label: "Eliminar cuenta",
+    delete_account_btn: "Eliminar",
+    settings_delete_account_hint: "Elimina permanentemente esta cuenta y todos sus datos (operaciones, diario, notas).",
+    settings_reset_label: "Restablecer dashboard",
+    settings_reset_hint: "Elimina todas las operaciones de la cuenta activa en el dashboard (tu MT5 no se modifica). El EA se resincronizará en 60s.",
     filter_today: "Hoy",
     filter_yesterday: "Ayer",
     filter_week: "Esta Semana",
@@ -922,6 +940,12 @@ const i18n = {
     disconnect_btn: "Çıkış Yap",
     refresh_btn: "↻ Yenile",
     reset_btn: "Sıfırla",
+    settings_title: "Ayarlar",
+    settings_delete_account_label: "Hesabı sil",
+    delete_account_btn: "Sil",
+    settings_delete_account_hint: "Bu hesabı ve tüm ilişkili verileri (işlemler, günlük, notlar) kalıcı olarak siler.",
+    settings_reset_label: "Dashboard'u sıfırla",
+    settings_reset_hint: "Dashboard'daki mevcut aktif hesabın tüm işlemlerini siler (MT5'in etkilenmez). EA 60s içinde yeniden senkronize olur.",
     filter_today: "Bugün",
     filter_yesterday: "Dün",
     filter_week: "Bu Hafta",
@@ -1368,8 +1392,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const dashboard = document.getElementById("dashboard");
   const connectBtn = document.getElementById("connect-btn");
   const logoutBtn = document.getElementById("logout-btn");
-  const resetBtn = document.getElementById("reset-btn");
-  const deleteAccountBtn = document.getElementById("delete-account-btn");
+  const resetBtn = document.getElementById("settings-reset-btn");
+  const deleteAccountBtn = document.getElementById("settings-delete-account-btn");
   const accountSwitcher = document.getElementById("account-switcher");
   const addAccountBtn = document.getElementById("add-account-btn");
   const usernameInput = document.getElementById("username");
@@ -1822,16 +1846,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (deleteAccountBtn) {
     deleteAccountBtn.addEventListener("click", async () => {
-      const key = localStorage.getItem("tm_license_key");
+      const deleteSelect = document.getElementById(
+        "settings-delete-account-select",
+      );
+      const key = deleteSelect ? deleteSelect.value : null;
       if (!key) return;
+      const accountLabel = deleteSelect.options[deleteSelect.selectedIndex]
+        ? deleteSelect.options[deleteSelect.selectedIndex].text
+        : key;
 
       const lang = globalLang ? globalLang.value : "de";
       const msg =
         lang === "de"
-          ? "Bist du sicher? Dieser Trading Account und ALLE zugehörigen Daten (Trades, Journal, Notizen) werden permanent gelöscht! Der Account verschwindet aus der Liste."
-          : "Are you sure? This trading account and ALL associated data (trades, journal, notes) will be permanently deleted! The account will be removed from the list.";
+          ? `Bist du sicher? Der Account "${accountLabel}" und ALLE zugehörigen Daten (Trades, Journal, Notizen) werden permanent gelöscht! Der Account verschwindet aus der Liste.`
+          : `Are you sure? The account "${accountLabel}" and ALL associated data (trades, journal, notes) will be permanently deleted! The account will be removed from the list.`;
 
       if (confirm(msg)) {
+        const origText = deleteAccountBtn.innerText;
         deleteAccountBtn.innerText = "⏳";
         try {
           const response = await fetch(
@@ -1849,7 +1880,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? "Account erfolgreich gelöscht."
                 : "Account successfully deleted.",
             );
-            localStorage.removeItem("tm_license_key"); // Clear current key so it picks the next one
+            // Only clear the active session key if we just deleted the
+            // account that was currently loaded - deleting a *different*
+            // account shouldn't kick the user out of the one they're on.
+            if (localStorage.getItem("tm_license_key") === key) {
+              localStorage.removeItem("tm_license_key");
+            }
             window.location.reload();
           } else {
             alert("Error deleting account.");
@@ -1857,9 +1893,37 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
           alert(err.message);
         } finally {
-          deleteAccountBtn.innerText = "🗑️";
+          deleteAccountBtn.innerText = origText;
         }
       }
+    });
+  }
+
+  // ── Settings modal ─────────────────────────────────────────────
+  const settingsModal = document.getElementById("settings-modal");
+  const openSettingsBtn = document.getElementById("open-settings-btn");
+  const settingsModalClose = document.getElementById("settings-modal-close");
+
+  if (openSettingsBtn && settingsModal) {
+    openSettingsBtn.addEventListener("click", () => {
+      const deleteSelect = document.getElementById(
+        "settings-delete-account-select",
+      );
+      if (deleteSelect && accountSwitcher) {
+        deleteSelect.innerHTML = accountSwitcher.innerHTML;
+        if (accountSwitcher.value) deleteSelect.value = accountSwitcher.value;
+      }
+      settingsModal.classList.remove("hidden");
+    });
+  }
+  if (settingsModalClose && settingsModal) {
+    settingsModalClose.addEventListener("click", () => {
+      settingsModal.classList.add("hidden");
+    });
+  }
+  if (settingsModal) {
+    settingsModal.addEventListener("click", (e) => {
+      if (e.target === settingsModal) settingsModal.classList.add("hidden");
     });
   }
 
