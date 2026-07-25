@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Rulebook — Admin</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <style>
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      min-height: 100vh;
+    }
+    .admin-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 30px 20px 60px;
+    }
+    .admin-login-wrap {
+      max-width: 360px;
+      margin: 12vh auto 0;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .admin-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .admin-stat-card {
+      padding: 16px;
+    }
+    .admin-stat-card h4 {
+      margin: 0 0 6px 0;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .admin-stat-card .val {
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+    .admin-stat-card .sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    #admin-users-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    #admin-users-table th {
+      text-align: left;
+      padding: 8px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    #admin-users-table td {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-dark);
+    }
+    .admin-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 10px;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div id="admin-login-screen" class="admin-login-wrap glass-panel">
+    <h2 style="margin-bottom: 4px;"><i class="ph ph-shield-check"></i> Admin</h2>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 18px;">Rulebook Admin Dashboard</p>
+    <input
+      type="password"
+      id="admin-password-input"
+      class="profile-select"
+      placeholder="Admin-Passwort"
+      style="width: 100%; padding: 10px; margin-bottom: 10px;"
+    />
+    <button id="admin-login-btn" class="primary-btn" style="width: 100%; padding: 10px;">
+      Einloggen
+    </button>
+    <div id="admin-login-error" class="admin-error"></div>
+  </div>
+
+  <div id="admin-dashboard" class="admin-wrap hidden">
+    <div class="admin-header">
+      <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+        <i class="ph ph-shield-check"></i> Rulebook Admin
+      </h2>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="admin-refresh-btn" class="secondary-btn" style="padding: 6px 14px;">
+          <i class="ph ph-arrows-clockwise"></i> Aktualisieren
+        </button>
+        <button id="admin-logout-btn" class="secondary-btn" style="padding: 6px 14px;">
+          <i class="ph ph-sign-out"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <div id="admin-stats-grid" class="admin-stats-grid">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="glass-panel" style="padding: 18px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <h3 style="margin: 0;">Nutzer</h3>
+        <input
+          type="text"
+          id="admin-user-search"
+          class="profile-select"
+          placeholder="Suche nach E-Mail oder Username..."
+          style="max-width: 280px; padding: 6px 10px;"
+        />
+      </div>
+      <div style="overflow-x: auto;">
+        <table id="admin-users-table">
+          <thead>
+            <tr>
+              <th>E-Mail</th>
+              <th>Username</th>
+              <th>Registriert</th>
+              <th>Konten</th>
+              <th>Letzte Aktivität</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-tbody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div id="admin-users-pagination" style="display: flex; justify-content: center; gap: 10px; margin-top: 14px;"></div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

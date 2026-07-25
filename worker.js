@@ -190,6 +190,11 @@ export default {
             "ALTER TABLE users ADD COLUMN username TEXT",
           ).run();
         } catch (e) {}
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE users ADD COLUMN created_at INTEGER",
+          ).run();
+        } catch (e) {}
         await env.DB.prepare(
           `
           CREATE TABLE IF NOT EXISTS user_accounts (
@@ -238,6 +243,236 @@ export default {
         return null;
       }
 
+      // --- Admin auth: separate from user auth entirely, gated by the
+      // ADMIN_PASSWORD secret (set in the Cloudflare dashboard, never
+      // committed to source). ---
+      function isAdminAuthed(request, env) {
+        if (!env.ADMIN_PASSWORD) return false;
+        const supplied = request.headers.get("Authorization") || "";
+        return supplied === env.ADMIN_PASSWORD;
+      }
+
+      if (request.method === "POST" && action === "admin_login") {
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response("Invalid JSON", {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+        if (!env.ADMIN_PASSWORD) {
+          return new Response(
+            JSON.stringify({ error: "ADMIN_PASSWORD not configured." }),
+            { status: 500, headers: corsHeaders },
+          );
+        }
+        if (body.password !== env.ADMIN_PASSWORD) {
+          return new Response(JSON.stringify({ success: false }), {
+            status: 401,
+            headers: corsHeaders,
+          });
+        }
+        return new Response(JSON.stringify({ success: true }), {
+          headers: corsHeaders,
+        });
+      }
+
+      if (request.method === "GET" && action === "admin_stats") {
+        if (!isAdminAuthed(request, env)) {
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+        }
+        await setupMasterTables(env);
+
+        const nowSec = Math.floor(Date.now() / 1000);
+        const day7 = nowSec - 7 * 24 * 60 * 60;
+        const day1 = nowSec - 24 * 60 * 60;
+        const day30 = nowSec - 30 * 24 * 60 * 60;
+
+        const totalUsers = await env.DB.prepare(
+          "SELECT COUNT(*) AS c FROM users",
+        ).first();
+        const totalAccounts = await env.DB.prepare(
+          "SELECT COUNT(DISTINCT license_key) AS c FROM user_accounts",
+        ).first();
+        const newUsers7d = await env.DB.prepare(
+          "SELECT COUNT(*) AS c FROM users WHERE created_at >= ?",
+        )
+          .bind(day7)
+          .first();
+        const newUsers30d = await env.DB.prepare(
+          "SELECT COUNT(*) AS c FROM users WHERE created_at >= ?",
+        )
+          .bind(day30)
+          .first();
+
+        let totalTrades = { c: 0 };
+        let trades24h = { c: 0 };
+        let trades7d = { c: 0 };
+        let activeAccounts7d = { c: 0 };
+        try {
+          totalTrades = await env.DB.prepare(
+            "SELECT COUNT(*) AS c FROM trades",
+          ).first();
+          trades24h = await env.DB.prepare(
+            "SELECT COUNT(*) AS c FROM trades WHERE close_time >= ?",
+          )
+            .bind(day1)
+            .first();
+          trades7d = await env.DB.prepare(
+            "SELECT COUNT(*) AS c FROM trades WHERE close_time >= ?",
+          )
+            .bind(day7)
+            .first();
+          activeAccounts7d = await env.DB.prepare(
+            "SELECT COUNT(DISTINCT license_key) AS c FROM trades WHERE close_time >= ?",
+          )
+            .bind(day7)
+            .first();
+        } catch (e) {}
+
+        let communityPostsTotal = { c: 0 };
+        let communityPosts7d = { c: 0 };
+        try {
+          communityPostsTotal = await env.DB.prepare(
+            "SELECT COUNT(*) AS c FROM community_posts",
+          ).first();
+          communityPosts7d = await env.DB.prepare(
+            "SELECT COUNT(*) AS c FROM community_posts WHERE created_at >= ?",
+          )
+            .bind(day7)
+            .first();
+        } catch (e) {}
+
+        let killSwitchActive = { c: 0 };
+        try {
+          killSwitchActive = await env.DB.prepare(
+            "SELECT COUNT(*) AS c FROM user_settings WHERE kill_switch_active = 1",
+          ).first();
+        } catch (e) {}
+
+        let aiCoachTotal = { c: 0 };
+        try {
+          aiCoachTotal = await env.DB.prepare(
+            "SELECT COALESCE(SUM(analyses_count), 0) AS c FROM ai_limits",
+          ).first();
+        } catch (e) {}
+
+        let weeklyReportsTotal = { c: 0 };
+        try {
+          weeklyReportsTotal = await env.DB.prepare(
+            "SELECT COUNT(*) AS c FROM weekly_reports",
+          ).first();
+        } catch (e) {}
+
+        return new Response(
+          JSON.stringify({
+            total_users: totalUsers.c,
+            total_accounts: totalAccounts.c,
+            new_users_7d: newUsers7d.c,
+            new_users_30d: newUsers30d.c,
+            total_trades: totalTrades.c,
+            trades_24h: trades24h.c,
+            trades_7d: trades7d.c,
+            active_accounts_7d: activeAccounts7d.c,
+            community_posts_total: communityPostsTotal.c,
+            community_posts_7d: communityPosts7d.c,
+            kill_switch_active_accounts: killSwitchActive.c,
+            ai_coach_analyses_total: aiCoachTotal.c,
+            weekly_reports_total: weeklyReportsTotal.c,
+          }),
+          { headers: corsHeaders },
+        );
+      }
+
+      if (request.method === "GET" && action === "admin_users") {
+        if (!isAdminAuthed(request, env)) {
+          return new Response("Unauthorized", {
+            status: 401,
+            headers: corsHeaders,
+          });
+        }
+        await setupMasterTables(env);
+
+        const q = (url.searchParams.get("q") || "").trim();
+        const limit = Math.min(
+          parseInt(url.searchParams.get("limit")) || 50,
+          200,
+        );
+        const offset = parseInt(url.searchParams.get("offset")) || 0;
+
+        let whereClause = "";
+        let params = [];
+        if (q) {
+          whereClause = "WHERE u.email LIKE ? OR u.username LIKE ?";
+          params = [`%${q}%`, `%${q}%`];
+        }
+
+        const usersRes = await env.DB.prepare(
+          `SELECT u.id, u.email, u.username, u.created_at
+           FROM users u
+           ${whereClause}
+           ORDER BY u.created_at DESC
+           LIMIT ? OFFSET ?`,
+        )
+          .bind(...params, limit, offset)
+          .all();
+        const users = usersRes.results || [];
+
+        if (users.length > 0) {
+          const ids = users.map((u) => u.id);
+          const placeholders = ids.map(() => "?").join(",");
+
+          const accCountsRes = await env.DB.prepare(
+            `SELECT user_id, COUNT(*) AS c FROM user_accounts WHERE user_id IN (${placeholders}) GROUP BY user_id`,
+          )
+            .bind(...ids)
+            .all();
+          const accCountMap = {};
+          (accCountsRes.results || []).forEach((r) => {
+            accCountMap[r.user_id] = r.c;
+          });
+
+          let lastTradeMap = {};
+          try {
+            // license_key is "${user_id}:${account_id}" - match by prefix.
+            const likeClauses = ids.map(() => "license_key LIKE ?").join(" OR ");
+            const likeParams = ids.map((id) => `${id}:%`);
+            const lastTradeRes = await env.DB.prepare(
+              `SELECT license_key, MAX(close_time) AS last_close FROM trades WHERE ${likeClauses} GROUP BY license_key`,
+            )
+              .bind(...likeParams)
+              .all();
+            (lastTradeRes.results || []).forEach((r) => {
+              const uid = (r.license_key || "").split(":")[0];
+              if (!lastTradeMap[uid] || r.last_close > lastTradeMap[uid]) {
+                lastTradeMap[uid] = r.last_close;
+              }
+            });
+          } catch (e) {}
+
+          users.forEach((u) => {
+            u.linked_accounts = accCountMap[u.id] || 0;
+            u.last_trade_at = lastTradeMap[u.id] || null;
+          });
+        }
+
+        const totalRes = await env.DB.prepare(
+          `SELECT COUNT(*) AS c FROM users u ${whereClause}`,
+        )
+          .bind(...params)
+          .first();
+
+        return new Response(
+          JSON.stringify({ users, total: totalRes.c, limit, offset }),
+          { headers: corsHeaders },
+        );
+      }
+
       // --- MASTER ACCOUNT ROUTES ---
       if (request.method === "POST" && action === "register") {
         await setupMasterTables(env);
@@ -265,9 +500,9 @@ export default {
         const username = generateRandomUsername();
 
         await env.DB.prepare(
-          "INSERT INTO users (id, email, password_hash, token, username) VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO users (id, email, password_hash, token, username, created_at) VALUES (?, ?, ?, ?, ?, ?)",
         )
-          .bind(id, body.email, hash, token, username)
+          .bind(id, body.email, hash, token, username, Math.floor(Date.now() / 1000))
           .run();
 
         return new Response(
@@ -2655,7 +2890,16 @@ WICHTIGE REGELN:
       }
 
       // --- FETCH DATA ROUTES (GET) ---
-      if (request.method === "GET") {
+      // Only gate this behind auth for real API calls: either a known
+      // `action`, or the frontend's bare "fetch trades" call (no action,
+      // but always hits pathname /api). A plain GET for "/", "/index.html",
+      // "/style.css" etc. has neither, and must fall through to the ASSETS
+      // fallback at the bottom of this function instead of 401ing before
+      // the page can even load.
+      if (
+        request.method === "GET" &&
+        (action || url.pathname === "/api")
+      ) {
         const user_id = await authenticateUser(request, env);
         if (!user_id)
           return new Response("Unauthorized", {
