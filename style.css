@@ -2421,7 +2421,8 @@ th {
 .checklist-grade-popover {
   position: absolute;
   z-index: 200;
-  background: var(--bg-panel, #12161c);
+  background: var(--panel-bg);
+  color: var(--text-main);
   border: 1px solid var(--border-dark);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
