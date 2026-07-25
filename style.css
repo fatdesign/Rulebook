@@ -2452,6 +2452,15 @@ th {
   text-decoration: underline;
 }
 
+.mention-link {
+  color: #f59e0b;
+  cursor: pointer;
+  font-weight: 600;
+}
+.mention-link:hover {
+  text-decoration: underline;
+}
+
 .hashtag-filter-bar {
   display: flex;
   align-items: center;

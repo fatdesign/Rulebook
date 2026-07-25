@@ -139,6 +139,40 @@ export default {
           .run();
       }
 
+      // Finds @username mentions in a post/comment and notifies each
+      // mentioned user (case-insensitive; self-mentions are skipped inside
+      // createNotification).
+      async function notifyMentions(env, { content, actor_user_id, post_id }) {
+        if (!content) return;
+        const handles = [
+          ...new Set(
+            (content.match(/@([a-zA-Z0-9_]+)/g) || []).map((m) =>
+              m.slice(1).toLowerCase(),
+            ),
+          ),
+        ];
+        if (handles.length === 0) return;
+
+        const placeholders = handles.map(() => "?").join(",");
+        const { results } = await env.DB.prepare(
+          `SELECT id FROM users WHERE LOWER(username) IN (${placeholders})`,
+        )
+          .bind(...handles)
+          .all();
+
+        for (const u of results || []) {
+          try {
+            await createNotification(env, {
+              recipient_user_id: u.id,
+              actor_user_id,
+              type: "mention",
+              post_id,
+              extra: content.slice(0, 80),
+            });
+          } catch (e) {}
+        }
+      }
+
       async function setupMasterTables(env) {
         await env.DB.prepare(
           `
@@ -494,6 +528,14 @@ export default {
               created_at,
             )
             .run();
+
+          try {
+            await notifyMentions(env, {
+              content: body.content || "",
+              actor_user_id: user_id,
+              post_id,
+            });
+          } catch (e) {}
 
           return new Response(JSON.stringify({ success: true, post_id }), {
             headers: corsHeaders,
@@ -1435,6 +1477,14 @@ export default {
                 extra: String(body.content).slice(0, 80),
               });
             }
+          } catch (e) {}
+
+          try {
+            await notifyMentions(env, {
+              content: body.content || "",
+              actor_user_id: user_id,
+              post_id: body.post_id,
+            });
           } catch (e) {}
 
           return new Response(

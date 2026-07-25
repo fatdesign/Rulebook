@@ -169,6 +169,7 @@ const i18n = {
     reaction_flex: "Respekt",
     notifications_empty: "Noch keine Benachrichtigungen.",
     notif_comment: '<strong>{user}</strong> hat kommentiert: "{text}"',
+    notif_mention: '<strong>{user}</strong> hat dich erwähnt: "{text}"',
     notif_reaction: "<strong>{user}</strong> hat auf deinen Post reagiert",
     notif_follow: "<strong>{user}</strong> folgt dir jetzt",
     community_for_you: "Für dich",
@@ -472,6 +473,7 @@ const i18n = {
     reaction_flex: "Respect",
     notifications_empty: "No notifications yet.",
     notif_comment: '<strong>{user}</strong> commented: "{text}"',
+    notif_mention: '<strong>{user}</strong> mentioned you: "{text}"',
     notif_reaction: "<strong>{user}</strong> reacted to your post",
     notif_follow: "<strong>{user}</strong> started following you",
     community_for_you: "For You",
@@ -805,6 +807,7 @@ const i18n = {
     reaction_flex: "Respeto",
     notifications_empty: "Aún no hay notificaciones.",
     notif_comment: '<strong>{user}</strong> comentó: "{text}"',
+    notif_mention: '<strong>{user}</strong> te mencionó: "{text}"',
     notif_reaction: "<strong>{user}</strong> reaccionó a tu publicación",
     notif_follow: "<strong>{user}</strong> ahora te sigue",
     community_for_you: "Para ti",
@@ -1109,6 +1112,7 @@ const i18n = {
     reaction_flex: "Saygı",
     notifications_empty: "Henüz bildirim yok.",
     notif_comment: '<strong>{user}</strong> yorum yaptı: "{text}"',
+    notif_mention: '<strong>{user}</strong> senden bahsetti: "{text}"',
     notif_reaction: "<strong>{user}</strong> gönderine tepki verdi",
     notif_follow: "<strong>{user}</strong> seni takip etmeye başladı",
     community_for_you: "Senin İçin",
@@ -6027,17 +6031,24 @@ document.addEventListener("DOMContentLoaded", () => {
     notificationDropdown.innerHTML = notifications
       .map((n) => {
         const icon =
-          n.type === "comment"
-            ? "💬"
-            : n.type === "follow"
-              ? "👤"
-              : n.extra === "fire"
-                ? "🔥"
-                : n.extra === "flex"
-                  ? "💪"
-                  : "❤️";
+          n.type === "mention"
+            ? "📣"
+            : n.type === "comment"
+              ? "💬"
+              : n.type === "follow"
+                ? "👤"
+                : n.extra === "fire"
+                  ? "🔥"
+                  : n.extra === "flex"
+                    ? "💪"
+                    : "❤️";
         let text;
-        if (n.type === "comment") {
+        if (n.type === "mention") {
+          const tmpl = dict.notif_mention || '<strong>{user}</strong> mentioned you: "{text}"';
+          text = tmpl
+            .replace("{user}", n.actor_username)
+            .replace("{text}", escapeHTML(n.extra || ""));
+        } else if (n.type === "comment") {
           const tmpl = dict.notif_comment || '<strong>{user}</strong> commented: "{text}"';
           text = tmpl
             .replace("{user}", n.actor_username)
@@ -6241,10 +6252,15 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCommunityFeed(toShow);
   }
 
+  // Handles both #hashtags and @mentions in one pass (name kept for the
+  // one pre-existing call site; it now does more than just hashtags).
   function linkifyHashtags(text) {
     const escaped = escapeHTML(text || "");
-    return escaped.replace(/(^|\s)(#[\w]+)/g, (match, prefix, tag) => {
-      return `${prefix}<span class="hashtag-link" data-tag="${tag.slice(1)}">${tag}</span>`;
+    return escaped.replace(/(^|\s)([#@][\w]+)/g, (match, prefix, token) => {
+      if (token[0] === "#") {
+        return `${prefix}<span class="hashtag-link" data-tag="${token.slice(1)}">${token}</span>`;
+      }
+      return `${prefix}<span class="mention-link" data-username="${token.slice(1)}">${token}</span>`;
     });
   }
 
@@ -6344,8 +6360,8 @@ document.addEventListener("DOMContentLoaded", () => {
                .map(
                  (c) => `
                  <div style="margin-bottom: 8px; font-size: 0.85rem;">
-                     <span style="font-weight: bold; color: var(--primary-color);">${c.username}:</span> 
-                     <span style="color: var(--text-main);">${escapeHTML(c.content)}</span>
+                     <span style="font-weight: bold; color: var(--primary-color);">${c.username}:</span>
+                     <span style="color: var(--text-main);">${linkifyHashtags(c.content)}</span>
                  </div>
              `,
                )
