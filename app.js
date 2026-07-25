@@ -7683,13 +7683,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ── @mention autocomplete (Community composer + comment inputs) ──
-// Uses document-level event delegation so it works on #composer-textarea
-// (static) and .comment-input elements (re-created on every feed render)
-// without needing to be re-wired after each render.
+// ── @mention + #hashtag autocomplete ──────────────────────────────
+// @mentions: Community composer + comment inputs, backed by a server
+// search (usernames aren't loaded client-side).
+// #hashtags: Trades-page note inputs, backed by the hashtags already
+// sitting in window.tradeNotesMap - no server round-trip needed, and it
+// doubles as typo/casing-drift prevention (e.g. "#FOMO" vs "#fomo" vs
+// "#Fomo" all collapse to one suggested canonical spelling: whichever
+// casing was actually used most often).
+// Both use document-level event delegation so they work on static
+// elements (#composer-textarea) and ones re-created on every render
+// (.comment-input, .trade-note-input) without re-wiring after each render.
 (function () {
   let dropdownEl = null;
   let activeInput = null;
+  let activeMode = null; // "mention" | "hashtag"
   let searchDebounce = null;
   let searchSeq = 0;
 
@@ -7699,33 +7707,36 @@ document.addEventListener("DOMContentLoaded", () => {
       dropdownEl = null;
     }
     activeInput = null;
+    activeMode = null;
   }
 
-  function getMentionQuery(inputEl) {
+  function getPartialToken(inputEl, symbol, charClass) {
     const cursor = inputEl.selectionStart;
     const beforeCursor = inputEl.value.slice(0, cursor);
-    const match = beforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_]{0,20})$/);
+    const re = new RegExp(`(?:^|\\s)\\${symbol}(${charClass}{0,30})$`);
+    const match = beforeCursor.match(re);
     return match ? match[1] : null;
   }
 
-  function insertMention(inputEl, username) {
+  function insertToken(inputEl, symbol, value_, charClass) {
     const cursor = inputEl.selectionStart;
     const value = inputEl.value;
     const beforeCursor = value.slice(0, cursor);
     const afterCursor = value.slice(cursor);
-    const match = beforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_]{0,20})$/);
+    const re = new RegExp(`(?:^|\\s)\\${symbol}(${charClass}{0,30})$`);
+    const match = beforeCursor.match(re);
     if (!match) return;
-    const atIdx = beforeCursor.lastIndexOf("@" + match[1]);
-    const newValue = `${value.slice(0, atIdx)}@${username} ${afterCursor}`;
+    const tokenIdx = beforeCursor.lastIndexOf(symbol + match[1]);
+    const newValue = `${value.slice(0, tokenIdx)}${symbol}${value_} ${afterCursor}`;
     inputEl.value = newValue;
-    const newCursor = atIdx + username.length + 2;
+    const newCursor = tokenIdx + value_.length + 2;
     inputEl.focus();
     inputEl.setSelectionRange(newCursor, newCursor);
     closeDropdown();
   }
 
-  function showDropdown(inputEl, usernames) {
-    if (!usernames || usernames.length === 0) {
+  function showDropdown(inputEl, items, symbol) {
+    if (!items || items.length === 0) {
       closeDropdown();
       return;
     }
@@ -7734,10 +7745,10 @@ document.addEventListener("DOMContentLoaded", () => {
       dropdownEl.className = "mention-autocomplete";
       document.body.appendChild(dropdownEl);
     }
-    dropdownEl.innerHTML = usernames
+    dropdownEl.innerHTML = items
       .map(
         (u) =>
-          `<div class="mention-autocomplete-item" data-username="${u}"><span class="mention-autocomplete-at">@</span>${u}</div>`,
+          `<div class="mention-autocomplete-item" data-value="${u}"><span class="mention-autocomplete-at">${symbol}</span>${u}</div>`,
       )
       .join("");
     const rect = inputEl.getBoundingClientRect();
@@ -7746,45 +7757,92 @@ document.addEventListener("DOMContentLoaded", () => {
     dropdownEl.style.minWidth = `${Math.min(Math.max(rect.width, 160), 240)}px`;
     dropdownEl.querySelectorAll(".mention-autocomplete-item").forEach((item) => {
       // mousedown (not click) fires before the input's blur, so the
-      // selection/cursor position is still valid when we insert the mention.
+      // selection/cursor position is still valid when we insert.
       item.addEventListener("mousedown", (e) => {
         e.preventDefault();
-        insertMention(inputEl, item.getAttribute("data-username"));
+        const charClass =
+          symbol === "@" ? "[a-zA-Z0-9_]" : "[a-zA-Z0-9_\\u00C0-\\u00FF]";
+        insertToken(inputEl, symbol, item.getAttribute("data-value"), charClass);
       });
+    });
+  }
+
+  // Scans every trade note for #hashtags and returns the known tags sorted
+  // by how often they're used, each shown in whichever casing was most
+  // common for it - clicking a suggestion converges everyone back onto
+  // one canonical spelling instead of letting variants pile up.
+  function getKnownHashtags() {
+    const notesMap = window.tradeNotesMap || {};
+    const countsByLower = {}; // lower -> { "OriginalCasing": count, ... }
+    Object.values(notesMap).forEach((note) => {
+      if (!note) return;
+      const found = note.match(/#[a-zA-Z0-9_À-ÿ]+/g);
+      if (!found) return;
+      found.forEach((raw) => {
+        const tag = raw.slice(1);
+        const lower = tag.toLowerCase();
+        if (!countsByLower[lower]) countsByLower[lower] = {};
+        countsByLower[lower][tag] = (countsByLower[lower][tag] || 0) + 1;
+      });
+    });
+    return Object.values(countsByLower).map((variants) => {
+      const [bestCasing] = Object.entries(variants).sort((a, b) => b[1] - a[1])[0];
+      const totalCount = Object.values(variants).reduce((a, b) => a + b, 0);
+      return { tag: bestCasing, count: totalCount };
     });
   }
 
   function handleInput(e) {
     const inputEl = e.target;
-    if (!inputEl.matches || !inputEl.matches("#composer-textarea, .comment-input"))
-      return;
+    if (!inputEl.matches) return;
 
-    const query = getMentionQuery(inputEl);
-    clearTimeout(searchDebounce);
-
-    if (query === null) {
-      closeDropdown();
+    if (inputEl.matches("#composer-textarea, .comment-input")) {
+      const query = getPartialToken(inputEl, "@", "[a-zA-Z0-9_]");
+      clearTimeout(searchDebounce);
+      if (query === null) {
+        closeDropdown();
+        return;
+      }
+      activeInput = inputEl;
+      activeMode = "mention";
+      const mySeq = ++searchSeq;
+      searchDebounce = setTimeout(() => {
+        const token = localStorage.getItem("tm_master_token");
+        if (!token) return;
+        fetch(
+          `${API_URL}?action=community_users_search&q=${encodeURIComponent(query)}`,
+          { headers: { Authorization: token } },
+        )
+          .then((r) => (r.ok ? r.json() : []))
+          .then((usernames) => {
+            // Ignore stale responses from an earlier keystroke, and don't
+            // reopen the dropdown if the user already moved on.
+            if (mySeq !== searchSeq || activeInput !== inputEl) return;
+            showDropdown(inputEl, Array.isArray(usernames) ? usernames : [], "@");
+          })
+          .catch(() => closeDropdown());
+      }, 150);
       return;
     }
 
-    activeInput = inputEl;
-    const mySeq = ++searchSeq;
-    searchDebounce = setTimeout(() => {
-      const token = localStorage.getItem("tm_master_token");
-      if (!token) return;
-      fetch(
-        `${API_URL}?action=community_users_search&q=${encodeURIComponent(query)}`,
-        { headers: { Authorization: token } },
-      )
-        .then((r) => (r.ok ? r.json() : []))
-        .then((usernames) => {
-          // Ignore stale responses from an earlier keystroke, and don't
-          // reopen the dropdown if the user already moved on.
-          if (mySeq !== searchSeq || activeInput !== inputEl) return;
-          showDropdown(inputEl, Array.isArray(usernames) ? usernames : []);
-        })
-        .catch(() => closeDropdown());
-    }, 150);
+    if (inputEl.matches(".trade-note-input")) {
+      const query = getPartialToken(inputEl, "#", "[a-zA-Z0-9_\\u00C0-\\u00FF]");
+      clearTimeout(searchDebounce);
+      if (query === null || query.length === 0) {
+        closeDropdown();
+        return;
+      }
+      activeInput = inputEl;
+      activeMode = "hashtag";
+      const lowerQuery = query.toLowerCase();
+      const matches = getKnownHashtags()
+        .filter((h) => h.tag.toLowerCase().startsWith(lowerQuery))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8)
+        .map((h) => h.tag);
+      showDropdown(inputEl, matches, "#");
+      return;
+    }
   }
 
   document.addEventListener("input", handleInput);
