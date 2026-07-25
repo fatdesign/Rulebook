@@ -5557,6 +5557,16 @@ function updateMarketSessions() {
 
   const localTotalMins = hrs * 60 + mins;
 
+  // Forex is closed globally from Friday 22:00 UTC to Sunday 22:00 UTC,
+  // regardless of what the local clock says any individual session's hours
+  // would otherwise be - the weekly close/open is a fixed UTC instant.
+  const utcDay = now.getUTCDay(); // 0 = Sunday, 5 = Friday, 6 = Saturday
+  const utcHour = now.getUTCHours();
+  const isWeekendClosed =
+    utcDay === 6 ||
+    (utcDay === 5 && utcHour >= 22) ||
+    (utcDay === 0 && utcHour < 22);
+
   const sessions = [
     { name: "Sydney", start: 23 * 60, end: 8 * 60, icon: "🌏", timeStr: "23:00 - 08:00" },
     { name: "Tokyo", start: 2 * 60, end: 11 * 60, icon: "🗾", timeStr: "02:00 - 11:00" },
@@ -5567,14 +5577,20 @@ function updateMarketSessions() {
   let html = "";
   sessions.forEach((s) => {
     let isOpen = false;
-    if (s.start > s.end) {
-      isOpen = localTotalMins >= s.start || localTotalMins < s.end;
-    } else {
-      isOpen = localTotalMins >= s.start && localTotalMins < s.end;
+    if (!isWeekendClosed) {
+      if (s.start > s.end) {
+        isOpen = localTotalMins >= s.start || localTotalMins < s.end;
+      } else {
+        isOpen = localTotalMins >= s.start && localTotalMins < s.end;
+      }
     }
 
     const badgeClass = isOpen ? "open" : "closed";
-    const badgeText = isOpen ? "OPEN" : "CLOSED";
+    const badgeText = isOpen
+      ? "OPEN"
+      : isWeekendClosed
+        ? "WEEKEND"
+        : "CLOSED";
 
     html += `
       <div class="market-session-card ${badgeClass}">
