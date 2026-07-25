@@ -7602,3 +7602,125 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// ── @mention autocomplete (Community composer + comment inputs) ──
+// Uses document-level event delegation so it works on #composer-textarea
+// (static) and .comment-input elements (re-created on every feed render)
+// without needing to be re-wired after each render.
+(function () {
+  let dropdownEl = null;
+  let activeInput = null;
+  let searchDebounce = null;
+  let searchSeq = 0;
+
+  function closeDropdown() {
+    if (dropdownEl) {
+      dropdownEl.remove();
+      dropdownEl = null;
+    }
+    activeInput = null;
+  }
+
+  function getMentionQuery(inputEl) {
+    const cursor = inputEl.selectionStart;
+    const beforeCursor = inputEl.value.slice(0, cursor);
+    const match = beforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_]{0,20})$/);
+    return match ? match[1] : null;
+  }
+
+  function insertMention(inputEl, username) {
+    const cursor = inputEl.selectionStart;
+    const value = inputEl.value;
+    const beforeCursor = value.slice(0, cursor);
+    const afterCursor = value.slice(cursor);
+    const match = beforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_]{0,20})$/);
+    if (!match) return;
+    const atIdx = beforeCursor.lastIndexOf("@" + match[1]);
+    const newValue = `${value.slice(0, atIdx)}@${username} ${afterCursor}`;
+    inputEl.value = newValue;
+    const newCursor = atIdx + username.length + 2;
+    inputEl.focus();
+    inputEl.setSelectionRange(newCursor, newCursor);
+    closeDropdown();
+  }
+
+  function showDropdown(inputEl, usernames) {
+    if (!usernames || usernames.length === 0) {
+      closeDropdown();
+      return;
+    }
+    if (!dropdownEl) {
+      dropdownEl = document.createElement("div");
+      dropdownEl.className = "mention-autocomplete";
+      document.body.appendChild(dropdownEl);
+    }
+    dropdownEl.innerHTML = usernames
+      .map(
+        (u) =>
+          `<div class="mention-autocomplete-item" data-username="${u}"><span class="mention-autocomplete-at">@</span>${u}</div>`,
+      )
+      .join("");
+    const rect = inputEl.getBoundingClientRect();
+    dropdownEl.style.top = `${window.scrollY + rect.bottom + 4}px`;
+    dropdownEl.style.left = `${window.scrollX + rect.left}px`;
+    dropdownEl.style.minWidth = `${Math.min(Math.max(rect.width, 160), 240)}px`;
+    dropdownEl.querySelectorAll(".mention-autocomplete-item").forEach((item) => {
+      // mousedown (not click) fires before the input's blur, so the
+      // selection/cursor position is still valid when we insert the mention.
+      item.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        insertMention(inputEl, item.getAttribute("data-username"));
+      });
+    });
+  }
+
+  function handleInput(e) {
+    const inputEl = e.target;
+    if (!inputEl.matches || !inputEl.matches("#composer-textarea, .comment-input"))
+      return;
+
+    const query = getMentionQuery(inputEl);
+    clearTimeout(searchDebounce);
+
+    if (query === null) {
+      closeDropdown();
+      return;
+    }
+
+    activeInput = inputEl;
+    const mySeq = ++searchSeq;
+    searchDebounce = setTimeout(() => {
+      const token = localStorage.getItem("tm_master_token");
+      if (!token) return;
+      fetch(
+        `${API_URL}?action=community_users_search&q=${encodeURIComponent(query)}`,
+        { headers: { Authorization: token } },
+      )
+        .then((r) => (r.ok ? r.json() : []))
+        .then((usernames) => {
+          // Ignore stale responses from an earlier keystroke, and don't
+          // reopen the dropdown if the user already moved on.
+          if (mySeq !== searchSeq || activeInput !== inputEl) return;
+          showDropdown(inputEl, Array.isArray(usernames) ? usernames : []);
+        })
+        .catch(() => closeDropdown());
+    }, 150);
+  }
+
+  document.addEventListener("input", handleInput);
+
+  document.addEventListener("keydown", (e) => {
+    if (!dropdownEl) return;
+    if (e.key === "Escape") closeDropdown();
+  });
+
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!dropdownEl) return;
+      if (e.target === activeInput || dropdownEl.contains(e.target)) return;
+      closeDropdown();
+    },
+    true,
+  );
+})();

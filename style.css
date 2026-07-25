@@ -2461,6 +2461,34 @@ th {
   text-decoration: underline;
 }
 
+.mention-autocomplete {
+  position: absolute;
+  z-index: 300;
+  background: var(--panel-bg, #12161c);
+  border: 1px solid var(--border-dark);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.mention-autocomplete-item {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  cursor: pointer;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.mention-autocomplete-item:hover {
+  background: var(--accent-glow);
+}
+.mention-autocomplete-at {
+  color: #f59e0b;
+  font-weight: 600;
+  margin-right: 1px;
+}
+
 .hashtag-filter-bar {
   display: flex;
   align-items: center;

@@ -2822,6 +2822,23 @@ WICHTIGE REGELN:
           );
         }
 
+        // @mention autocomplete: prefix search over registered usernames.
+        if (action === "community_users_search") {
+          const q = (url.searchParams.get("q") || "").trim();
+          if (!q) {
+            return new Response(JSON.stringify([]), { headers: corsHeaders });
+          }
+          const { results } = await env.DB.prepare(
+            "SELECT username FROM users WHERE username IS NOT NULL AND username LIKE ? ORDER BY username ASC LIMIT 8",
+          )
+            .bind(`${q}%`)
+            .all();
+          return new Response(
+            JSON.stringify((results || []).map((r) => r.username)),
+            { headers: corsHeaders },
+          );
+        }
+
         if (action === "notes") {
           await env.DB.prepare(
             `
