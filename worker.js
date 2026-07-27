@@ -2496,8 +2496,14 @@ WICHTIGE REGELN:
           ).run();
         } catch (e) {}
 
+        try {
+          await env.DB.prepare(
+            "ALTER TABLE trades ADD COLUMN comment TEXT DEFAULT ''",
+          ).run();
+        } catch (e) {}
+
         const stmt = env.DB.prepare(
-          "INSERT INTO trades (ticket, license_key, symbol, side, volume, net_profit, open_time, close_time, sl_widened) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ticket) DO UPDATE SET net_profit=excluded.net_profit, license_key=excluded.license_key, sl_widened=excluded.sl_widened",
+          "INSERT INTO trades (ticket, license_key, symbol, side, volume, net_profit, open_time, close_time, sl_widened, comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ticket) DO UPDATE SET net_profit=excluded.net_profit, license_key=excluded.license_key, sl_widened=excluded.sl_widened, comment=excluded.comment",
         );
         const batch = [];
         for (const t of body.trades) {
@@ -2512,12 +2518,67 @@ WICHTIGE REGELN:
               t.open_time,
               t.close_time,
               t.sl_widened || 0,
+              t.comment || "",
             ),
           );
         }
 
         if (batch.length > 0) {
           await env.DB.batch(batch);
+        }
+
+        // Auto-assign a strategy based on the trade's #hashtag comment,
+        // matched against this user's strategy definitions by normalized
+        // name (lowercased, non-alphanumeric stripped) - so "#M30Pullback"
+        // matches a strategy named "M30 Pullback" without any hardcoded
+        // mapping. ON CONFLICT DO NOTHING so a manual "+Assign" choice is
+        // never silently overwritten by a later resync.
+        const taggedTrades = body.trades.filter(
+          (t) => t.comment && String(t.comment).trim() !== "",
+        );
+        if (taggedTrades.length > 0) {
+          const { results: strategies } = await env.DB.prepare(
+            "SELECT id, name FROM strategy_definitions WHERE user_id = ?",
+          )
+            .bind(user_id)
+            .all();
+
+          if (strategies && strategies.length > 0) {
+            const normalize = (s) =>
+              (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+            const stratByNorm = {};
+            strategies.forEach((s) => {
+              stratByNorm[normalize(s.name)] = s.id;
+            });
+
+            await env.DB.prepare(
+              `
+              CREATE TABLE IF NOT EXISTS trade_strategies (
+                license_key TEXT, ticket TEXT, strategy_id TEXT, PRIMARY KEY (license_key, ticket)
+              )
+            `,
+            ).run();
+
+            const matchStmt = env.DB.prepare(
+              "INSERT INTO trade_strategies (license_key, ticket, strategy_id) VALUES (?, ?, ?) ON CONFLICT(license_key, ticket) DO NOTHING",
+            );
+            const matchBatch = [];
+            for (const t of taggedTrades) {
+              const tokens = String(t.comment).split(/\s+/).filter(Boolean);
+              let strategyId = null;
+              for (const tok of tokens) {
+                const norm = normalize(tok);
+                if (stratByNorm[norm]) {
+                  strategyId = stratByNorm[norm];
+                  break;
+                }
+              }
+              if (strategyId) {
+                matchBatch.push(matchStmt.bind(db_key, String(t.ticket), strategyId));
+              }
+            }
+            if (matchBatch.length > 0) await env.DB.batch(matchBatch);
+          }
         }
 
         return new Response(
