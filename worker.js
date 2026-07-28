@@ -2579,6 +2579,26 @@ WICHTIGE REGELN:
             }
             if (matchBatch.length > 0) await env.DB.batch(matchBatch);
           }
+
+          // Pre-fill the Tag/Note field from the MT5 comment too (e.g. an
+          // Autopilot EA stamping "#Autopilot #M30Pullback" on the position).
+          // ON CONFLICT DO NOTHING - this only fills the note in the first
+          // time it's ever synced; once a note row exists (even one the
+          // user cleared back to empty), a resync never overwrites it.
+          await env.DB.prepare(
+            `
+            CREATE TABLE IF NOT EXISTS trade_notes (
+              license_key TEXT, ticket TEXT, note TEXT, PRIMARY KEY (license_key, ticket)
+            )
+          `,
+          ).run();
+          const noteStmt = env.DB.prepare(
+            "INSERT INTO trade_notes (license_key, ticket, note) VALUES (?, ?, ?) ON CONFLICT(license_key, ticket) DO NOTHING",
+          );
+          const noteBatch = taggedTrades.map((t) =>
+            noteStmt.bind(db_key, String(t.ticket), String(t.comment).trim()),
+          );
+          if (noteBatch.length > 0) await env.DB.batch(noteBatch);
         }
 
         return new Response(
