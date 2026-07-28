@@ -2353,40 +2353,54 @@ document.addEventListener("DOMContentLoaded", () => {
       let startTime = 0;
       let endTime = 2000000000;
 
-      // MT5 timestamps represent Server Time as if it were UTC.
-      // Therefore, we must construct our boundaries using Date.UTC but with local year/month/date.
+      // Day boundaries use plain local Date objects, matching how every
+      // other day-grouping in the app (Calendar, Journal, Daily Stats,
+      // the specific-month branch right below) reads close_time: via
+      // `new Date(close_time * 1000)` and the browser's own local
+      // timezone. An earlier version of this block instead reinterpreted
+      // the viewer's local Y/M/D as a UTC instant (Date.UTC(...)), which
+      // silently disagreed with every other tab whenever the browser's
+      // timezone wasn't exactly UTC - a trade closing right around
+      // midnight local time could show up in the Calendar/Date-Range
+      // picker under one day, and be invisible from the Today/Yesterday
+      // quick filters because they were computing a different window.
       if (currentTimeframe === "today") {
         startTime = Math.floor(
-          Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000,
-        );
-      } else if (currentTimeframe === "yesterday") {
-        startTime = Math.floor(
-          Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() - 1) / 1000,
+          new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000,
         );
         endTime =
           Math.floor(
-            Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 1000,
+            new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() / 1000,
+          ) - 1;
+      } else if (currentTimeframe === "yesterday") {
+        startTime = Math.floor(
+          new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime() / 1000,
+        );
+        endTime =
+          Math.floor(
+            new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000,
           ) - 1;
       } else if (currentTimeframe === "week") {
         const day = now.getDay(); // 0=Sun .. 6=Sat
         const daysToMonday = day === 0 ? -6 : 1 - day;
         const mondayDate = now.getDate() + daysToMonday;
         const sundayDate = mondayDate + 6;
-        // Date.UTC handles overflow automatically (e.g. day=0 → last day of prev month)
+        // Date's constructor handles overflow automatically (e.g. a
+        // negative day rolls back into the previous month).
         startTime = Math.floor(
-          Date.UTC(now.getFullYear(), now.getMonth(), mondayDate) / 1000,
+          new Date(now.getFullYear(), now.getMonth(), mondayDate).getTime() / 1000,
         );
         endTime =
           Math.floor(
-            Date.UTC(now.getFullYear(), now.getMonth(), sundayDate + 1) / 1000,
+            new Date(now.getFullYear(), now.getMonth(), sundayDate + 1).getTime() / 1000,
           ) - 1;
       } else if (currentTimeframe === "month" || currentTimeframe === "current_month") {
         startTime = Math.floor(
-          Date.UTC(now.getFullYear(), now.getMonth(), 1) / 1000,
+          new Date(now.getFullYear(), now.getMonth(), 1).getTime() / 1000,
         );
         endTime =
           Math.floor(
-            Date.UTC(now.getFullYear(), now.getMonth() + 1, 1) / 1000,
+            new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime() / 1000,
           ) - 1;
       } else if (currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
         const [y, m] = currentTimeframe.split("-").map(Number);
