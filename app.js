@@ -1531,7 +1531,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Theme Toggle Logic
   const themeSelects = document.querySelectorAll(".theme-select");
-  const savedTheme = localStorage.getItem("tm_theme") || "neo-retro";
+  const savedTheme = localStorage.getItem("tm_theme") || "figma-ui";
   document.documentElement.setAttribute("data-theme", savedTheme);
 
   window.renderCalendarWidget = function () {
@@ -1541,8 +1541,8 @@ document.addEventListener("DOMContentLoaded", () => {
     container.innerHTML =
       '<div class="tradingview-widget-container__widget"></div>';
 
-    const currentTheme = localStorage.getItem("tm_theme") || "neo-retro";
-    const isLight = currentTheme === "modern-light" || currentTheme === "win95";
+    const currentTheme = localStorage.getItem("tm_theme") || "figma-ui";
+    const isLight = currentTheme === "modern-light" || currentTheme === "win95" || currentTheme === "figma-ui";
     const tvTheme = isLight ? "light" : "dark";
 
     const script = document.createElement("script");
@@ -1575,6 +1575,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let collapsedSrc = "assets/rulebook_logo_neo_small.png";
 
     switch (theme) {
+      case "figma-ui":
+        expandedSrc = "assets/rulebook_logo_modernlight.png";
+        collapsedSrc = "assets/rulebook_logo_modernlight_small.png";
+        break;
       case "win95":
         expandedSrc = "assets/rulebook_logo_win95.png";
         collapsedSrc = "assets/rulebook_logo_win95_small.png";

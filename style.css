@@ -103,6 +103,227 @@
   --panel-border: 1px solid var(--border-light);
 }
 
+/* == FIGMA UI KIT (SE-T / Modern Dashboard) Theme ============================ */
+:root[data-theme="figma-ui"] {
+  --bg-color: #f3f5f9;
+  --panel-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-light: #f1f5f9;
+  --border-dark: #e2e8f0;
+  --border-darker: #cbd5e1;
+  --title-bg: transparent;
+  --title-text: #0f172a;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --success: #10b981;
+  --danger: #ef4444;
+  --accent-color: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --input-bg: #f8fafc;
+  --input-text: #0f172a;
+  --panel-radius: 20px;
+  --panel-shadow: 0 10px 30px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.02);
+  --font-family: "Inter", system-ui, -apple-system, sans-serif;
+  --panel-border: 1px solid #eef2f6;
+}
+
+:root[data-theme="figma-ui"] body {
+  background: #f4f6f9;
+  color: #1e293b;
+}
+
+:root[data-theme="figma-ui"] .glass-panel {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="figma-ui"] .sidebar {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="figma-ui"] .sidebar-nav-item {
+  border-radius: 14px;
+  margin: 3px 6px;
+  color: #64748b;
+  font-weight: 500;
+  border: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="figma-ui"] .sidebar-nav-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+:root[data-theme="figma-ui"] .sidebar-nav-item.active {
+  background: #3b82f6;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+  font-weight: 600;
+}
+
+:root[data-theme="figma-ui"] .sidebar-nav-item.active i {
+  color: #ffffff !important;
+}
+
+:root[data-theme="figma-ui"] .kpi-card {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.03);
+  padding: 16px 14px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+:root[data-theme="figma-ui"] .kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="figma-ui"] .kpi-card h3 {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:root[data-theme="figma-ui"] .kpi-value {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+:root[data-theme="figma-ui"] button,
+:root[data-theme="figma-ui"] .filter-btn,
+:root[data-theme="figma-ui"] .primary-btn,
+:root[data-theme="figma-ui"] .secondary-btn {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+:root[data-theme="figma-ui"] button:hover,
+:root[data-theme="figma-ui"] .filter-btn:hover,
+:root[data-theme="figma-ui"] .secondary-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+:root[data-theme="figma-ui"] .filter-btn.active,
+:root[data-theme="figma-ui"] .primary-btn {
+  background: #3b82f6;
+  color: #ffffff !important;
+  border-color: #3b82f6;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.3);
+}
+
+:root[data-theme="figma-ui"] input,
+:root[data-theme="figma-ui"] select,
+:root[data-theme="figma-ui"] .profile-select {
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 8px 12px;
+  box-shadow: none;
+}
+
+:root[data-theme="figma-ui"] input:focus,
+:root[data-theme="figma-ui"] select:focus {
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Figma Hero Accent Cards */
+:root[data-theme="figma-ui"] .kpi-card.hero-blue {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  color: #ffffff;
+  border: none;
+}
+:root[data-theme="figma-ui"] .kpi-card.hero-blue h3,
+:root[data-theme="figma-ui"] .kpi-card.hero-blue .kpi-value,
+:root[data-theme="figma-ui"] .kpi-card.hero-blue span {
+  color: #ffffff !important;
+}
+
+:root[data-theme="figma-ui"] .kpi-card.hero-orange {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  color: #ffffff;
+  border: none;
+}
+:root[data-theme="figma-ui"] .kpi-card.hero-orange h3,
+:root[data-theme="figma-ui"] .kpi-card.hero-orange .kpi-value,
+:root[data-theme="figma-ui"] .kpi-card.hero-orange span {
+  color: #ffffff !important;
+}
+
+:root[data-theme="figma-ui"] .kpi-card.hero-green {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  border: none;
+}
+:root[data-theme="figma-ui"] .kpi-card.hero-green h3,
+:root[data-theme="figma-ui"] .kpi-card.hero-green .kpi-value,
+:root[data-theme="figma-ui"] .kpi-card.hero-green span {
+  color: #ffffff !important;
+}
+
+:root[data-theme="figma-ui"] .kpi-card.hero-yellow {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  color: #ffffff;
+  border: none;
+}
+:root[data-theme="figma-ui"] .kpi-card.hero-yellow h3,
+:root[data-theme="figma-ui"] .kpi-card.hero-yellow .kpi-value,
+:root[data-theme="figma-ui"] .kpi-card.hero-yellow span {
+  color: #ffffff !important;
+}
+
+:root[data-theme="figma-ui"] .top-bar {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-radius: 20px;
+  padding: 12px 20px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  margin-bottom: 20px;
+}
+
+:root[data-theme="figma-ui"] #trades-table,
+:root[data-theme="figma-ui"] #daily-stats-table {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #eef2f6;
+}
+
+:root[data-theme="figma-ui"] table th {
+  background: #f8fafc;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+:root[data-theme="figma-ui"] table td {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+:root[data-theme="figma-ui"] table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
 /* == QUANTUM Theme ============================================ */
 :root[data-theme="quantum"] {
   --bg-color: #020408;

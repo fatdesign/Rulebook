@@ -223,6 +223,7 @@
               cursor: pointer;
             "
           >
+            <option value="figma-ui">Figma UI Kit (SE-T)</option>
             <option value="neo-retro">Rulebook Neo-Retro</option>
             <option value="win95">Windows 95 Classic</option>
             <option value="modern-dark">Modern Dark (Prop Firm)</option>
@@ -349,6 +350,7 @@
                   class="theme-select profile-select"
                   style="padding: 6px"
                 >
+                  <option value="figma-ui">Figma UI Kit</option>
                   <option value="neo-retro">Neo-Retro</option>
                   <option value="win95">Win95 Classic</option>
                   <option value="modern-dark">Modern Dark</option>
@@ -462,7 +464,15 @@
                 </select>
               </div>
 
-              <div class="top-bar-right">
+              <div class="top-bar-right" style="display: flex; align-items: center; gap: 15px;">
+                <div class="top-bar-search" style="display: flex; align-items: center; position: relative;">
+                  <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; color: var(--text-muted); font-size: 1rem;"></i>
+                  <input type="text" id="top-search-input" placeholder="Search dashboard..." style="padding-left: 36px; border-radius: 99px; width: 200px; height: 36px; font-size: 0.85rem;" />
+                </div>
+                <div class="user-profile-badge" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; padding: 4px 12px; border-radius: 99px; background: var(--input-bg); border: 1px solid var(--border-dark);">
+                  <i class="ph-fill ph-user-circle" style="font-size: 1.4rem; color: var(--primary-color);"></i>
+                  <span id="header-username">Rulebook Trader</span>
+                </div>
                 <button
                   id="focus-btn-exit"
                   class="secondary-btn"
@@ -601,19 +611,19 @@
                 <div class="dashboard-grid">
                   <!-- KPIs Row 1 -->
                   <div class="kpi-row">
-                    <div class="kpi-card glass-panel">
+                    <div class="kpi-card hero-blue glass-panel">
                       <h3 data-i18n="kpi_profit">Net Profit</h3>
                       <p id="kpi-profit" class="kpi-value positive">$0.00</p>
                     </div>
-                    <div class="kpi-card glass-panel">
+                    <div class="kpi-card hero-orange glass-panel">
                       <h3 data-i18n="kpi_gain">Gain %</h3>
                       <p id="kpi-gain" class="kpi-value positive">0.00%</p>
                     </div>
-                    <div class="kpi-card glass-panel">
+                    <div class="kpi-card hero-green glass-panel">
                       <h3 data-i18n="kpi_winrate">Win Rate</h3>
                       <p id="kpi-winrate" class="kpi-value">0%</p>
                     </div>
-                    <div class="kpi-card glass-panel">
+                    <div class="kpi-card hero-yellow glass-panel">
                       <h3 data-i18n="kpi_trades">Total Trades</h3>
                       <p id="kpi-trades" class="kpi-value">0</p>
                     </div>
