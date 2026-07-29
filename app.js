@@ -1575,6 +1575,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let collapsedSrc = "assets/rulebook_logo_neo_small.png";
 
     switch (theme) {
+      case "ios-glass":
+        expandedSrc = "assets/rulebook_logo_quantum.png";
+        collapsedSrc = "assets/rulebook_logo_quantum_small.png";
+        break;
       case "figma-ui":
         expandedSrc = "assets/rulebook_logo_modernlight.png";
         collapsedSrc = "assets/rulebook_logo_modernlight_small.png";
