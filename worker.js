@@ -2548,9 +2548,10 @@ WICHTIGE REGELN:
         );
         const batch = [];
         for (const t of body.trades) {
+          const normTicket = String(t.ticket).split(".")[0];
           batch.push(
             stmt.bind(
-              t.ticket,
+              normTicket,
               db_key,
               t.symbol,
               t.side,
@@ -3451,8 +3452,18 @@ WICHTIGE REGELN:
           const current_balance = balanceRes ? balanceRes.balance : 0;
           const server_time = balanceRes ? balanceRes.server_time : null;
 
+          // Deduplicate trades by normalized string ticket (removes DB duplicates from legacy REAL vs TEXT ticket format)
+          const uniqueTradesMap = new Map();
+          (results || []).forEach((t) => {
+            const normTicket = String(t.ticket).split(".")[0];
+            if (!uniqueTradesMap.has(normTicket)) {
+              uniqueTradesMap.set(normTicket, { ...t, ticket: normTicket });
+            }
+          });
+          const uniqueTrades = Array.from(uniqueTradesMap.values());
+
           return new Response(
-            JSON.stringify({ trades: results, current_balance, server_time }),
+            JSON.stringify({ trades: uniqueTrades, current_balance, server_time }),
             { headers: corsHeaders },
           );
         }

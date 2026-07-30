@@ -2163,7 +2163,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const payload = await response.json();
-      const trades = payload.trades || payload;
+      const rawTrades = payload.trades || payload;
+      const tradesMap = new Map();
+      (rawTrades || []).forEach((t) => {
+        const normTicket = String(t.ticket).split(".")[0];
+        if (!tradesMap.has(normTicket)) {
+          tradesMap.set(normTicket, { ...t, ticket: normTicket });
+        }
+      });
+      const trades = Array.from(tradesMap.values());
       let currentBalance = payload.current_balance || 0;
 
       // The broker's own current server time, in the exact same convention
