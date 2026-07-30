@@ -1970,8 +1970,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Build daily profit map from ALL trades (across all time)
     const dailyProfit = {};
     currentAllTrades.forEach((t) => {
+      // UTC accessors: close_time is broker server wall-clock time encoded
+      // as if it were a UTC epoch value, so reading it back with UTC
+      // accessors recovers that exact server date - a local accessor would
+      // reinterpret it through the viewer's own browser timezone instead,
+      // silently disagreeing with what MT5 itself shows.
       const d = new Date(t.close_time * 1000);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
       if (!dailyProfit[key]) dailyProfit[key] = 0;
       dailyProfit[key] += parseFloat(t.net_profit);
     });
@@ -2017,7 +2022,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const dayTrades = currentAllTrades.filter((t) => {
           const tDate = new Date(t.close_time * 1000);
-          const tKey = `${tDate.getFullYear()}-${String(tDate.getMonth() + 1).padStart(2, "0")}-${String(tDate.getDate()).padStart(2, "0")}`;
+          const tKey = `${tDate.getUTCFullYear()}-${String(tDate.getUTCMonth() + 1).padStart(2, "0")}-${String(tDate.getUTCDate()).padStart(2, "0")}`;
           return tKey === dKey;
         });
 
@@ -2044,10 +2049,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openTradesCalPopup() {
-    // Start on the month of the currently filtered timeframe
-    const now = new Date();
-    calPopupYear = now.getFullYear();
-    calPopupMonth = now.getMonth();
+    // Start on the month of the currently filtered timeframe. Uses the
+    // broker's server time (UTC accessors), matching how the popup's own
+    // day grouping reads close_time - so it defaults to the month actually
+    // containing "today" per the server's clock.
+    const now = new Date((window.currentServerTime || Math.floor(Date.now() / 1000)) * 1000);
+    calPopupYear = now.getUTCFullYear();
+    calPopupMonth = now.getUTCMonth();
     renderTradesCalPopup();
     if (tradesCalOverlay) {
       tradesCalOverlay.style.display = "flex";
@@ -2158,14 +2166,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const trades = payload.trades || payload;
       let currentBalance = payload.current_balance || 0;
 
+      // The broker's own current server time, in the exact same convention
+      // as every trade's open_time/close_time (both are wall-clock values
+      // sent as-is by the EA, not true UTC). Every date/day computed from a
+      // trade elsewhere in this app must read it with UTC accessors
+      // (getUTCFullYear etc.) rather than local ones - that's what recovers
+      // the broker's own calendar day regardless of the viewer's own
+      // timezone. Today/This Week boundaries are built from this same
+      // server_time value for the same reason: comparing a trade's raw
+      // close_time against a boundary built from the *browser's* clock
+      // silently disagrees with MT5 by however many hours separate the
+      // trader's timezone from the broker's server.
+      window.currentServerTime = payload.server_time
+        ? parseInt(payload.server_time)
+        : Math.floor(Date.now() / 1000);
+
       let runningBalance = parseFloat(currentBalance);
       window.accCurrency = "USD";
       trades.forEach((t) => {
-        // Offset timestamps so local browser time exactly matches MT5 Server time
-        const offsetSecs = new Date(t.close_time * 1000).getTimezoneOffset() * 60;
-        if (t.open_time) t.open_time = t.open_time + offsetSecs;
-        if (t.close_time) t.close_time = t.close_time + offsetSecs;
-
         // Parse side
         if (t.side.includes("_")) {
           const sideParts = t.side.split("_");
@@ -2356,64 +2374,67 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch((e) => console.error(e));
 
-      // Filter trades based on timeframe
-      const now = new Date();
+      // Filter trades based on timeframe.
+      //
+      // `now` is built from the broker's own server time (window.currentServerTime,
+      // sent by the EA in the same wall-clock-as-if-UTC convention as every
+      // close_time), NOT the browser's clock - MT5 always defines "Today" by
+      // its own server clock, and comparing raw close_time values against a
+      // boundary built from the viewer's browser time silently disagrees
+      // with MT5 by however many hours separate the two. Read/construct
+      // exclusively with UTC accessors and Date.UTC(...): since close_time
+      // is already "server wall-clock, labelled as UTC", treating it as
+      // genuine UTC throughout (never touching local accessors, which would
+      // reinterpret it through the browser's own timezone) is what keeps
+      // every date computed from a trade consistent with what MT5 itself
+      // shows, regardless of where the viewer happens to be sitting.
+      const serverTimeSec = window.currentServerTime || Math.floor(Date.now() / 1000);
+      const now = new Date(serverTimeSec * 1000);
       let startTime = 0;
       let endTime = 2000000000;
 
-      // Day boundaries use plain local Date objects, matching how every
-      // other day-grouping in the app (Calendar, Journal, Daily Stats,
-      // the specific-month branch right below) reads close_time: via
-      // `new Date(close_time * 1000)` and the browser's own local
-      // timezone. An earlier version of this block instead reinterpreted
-      // the viewer's local Y/M/D as a UTC instant (Date.UTC(...)), which
-      // silently disagreed with every other tab whenever the browser's
-      // timezone wasn't exactly UTC - a trade closing right around
-      // midnight local time could show up in the Calendar/Date-Range
-      // picker under one day, and be invisible from the Today/Yesterday
-      // quick filters because they were computing a different window.
       if (currentTimeframe === "today") {
         startTime = Math.floor(
-          new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000,
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / 1000,
         );
         endTime =
           Math.floor(
-            new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() / 1000,
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1) / 1000,
           ) - 1;
       } else if (currentTimeframe === "yesterday") {
         startTime = Math.floor(
-          new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime() / 1000,
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1) / 1000,
         );
         endTime =
           Math.floor(
-            new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000,
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / 1000,
           ) - 1;
       } else if (currentTimeframe === "week") {
-        const day = now.getDay(); // 0=Sun .. 6=Sat
+        const day = now.getUTCDay(); // 0=Sun .. 6=Sat
         const daysToMonday = day === 0 ? -6 : 1 - day;
-        const mondayDate = now.getDate() + daysToMonday;
+        const mondayDate = now.getUTCDate() + daysToMonday;
         const sundayDate = mondayDate + 6;
-        // Date's constructor handles overflow automatically (e.g. a
-        // negative day rolls back into the previous month).
+        // Date.UTC handles overflow automatically (e.g. a negative day
+        // rolls back into the previous month).
         startTime = Math.floor(
-          new Date(now.getFullYear(), now.getMonth(), mondayDate).getTime() / 1000,
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), mondayDate) / 1000,
         );
         endTime =
           Math.floor(
-            new Date(now.getFullYear(), now.getMonth(), sundayDate + 1).getTime() / 1000,
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), sundayDate + 1) / 1000,
           ) - 1;
       } else if (currentTimeframe === "month" || currentTimeframe === "current_month") {
         startTime = Math.floor(
-          new Date(now.getFullYear(), now.getMonth(), 1).getTime() / 1000,
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) / 1000,
         );
         endTime =
           Math.floor(
-            new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime() / 1000,
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1) / 1000,
           ) - 1;
       } else if (currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
         const [y, m] = currentTimeframe.split("-").map(Number);
-        startTime = Math.floor(new Date(y, m, 1).getTime() / 1000);
-        endTime = Math.floor(new Date(y, m + 1, 1).getTime() / 1000) - 1;
+        startTime = Math.floor(Date.UTC(y, m, 1) / 1000);
+        endTime = Math.floor(Date.UTC(y, m + 1, 1) / 1000) - 1;
       } else if (currentTimeframe === "all") {
         startTime = 0;
         endTime = 2000000000;
@@ -2443,7 +2464,7 @@ document.addEventListener("DOMContentLoaded", () => {
           uniqueMonths.add(`${d.getUTCFullYear()}-${d.getUTCMonth()}`);
         });
 
-        uniqueMonths.add(`${now.getFullYear()}-${now.getMonth()}`);
+        uniqueMonths.add(`${now.getUTCFullYear()}-${now.getUTCMonth()}`);
 
         const sortedMonths = Array.from(uniqueMonths).sort((a, b) => {
           const [yA, mA] = a.split("-").map(Number);
@@ -2476,7 +2497,7 @@ document.addEventListener("DOMContentLoaded", () => {
         monthSel.innerHTML = optionsHtml;
 
         if (currentTimeframe === "current_month") {
-          monthSel.value = `${now.getFullYear()}-${now.getMonth()}`;
+          monthSel.value = `${now.getUTCFullYear()}-${now.getUTCMonth()}`;
           currentTimeframe = monthSel.value;
         } else if (
           currentTimeframe === "all" ||
@@ -2880,12 +2901,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const durationStr = formatHoldTime(holdSec);
 
       const openDate = new Date((t.open_time || 0) * 1000);
+      // timeZone: "UTC" - open_time is broker server wall-clock time sent
+      // as-is, so formatting it in the browser's own local timezone (the
+      // default) would show something other than what MT5 itself displays.
       const dateStr = openDate.toLocaleString([], {
         day: "2-digit",
         month: "2-digit",
         year: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "UTC",
       });
       const strategyId = window.tradeStrategyMap
         ? window.tradeStrategyMap[t.ticket] || ""
@@ -3393,9 +3418,9 @@ document.addEventListener("DOMContentLoaded", () => {
           "Dez",
         ];
 
-        const now = new Date();
-        const currY = now.getFullYear();
-        const currM = now.getMonth();
+        const now = new Date((window.currentServerTime || Math.floor(Date.now() / 1000)) * 1000);
+        const currY = now.getUTCFullYear();
+        const currM = now.getUTCMonth();
 
         years.forEach((year) => {
           const yearDiv = document.createElement("div");
@@ -3484,13 +3509,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (calContainer && monthTitle) {
       calContainer.innerHTML = "";
       let y, m;
-      const nowD = new Date();
+      const nowD = new Date((window.currentServerTime || Math.floor(Date.now() / 1000)) * 1000);
 
       if (currentTimeframe && currentTimeframe.match(/^\d{4}-\d{1,2}$/)) {
         [y, m] = currentTimeframe.split("-").map(Number);
       } else {
-        y = nowD.getFullYear();
-        m = nowD.getMonth();
+        y = nowD.getUTCFullYear();
+        m = nowD.getUTCMonth();
       }
 
       const fullMonthNames = [
@@ -3628,9 +3653,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     trades.forEach((t) => {
       const dateObj = new Date(t.close_time * 1000);
-      const y = dateObj.getFullYear();
-      const m = dateObj.getMonth() + 1;
-      const d = dateObj.getDate();
+      const y = dateObj.getUTCFullYear();
+      const m = dateObj.getUTCMonth() + 1;
+      const d = dateObj.getUTCDate();
 
       const dateKey = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
@@ -3638,7 +3663,7 @@ document.addEventListener("DOMContentLoaded", () => {
         daysMap[dateKey] = {
           dateKey: dateKey,
           dateStr: `${String(d).padStart(2, "0")}.${String(m).padStart(2, "0")}.${y}`,
-          timestamp: new Date(y, m - 1, d).getTime(),
+          timestamp: Date.UTC(y, m - 1, d),
           netProfit: 0,
           grossProfit: 0,
           grossLoss: 0,
@@ -3767,9 +3792,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const dayTrades = trades.filter((t) => {
           const tDate = new Date(t.close_time * 1000);
-          const y = tDate.getFullYear();
-          const m = tDate.getMonth() + 1;
-          const d = tDate.getDate();
+          const y = tDate.getUTCFullYear();
+          const m = tDate.getUTCMonth() + 1;
+          const d = tDate.getUTCDate();
           const tKey = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           return tKey === day.dateKey;
         });
@@ -3959,33 +3984,36 @@ document.addEventListener("DOMContentLoaded", () => {
         const selectedSessions = Array.from(profSessionCheckboxes)
           .filter((c) => c.checked)
           .map((c) => c.value);
-        const now = new Date();
+        // Server time again (see loadDashboard) so "month"/"week"/"day"
+        // scoping agrees with what the rest of the dashboard considers
+        // those periods to be.
+        const now = new Date((window.currentServerTime || Math.floor(Date.now() / 1000)) * 1000);
         const todayStartTime = Math.floor(
-          new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() /
-            1000,
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / 1000,
         );
 
         let tradesToAnalyze = window.currentAllTrades || [];
         const aiScopeVal = document.getElementById("ai-scope")?.value;
 
         if (aiScopeVal === "month") {
-          const currentMonth = now.getMonth();
-          const currentYear = now.getFullYear();
+          const currentMonth = now.getUTCMonth();
+          const currentYear = now.getUTCFullYear();
           tradesToAnalyze = (window.currentAllTrades || []).filter((t) => {
             const d = new Date(t.close_time * 1000);
             return (
-              d.getMonth() === currentMonth && d.getFullYear() === currentYear
+              d.getUTCMonth() === currentMonth && d.getUTCFullYear() === currentYear
             );
           });
         } else if (aiScopeVal === "week") {
-          const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
+          const dayOfWeek = now.getUTCDay(); // 0 = Sunday, 1 = Monday
           const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-          const monday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate() - diffToMonday,
+          const weekStartSec = Math.floor(
+            Date.UTC(
+              now.getUTCFullYear(),
+              now.getUTCMonth(),
+              now.getUTCDate() - diffToMonday,
+            ) / 1000,
           );
-          const weekStartSec = Math.floor(monday.getTime() / 1000);
           tradesToAnalyze = (window.currentAllTrades || []).filter(
             (t) => t.close_time >= weekStartSec,
           );
@@ -3996,7 +4024,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tradesToAnalyze = (window.currentAllTrades || []).filter((t) => {
               const d = new Date(t.close_time * 1000);
               return (
-                `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` ===
+                `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}` ===
                 dKey
               );
             });
@@ -4103,11 +4131,11 @@ document.addEventListener("DOMContentLoaded", () => {
             saveArchiveBtn.innerHTML =
               '<div class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:var(--text-main);border-right-color:transparent;border-radius:50%;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-right:5px;"></div> Saving...';
             try {
-              const now = new Date();
+              const now = new Date((window.currentServerTime || Math.floor(Date.now() / 1000)) * 1000);
               const dateStr =
                 currentTimeframe === "current_month" ||
                 currentTimeframe === "all"
-                  ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+                  ? `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`
                   : currentTimeframe;
               const res = await fetch(`${API_URL}?action=coach_archive`, {
                 method: "POST",
@@ -4213,12 +4241,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const curSym = window.currentCurSym || "$";
       const trades = window.currentAllTrades || [];
 
-      // Sum net P&L per local date-key, matching the day-grouping used
-      // everywhere else (calendar, daily stats, journal trade list).
+      // Sum net P&L per server-day date-key, matching the day-grouping used
+      // everywhere else (calendar, daily stats, journal trade list) - the
+      // journal's own date-keys come from that same server-time grouping.
       const dailyPnl = {};
       trades.forEach((t) => {
         const d = new Date(t.close_time * 1000);
-        const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const dKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
         dailyPnl[dKey] = (dailyPnl[dKey] || 0) + parseFloat(t.net_profit || 0);
       });
 
@@ -4327,13 +4356,13 @@ document.addEventListener("DOMContentLoaded", () => {
   window.loadSettings = loadSettings;
 
   // --- Journal Modal Logic ---
-  // Same local-date grouping used by renderDailyStatsTable, so the trades
+  // Same server-day grouping used by renderDailyStatsTable, so the trades
   // shown here always match the day the "open-journal-btn" was clicked for.
   function getTradesForDateKey(dateKey) {
     const trades = window.currentAllTrades || [];
     return trades.filter((t) => {
       const d = new Date(t.close_time * 1000);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
       return key === dateKey;
     });
   }
@@ -5525,8 +5554,11 @@ window.renderTagAnalyzer = function (trades, curSym) {
       '<span style="color: #38bdf8; font-weight: 500;">$1</span>',
     );
 
+    // UTC accessors: display the broker server's own wall-clock time (what
+    // MT5 itself shows), not the viewer's browser-local reinterpretation
+    // of it.
     const dateObj = new Date(t.close_time * 1000);
-    const dateStr = `${String(dateObj.getDate()).padStart(2, "0")}.${String(dateObj.getMonth() + 1).padStart(2, "0")}.${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, "0")}:${String(dateObj.getMinutes()).padStart(2, "0")}`;
+    const dateStr = `${String(dateObj.getUTCDate()).padStart(2, "0")}.${String(dateObj.getUTCMonth() + 1).padStart(2, "0")}.${dateObj.getUTCFullYear()} ${String(dateObj.getUTCHours()).padStart(2, "0")}:${String(dateObj.getUTCMinutes()).padStart(2, "0")}`;
 
     // Strategy
     const strategyId = window.tradeStrategyMap
@@ -5888,7 +5920,7 @@ window.updatePropChallengeStats = async function(chal) {
       const p = parseFloat(t.net_profit) || 0;
       totalNetP += p;
       const dObj = new Date(t.close_time * 1000);
-      const dKey = `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, "0")}-${String(dObj.getDate()).padStart(2, "0")}`;
+      const dKey = `${dObj.getUTCFullYear()}-${String(dObj.getUTCMonth() + 1).padStart(2, "0")}-${String(dObj.getUTCDate()).padStart(2, "0")}`;
       dailyPnl[dKey] = (dailyPnl[dKey] || 0) + p;
     });
 

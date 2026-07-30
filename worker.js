@@ -2212,8 +2212,28 @@ Fasse dich prägnant, aber tiefgründig (ca. 5-7 Sätze). Kein unnötiges Blabla
           ).run();
         } catch (e) {}
 
-        // Monday 00:00:00 UTC of the current week -> used as the week key & window start
-        const now = new Date();
+        // Monday 00:00:00 of the current week, in the *broker's own* server
+        // time rather than the Worker's true-UTC clock - trades.close_time
+        // is the broker's server wall-clock value sent as-is by the EA, so
+        // comparing it against a true-UTC week boundary can disagree with
+        // what the trader's own MT5 would call "this week" by however many
+        // hours separate the broker's server from UTC. account_balances
+        // carries the last server_time this specific account reported, so
+        // this stays correct per-account without needing to know every
+        // broker's offset in general (which the multi-user leaderboards
+        // can't do, since they span accounts on different brokers/servers).
+        let serverTimeSec = null;
+        try {
+          const stRow = await env.DB.prepare(
+            "SELECT server_time FROM account_balances WHERE license_key = ?",
+          )
+            .bind(db_key)
+            .first();
+          if (stRow && stRow.server_time) serverTimeSec = stRow.server_time;
+        } catch (e) {}
+        const now = serverTimeSec
+          ? new Date(serverTimeSec * 1000)
+          : new Date();
         const dayOfWeek = now.getUTCDay(); // 0 = Sunday
         const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         const monday = new Date(
@@ -2487,6 +2507,27 @@ WICHTIGE REGELN:
             "INSERT INTO account_balances (license_key, balance) VALUES (?, ?) ON CONFLICT(license_key) DO UPDATE SET balance=excluded.balance",
           )
             .bind(db_key, parseFloat(body.current_balance))
+            .run();
+        }
+
+        // Save the broker's own current server time (same convention as
+        // every close_time/open_time value) so the dashboard can compute
+        // Today/This Week boundaries against the server's clock instead of
+        // the viewer's browser clock - those can differ by hours depending
+        // on where the broker's server actually is.
+        if (body.server_time !== undefined) {
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE account_balances ADD COLUMN server_time INTEGER",
+            ).run();
+          } catch (e) {}
+          await env.DB.prepare(
+            "CREATE TABLE IF NOT EXISTS account_balances (license_key TEXT PRIMARY KEY, balance REAL)",
+          ).run();
+          await env.DB.prepare(
+            "INSERT INTO account_balances (license_key, server_time) VALUES (?, ?) ON CONFLICT(license_key) DO UPDATE SET server_time=excluded.server_time",
+          )
+            .bind(db_key, parseInt(body.server_time))
             .run();
         }
 
@@ -3397,15 +3438,21 @@ WICHTIGE REGELN:
           await env.DB.prepare(
             "CREATE TABLE IF NOT EXISTS account_balances (license_key TEXT PRIMARY KEY, balance REAL)",
           ).run();
+          try {
+            await env.DB.prepare(
+              "ALTER TABLE account_balances ADD COLUMN server_time INTEGER",
+            ).run();
+          } catch (e) {}
           const balanceRes = await env.DB.prepare(
-            "SELECT balance FROM account_balances WHERE license_key = ?",
+            "SELECT balance, server_time FROM account_balances WHERE license_key = ?",
           )
             .bind(db_key)
             .first();
           const current_balance = balanceRes ? balanceRes.balance : 0;
+          const server_time = balanceRes ? balanceRes.server_time : null;
 
           return new Response(
-            JSON.stringify({ trades: results, current_balance }),
+            JSON.stringify({ trades: results, current_balance, server_time }),
             { headers: corsHeaders },
           );
         }
