@@ -96,7 +96,7 @@ export default {
       // --- Notification helper (reactions, comments, follows) ---
       async function createNotification(
         env,
-        { recipient_user_id, actor_user_id, type, post_id, extra },
+        { recipient_user_id, actor_user_id, type, post_id = null, extra = null },
       ) {
         if (!recipient_user_id || recipient_user_id === actor_user_id) return;
 
