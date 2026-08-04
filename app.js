@@ -6111,7 +6111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const timeframeFilters = document.getElementById("timeframe-filters");
       const monthSelector = document.getElementById("month-selector");
       if (timeframeFilters) {
-        if (tabId === "tab-dashboard") {
+        if (tabId === "tab-dashboard" || tabId === "tab-trades") {
           timeframeFilters.style.display = "";
           if (monthSelector) monthSelector.style.display = "";
         } else {

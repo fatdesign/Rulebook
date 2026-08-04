@@ -255,6 +255,11 @@
   outline: none;
 }
 
+:root[data-theme="ios-glass"] option {
+  background: #0b1329;
+  color: #ffffff;
+}
+
 :root[data-theme="ios-glass"] .top-bar {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(32px) saturate(200%);
