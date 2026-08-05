@@ -2134,13 +2134,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Auto-refresh every 60 seconds
+  // Auto-refresh every 15 seconds
   setInterval(() => {
     const key = localStorage.getItem("tm_license_key");
     if (key && !dashboard.classList.contains("hidden")) {
       loadDashboard(key);
     }
-  }, 60000);
+  }, 15000);
 
   async function loadDashboard(key) {
     errorMsg.classList.add("hidden");
