@@ -106,6 +106,34 @@ async function handleDeleteUser(btn) {
   }
 }
 
+async function handleResetPassword(btn) {
+  const userId = btn.getAttribute("data-user-id");
+  const email = btn.getAttribute("data-email");
+
+  const newPw = prompt(`Neues Passwort für ${email} eingeben:`);
+  if (!newPw) return;
+
+  btn.disabled = true;
+  btn.innerText = "...";
+  try {
+    const data = await adminFetch(
+      "admin_reset_password",
+      { user_id: userId, new_password: newPw },
+      "POST"
+    );
+    if (data.success) {
+      alert(`Passwort für ${email} wurde erfolgreich geändert.`);
+    } else {
+      alert("Fehler: " + (data.error || "Unbekannter Fehler"));
+    }
+  } catch (e) {
+    alert("Fehler beim Ändern: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="ph ph-key"></i> PW setzen`;
+  }
+}
+
 function renderStats(data) {
   const grid = document.getElementById("admin-stats-grid");
   grid.innerHTML = STAT_DEFS.map((def) => {
@@ -139,6 +167,14 @@ function renderUsers(data) {
           <td>${formatTimestamp(u.last_trade_at)}</td>
           <td>
             <button
+              class="secondary-btn admin-reset-pw-btn"
+              data-user-id="${u.id}"
+              data-email="${escapeHtml(u.email || "")}"
+              style="padding: 4px 10px; margin-right: 5px; font-size: 0.78rem;"
+            >
+              <i class="ph ph-key"></i> PW setzen
+            </button>
+            <button
               class="secondary-btn admin-delete-user-btn"
               data-user-id="${u.id}"
               data-email="${escapeHtml(u.email || "")}"
@@ -151,6 +187,10 @@ function renderUsers(data) {
       `,
       )
       .join("");
+
+    tbody.querySelectorAll(".admin-reset-pw-btn").forEach((btn) => {
+      btn.addEventListener("click", () => handleResetPassword(btn));
+    });
 
     tbody.querySelectorAll(".admin-delete-user-btn").forEach((btn) => {
       btn.addEventListener("click", () => handleDeleteUser(btn));

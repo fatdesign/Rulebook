@@ -473,6 +473,31 @@ export default {
         );
       }
 
+      // --- ADMIN: Reset user password ---
+      if (request.method === "POST" && action === "admin_reset_password") {
+        if (!isAdminAuthed(request, env)) {
+          return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+        }
+        await setupMasterTables(env);
+
+        const targetUserId = url.searchParams.get("user_id");
+        const newPassword = url.searchParams.get("new_password");
+
+        if (!targetUserId || !newPassword) {
+          return new Response(JSON.stringify({ error: "Missing user_id or new_password" }), { status: 400, headers: corsHeaders });
+        }
+
+        const targetUser = await env.DB.prepare("SELECT id FROM users WHERE id = ?").bind(targetUserId).first();
+        if (!targetUser) {
+          return new Response(JSON.stringify({ error: "User not found." }), { status: 404, headers: corsHeaders });
+        }
+
+        const newHash = await hashPassword(newPassword);
+        await env.DB.prepare("UPDATE users SET password_hash = ? WHERE id = ?").bind(newHash, targetUserId).run();
+
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
       // --- ADMIN: permanently delete a user and everything tied to them ---
       if (request.method === "DELETE" && action === "admin_delete_user") {
         if (!isAdminAuthed(request, env)) {
