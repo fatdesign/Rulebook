@@ -229,11 +229,25 @@
 }
 
 :root[data-theme="ios-glass"] .filter-btn.active,
-:root[data-theme="ios-glass"] .primary-btn {
-  background: linear-gradient(135deg, #007aff 0%, #0062cc 100%);
+:root[data-theme="ios-glass"] .primary-btn,
+:root[data-theme="ios-glass"] .journal-choice-btn.active,
+:root[data-theme="ios-glass"] .psych-cat-btn.active {
+  background: linear-gradient(135deg, #007aff 0%, #0062cc 100%) !important;
   color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.45) !important;
+  font-weight: 700 !important;
+}
+
+:root[data-theme="ios-glass"] .journal-choice-btn.active *,
+:root[data-theme="ios-glass"] .psych-cat-btn.active * {
+  color: #ffffff !important;
+}
+
+:root[data-theme="ios-glass"] .journal-choice-btn.active:hover,
+:root[data-theme="ios-glass"] .psych-cat-btn.active:hover {
+  background: linear-gradient(135deg, #0062cc 0%, #004fb0 100%) !important;
+  color: #ffffff !important;
 }
 
 :root[data-theme="ios-glass"] input,
@@ -407,11 +421,26 @@
 }
 
 :root[data-theme="figma-ui"] .filter-btn.active,
-:root[data-theme="figma-ui"] .primary-btn {
-  background: #3b82f6;
+:root[data-theme="figma-ui"] .primary-btn,
+:root[data-theme="figma-ui"] .journal-choice-btn.active,
+:root[data-theme="figma-ui"] .psych-cat-btn.active {
+  background: #3b82f6 !important;
   color: #ffffff !important;
-  border-color: #3b82f6;
-  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6 !important;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35) !important;
+  font-weight: 700 !important;
+}
+
+:root[data-theme="figma-ui"] .journal-choice-btn.active *,
+:root[data-theme="figma-ui"] .psych-cat-btn.active * {
+  color: #ffffff !important;
+}
+
+:root[data-theme="figma-ui"] .journal-choice-btn.active:hover,
+:root[data-theme="figma-ui"] .psych-cat-btn.active:hover {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
 }
 
 :root[data-theme="figma-ui"] input,
@@ -635,11 +664,16 @@
 }
 :root[data-theme="quantum"] .journal-choice-btn.active,
 :root[data-theme="quantum"] .psych-cat-btn.active {
-  background: rgba(56, 189, 248, 0.22);
-  border-color: #38bdf8;
-  color: #38bdf8;
-  font-weight: bold;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.22);
+  background: rgba(56, 189, 248, 0.22) !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
+  font-weight: bold !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.22) !important;
+}
+
+:root[data-theme="quantum"] .journal-choice-btn.active *,
+:root[data-theme="quantum"] .psych-cat-btn.active * {
+  color: #38bdf8 !important;
 }
 :root[data-theme="quantum"] .filter-btn {
   background: rgba(5, 14, 28, 0.65);
@@ -2710,26 +2744,94 @@ th {
 .journal-choice-btn {
   padding: 6px 14px;
   font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.18s ease;
 }
-.journal-choice-btn.active {
-  background: var(--accent-glow);
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-  font-weight: bold;
+.journal-choice-btn.active,
+.psych-cat-btn.active {
+  background: var(--primary-color, #3b82f6) !important;
+  border-color: var(--primary-color, #3b82f6) !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 12px var(--accent-glow, rgba(59, 130, 246, 0.35)) !important;
+}
+.journal-choice-btn.active *,
+.psych-cat-btn.active * {
+  color: #ffffff !important;
 }
 .journal-choice-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-.psych-cat-btn.active {
-  background: var(--accent-glow);
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-  font-weight: bold;
+.journal-choice-btn:hover:not(:disabled):not(.active),
+.psych-cat-btn:hover:not(:disabled):not(.active) {
+  border-color: var(--accent-color, #3b82f6);
+  transform: translateY(-1px);
+}
+.journal-choice-btn:active:not(:disabled),
+.psych-cat-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 .journal-state-btn {
   padding: 6px 12px;
   min-width: 36px;
+  text-align: center;
+}
+
+:root[data-theme="modern-dark"] .journal-choice-btn.active,
+:root[data-theme="modern-dark"] .psych-cat-btn.active,
+:root[data-theme="modern-light"] .journal-choice-btn.active,
+:root[data-theme="modern-light"] .psych-cat-btn.active {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
+}
+:root[data-theme="modern-dark"] .journal-choice-btn.active *,
+:root[data-theme="modern-dark"] .psych-cat-btn.active *,
+:root[data-theme="modern-light"] .journal-choice-btn.active *,
+:root[data-theme="modern-light"] .psych-cat-btn.active * {
+  color: #ffffff !important;
+}
+:root[data-theme="modern-dark"] .journal-choice-btn.active:hover,
+:root[data-theme="modern-dark"] .psych-cat-btn.active:hover,
+:root[data-theme="modern-light"] .journal-choice-btn.active:hover,
+:root[data-theme="modern-light"] .psych-cat-btn.active:hover {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme="neo-retro"] .journal-choice-btn.active,
+:root[data-theme="neo-retro"] .psych-cat-btn.active {
+  background: rgba(57, 255, 20, 0.2) !important;
+  border-color: #39ff14 !important;
+  color: #39ff14 !important;
+  font-weight: bold !important;
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.4) !important;
+}
+:root[data-theme="neo-retro"] .journal-choice-btn.active *,
+:root[data-theme="neo-retro"] .psych-cat-btn.active * {
+  color: #39ff14 !important;
+}
+
+:root[data-theme="win95"] .journal-choice-btn.active,
+:root[data-theme="win95"] .psych-cat-btn.active {
+  background: #000080 !important;
+  border-color: #000080 !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+  border-top: 2px solid var(--border-darker) !important;
+  border-left: 2px solid var(--border-darker) !important;
+  border-right: 2px solid var(--border-light) !important;
+  border-bottom: 2px solid var(--border-light) !important;
+  box-shadow: inset 1px 1px 0px var(--border-dark), inset -1px -1px 0px var(--panel-bg) !important;
+}
+:root[data-theme="win95"] .journal-choice-btn.active *,
+:root[data-theme="win95"] .psych-cat-btn.active * {
+  color: #ffffff !important;
 }
 
 .journal-trade-card {

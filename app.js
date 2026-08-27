@@ -4420,7 +4420,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function wireChoiceGroup(buttons) {
     let selected = null;
     buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        if (e) e.preventDefault();
         const alreadyActive = btn.classList.contains("active");
         buttons.forEach((b) => b.classList.remove("active"));
         if (!alreadyActive) {
@@ -7725,7 +7726,7 @@ function triggerPsychologyAICoach(lessonId) {
   }
 }
 
-// Modal Close logic
+// Modal Close & Category Filters logic
 document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = document.getElementById("close-psychology-modal");
   const modal = document.getElementById("psychology-modal");
@@ -7741,6 +7742,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target === modal) {
         modal.classList.add("hidden");
       }
+    });
+  }
+
+  const psychCatFilters = document.getElementById("psychology-category-filters");
+  if (psychCatFilters) {
+    psychCatFilters.addEventListener("click", (e) => {
+      const btn = e.target.closest(".psych-cat-btn");
+      if (!btn) return;
+      document.querySelectorAll(".psych-cat-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activePsychCat = btn.getAttribute("data-cat") || "all";
+      renderPsychologyLessons();
     });
   }
 });
